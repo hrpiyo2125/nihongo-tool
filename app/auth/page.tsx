@@ -1,0 +1,305 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+
+// ===== 背景タイルデータ =====
+const tiles = [
+  { char: "あ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
+  { char: "い", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4" },
+  { char: "う", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88" },
+  { char: "え", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a" },
+  { char: "お", bg: "linear-gradient(135deg,#fff0ec,#ffe4d9)", color: "#c47a4a" },
+  { char: "ア", bg: "linear-gradient(135deg,#f0e8ff,#e4d8ff)", color: "#7a5cc4" },
+  { char: "イ", bg: "linear-gradient(135deg,#fff8e0,#fff0c8)", color: "#b08020" },
+  { char: "ウ", bg: "linear-gradient(135deg,#e8f8ee,#d0f0e0)", color: "#3a8a5a" },
+  { char: "字", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88" },
+  { char: "山", bg: "linear-gradient(135deg,#fff8e0,#fff0c8)", color: "#b08020" },
+  { char: "１", bg: "linear-gradient(135deg,#e8f8ee,#d0f0e0)", color: "#3a8a5a" },
+  { char: "２", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
+  { char: "か", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4" },
+  { char: "き", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88" },
+  { char: "く", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a" },
+  { char: "け", bg: "linear-gradient(135deg,#f0e8ff,#e4d8ff)", color: "#7a5cc4" },
+  { char: "こ", bg: "linear-gradient(135deg,#fff0ec,#ffe4d9)", color: "#c47a4a" },
+  { char: "さ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
+  { char: "し", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4" },
+  { char: "す", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88" },
+  { char: "せ", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a" },
+  { char: "そ", bg: "linear-gradient(135deg,#fff8e0,#fff0c8)", color: "#b08020" },
+  { char: "た", bg: "linear-gradient(135deg,#e8f8ee,#d0f0e0)", color: "#3a8a5a" },
+  { char: "ち", bg: "linear-gradient(135deg,#f0e8ff,#e4d8ff)", color: "#7a5cc4" },
+  { char: "♪", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88" },
+  { char: "＋", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a" },
+  { char: "語", bg: "linear-gradient(135deg,#fff8e0,#fff0c8)", color: "#b08020" },
+  { char: "文", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
+  { char: "絵", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4" },
+  { char: "数", bg: "linear-gradient(135deg,#fff0ec,#ffe4d9)", color: "#c47a4a" },
+];
+
+// ===== 登録後に戻るページを取得 =====
+function getRedirectPath(): string {
+  if (typeof window === "undefined") return "/";
+  const params = new URLSearchParams(window.location.search);
+  return params.get("redirect") || "/";
+}
+
+export default function AuthPage() {
+  const router = useRouter();
+
+  // searchParamsからmodeを取得（?mode=loginでログインタブ起動）
+    const searchParams = useSearchParams();
+const [mode, setMode] = useState<"signup" | "login">(
+  searchParams.get("mode") === "login" ? "login" : "signup"
+);
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const isLogin = mode === "login";
+
+  // ===== 理由テキスト（呼び出し元によって変える想定、今はデフォルト） =====
+  const reasonText = (() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search);
+    const reason = p.get("reason");
+    if (reason === "favorite") return "お気に入り保存に登録が必要です";
+    if (reason === "history")  return "ダウンロード履歴に登録が必要です";
+    if (reason === "limit")    return "お気に入りの上限に達しました。登録すると5件まで保存できます";
+    return "お気に入り保存・ダウンロード履歴が使えます";
+  })();
+
+  // ===== 仮送信（Supabase実装前のプレースホルダー） =====
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!email || !password) { setError("メールアドレスとパスワードを入力してください"); return; }
+    if (password.length < 8) { setError("パスワードは8文字以上で入力してください"); return; }
+    setLoading(true);
+    // TODO: Supabase Auth 実装
+    // const { error } = isLogin
+    //   ? await supabase.auth.signInWithPassword({ email, password })
+    //   : await supabase.auth.signUp({ email, password });
+    await new Promise(r => setTimeout(r, 800)); // 仮ローディング
+    setLoading(false);
+    router.push(getRedirectPath());
+  };
+
+  const handleGoogle = async () => {
+    setLoading(true);
+    // TODO: Supabase Google OAuth
+    // await supabase.auth.signInWithOAuth({ provider: "google" });
+    await new Promise(r => setTimeout(r, 600));
+    setLoading(false);
+    router.push(getRedirectPath());
+  };
+
+  const TILE_COLS = 6;
+  const TILE_ROWS = 6;
+
+  return (
+    <div style={{
+      minHeight: "100vh",
+      fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      position: "relative", overflow: "hidden",
+      background: "linear-gradient(160deg, #fce8f8 0%, #ede8ff 50%, #e8f0ff 100%)",
+    }}>
+
+      {/* ===== 背景タイル ===== */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 0,
+        display: "grid",
+        gridTemplateColumns: `repeat(${TILE_COLS}, 1fr)`,
+        gridTemplateRows: `repeat(${TILE_ROWS}, 1fr)`,
+        gap: 4,
+        transform: "rotate(-4deg) scale(1.15)",
+        opacity: 0.55,
+        pointerEvents: "none",
+      }}>
+        {Array.from({ length: TILE_COLS * TILE_ROWS }).map((_, i) => {
+          const tile = tiles[i % tiles.length];
+          return (
+            <div key={i} style={{
+              background: tile.bg,
+              borderRadius: 10,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 22, fontWeight: 700, color: tile.color,
+            }}>
+              {tile.char}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ===== オーバーレイ ===== */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 1,
+        background: "rgba(248,244,255,0.55)",
+      }} />
+
+      {/* ===== 認証カード ===== */}
+      <div style={{
+        position: "relative", zIndex: 2,
+        width: "100%", maxWidth: 400,
+        margin: "0 16px",
+        background: "rgba(255,255,255,0.88)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        borderRadius: 20,
+        border: "0.5px solid rgba(200,180,230,0.4)",
+        boxShadow: "0 8px 40px rgba(180,130,210,0.12)",
+        padding: "32px 36px 28px",
+      }}>
+
+        {/* ロゴ */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/toolio_logo.png" alt="toolio" style={{ height: 36, width: "auto", objectFit: "contain" }} />
+        </div>
+
+        {/* 登録する理由（文脈に応じた一言） */}
+        <div style={{
+          fontSize: 13, color: "#7a50b0", fontWeight: 600,
+          marginBottom: 6, lineHeight: 1.5,
+        }}>
+          {reasonText}
+        </div>
+
+        {/* 社会的証明 */}
+        <div style={{
+          fontSize: 11, color: "#b090c8", marginBottom: 18,
+          padding: "6px 10px",
+          background: "rgba(228,155,253,0.07)",
+          borderRadius: 8,
+          border: "0.5px solid rgba(228,155,253,0.2)",
+          lineHeight: 1.6,
+        }}>
+          ✦ 海外在住の日本語教師・保護者に人気のサービスです
+        </div>
+
+        {/* タブ切り替え */}
+        <div style={{
+          display: "flex", background: "#f5f0ff", borderRadius: 24,
+          padding: 3, marginBottom: 20, gap: 2,
+        }}>
+          {(["signup", "login"] as const).map((m) => (
+            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{
+              flex: 1, padding: "8px 0", border: "none", borderRadius: 20, cursor: "pointer",
+              fontSize: 13, fontWeight: mode === m ? 700 : 500,
+              background: mode === m ? "white" : "transparent",
+              color: mode === m ? "#7a50b0" : "#b090c8",
+              boxShadow: mode === m ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s",
+            }}>
+              {m === "signup" ? "新規登録" : "ログイン"}
+            </button>
+          ))}
+        </div>
+
+        {/* Googleボタン */}
+        <button onClick={handleGoogle} disabled={loading} style={{
+          width: "100%", height: 44, borderRadius: 10,
+          border: "0.5px solid rgba(0,0,0,0.12)",
+          background: "white", cursor: "pointer",
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+          fontSize: 13, fontWeight: 600, color: "#333",
+          marginBottom: 14,
+          transition: "background 0.15s",
+        }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
+            <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/>
+            <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
+            <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
+          </svg>
+          Googleで{isLogin ? "ログイン" : "登録"}（0入力）
+        </button>
+
+        {/* または */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          <div style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.1)" }} />
+          <span style={{ fontSize: 11, color: "#ccc" }}>または</span>
+          <div style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.1)" }} />
+        </div>
+
+        {/* フォーム */}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            placeholder="メールアドレス"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{
+              width: "100%", height: 44, borderRadius: 10,
+              border: "0.5px solid rgba(200,180,230,0.5)",
+              padding: "0 14px", fontSize: 13, color: "#333",
+              background: "rgba(255,255,255,0.9)",
+              outline: "none", marginBottom: 8,
+              boxSizing: "border-box",
+            }}
+          />
+          <input
+            type="password"
+            placeholder="パスワード（8文字以上）"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            style={{
+              width: "100%", height: 44, borderRadius: 10,
+              border: "0.5px solid rgba(200,180,230,0.5)",
+              padding: "0 14px", fontSize: 13, color: "#333",
+              background: "rgba(255,255,255,0.9)",
+              outline: "none", marginBottom: 4,
+              boxSizing: "border-box",
+            }}
+          />
+
+          {/* パスワード忘れリンク（ログイン時のみ） */}
+          {isLogin && (
+            <div style={{ textAlign: "right", marginBottom: 10 }}>
+              <span style={{ fontSize: 11, color: "#b090c8", cursor: "pointer" }}>
+                パスワードをお忘れの方
+              </span>
+            </div>
+          )}
+
+          {/* エラー */}
+          {error && (
+            <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>
+              {error}
+            </div>
+          )}
+
+          {/* CTAボタン */}
+          <button type="submit" disabled={loading} style={{
+            width: "100%", height: 46, borderRadius: 24, border: "none",
+            background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+            color: "white", fontSize: 14, fontWeight: 700,
+            cursor: loading ? "not-allowed" : "pointer",
+            marginTop: isLogin ? 0 : 8,
+            transition: "opacity 0.15s",
+          }}>
+            {loading ? "処理中..." : isLogin ? "ログイン" : "無料で始める →"}
+          </button>
+        </form>
+
+        {/* 切り替えリンク */}
+        <div style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "#b090c8" }}>
+          {isLogin ? (
+            <>アカウントをお持ちでない方は<span onClick={() => setMode("signup")} style={{ color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>新規登録</span></>
+          ) : (
+            <>すでにアカウントをお持ちの方は<span onClick={() => setMode("login")} style={{ color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</span></>
+          )}
+        </div>
+
+        {/* 利用規約 */}
+        <div style={{ textAlign: "center", marginTop: 12, fontSize: 10, color: "#ccc", lineHeight: 1.6 }}>
+          登録することで<span style={{ color: "#b090c8" }}>利用規約</span>・<span style={{ color: "#b090c8" }}>プライバシーポリシー</span>に同意したものとみなします
+        </div>
+      </div>
+    </div>
+  );
+}
