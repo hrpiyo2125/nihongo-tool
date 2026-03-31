@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 
@@ -45,7 +45,7 @@ function getRedirectPath(): string {
   return params.get("redirect") || "/";
 }
 
-export default function AuthPage() {
+function AuthPageInner() {
   const router = useRouter();
 
   // searchParamsからmodeを取得（?mode=loginでログインタブ起動）
@@ -301,5 +301,11 @@ const [mode, setMode] = useState<"signup" | "login">(
         </div>
       </div>
     </div>
+  );
+}export default function AuthPage() {
+  return (
+    <Suspense>
+      <AuthPageInner />
+    </Suspense>
   );
 }
