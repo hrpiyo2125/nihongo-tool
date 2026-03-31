@@ -1,22 +1,20 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "../lib/supabase";
 
-// スクロールバースタイル（縦タブ・横タブ共通）― Canvaのように常時薄く表示
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
   .toolio-scroll-y::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 4px; }
   .toolio-scroll-y::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
   .toolio-scroll-y::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
-
   .toolio-scroll-x::-webkit-scrollbar { height: 5px; }
   .toolio-scroll-x::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 4px; }
   .toolio-scroll-x::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
   .toolio-scroll-x::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
 `;
 
-// ===== 教材データ =====
 const contentTabs = [
   { id: "all",      label: "すべて",   char: "✦", color: "#e8efff", imageSrc: null },
   { id: "hiragana", label: "ひらがな", char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
@@ -66,7 +64,6 @@ const materials = [
   { id: 16, title: "絵本ぬりえ",           content: "picture",  method: "nurie",    tag: "無料",  tagBg: "#d6f5e5", tagColor: "#2a6a44", bg: "linear-gradient(135deg,#e8f8ff,#d0f0ff)", char: "絵", charColor: "#4a9ac4" },
 ];
 
-// ===== ホームのアイコンデータ =====
 const contentItems = [
   { label: "ひらがな", char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
   { label: "カタカナ", char: "ア", color: "#f0e8ff", imageSrc: "/kanakana.png", contentId: "katakana" },
@@ -103,7 +100,175 @@ const cards = [
   { img: "字", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88", tag: "NEW",  tagBg: "#ffd9ee",  tagColor: "#a03070", title: "漢字テスト1年生",   sub: "小1の漢字80字をテスト形式で" },
   { img: "🎮", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a", tag: "無料",  tagBg: "#d6f5e5", tagColor: "#2a6a44", title: "かずあそびゲーム",  sub: "数字と量の対応を遊びながら学ぶ" },
 ];
-
+const guideTabs = [
+  { id: "start",  label: "はじめての方へ",     emoji: "✦" },
+  { id: "choose", label: "教材を選びたい",       emoji: "📄" },
+  { id: "use",    label: "授業・学習に使いたい", emoji: "✏" },
+  { id: "more",   label: "もっと活用したい",     emoji: "★" },
+];
+ 
+const guideStartSteps = [
+  { num: "01", title: "無料アカウントを作成する", desc: "メールアドレスだけで登録できます。30秒で完了します。", sub: "登録しなくても一部の教材は閲覧できますが、ダウンロードにはアカウントが必要です。" },
+  { num: "02", title: "教材一覧を開く", desc: "トップページの「教材一覧を見る」から、全教材をカテゴリ・方法別に絞り込んで探せます。" },
+  { num: "03", title: "気になる教材を選ぶ", desc: "教材をクリックするとプレビューと使い方が確認できます。まずは「無料」タグの教材からお試しください。" },
+  { num: "04", title: "ダウンロード・印刷する", desc: "PDFをダウンロードして、A4用紙に印刷するだけ。カラーでも白黒でも使えます。" },
+];
+const guideStartTips = [
+  { emoji: "💡", title: "最初におすすめの教材は？", desc: "「ひらがな練習シート」や「ひらがなかるた」は初めての方に人気です。まずここから試してみてください。" },
+  { emoji: "🖨", title: "印刷環境がなくても大丈夫？", desc: "コンビニのネットプリントでも印刷できます。PDFをそのまま持ち込むか、USBに入れてご利用ください。" },
+];
+const guideChooseCards = [
+  { emoji: "🎯", title: "目的から選ぶ", items: ["文字を覚えさせたい → ひらがな・カタカナ練習シート・なぞり書き", "楽しく学ばせたい → かるた・ゲーム・パズル", "定着を確認したい → テスト・ドリル系", "季節行事に合わせたい → 季節カテゴリの教材"] },
+  { emoji: "📊", title: "レベルから選ぶ", items: ["文字をまだ知らない → なぞり書き・絵カード系からスタート", "少し読める → かるた・読み物・絵本系", "ある程度読める → テスト・漢字・文法系", "日常会話ができる → 語彙・会話カード系"] },
+  { emoji: "🗓", title: "時間・場面から選ぶ", items: ["授業の最初の5分 → ゲーム・かるた（短時間で盛り上がる）", "宿題として → 練習シート・テスト系", "家族で楽しく → かるた・絵本・うた系", "すきま時間に → カード系・パズル"] },
+];
+const guideChooseTips = [
+  { emoji: "🔍", title: "迷ったときは「内容×方法」で絞り込む", desc: "教材一覧では「ひらがな × かるた」のように2軸で絞り込めます。" },
+  { emoji: "❤️", title: "お気に入りに保存しておく", desc: "「使いたいかも」と思った教材はハートボタンでお気に入りに保存できます（要ログイン）。" },
+];
+const guideUseCards = [
+  { emoji: "👩‍🏫", title: "先生の方へ", items: ["授業の導入にかるたやゲームを取り入れると子どもが集中しやすくなります", "練習シートは宿題として配布するのに最適です", "テスト系教材は単元の終わりの確認に活用できます", "「使い方ガイド」が各教材についているので、準備に迷いません"] },
+  { emoji: "👨‍👩‍👧", title: "保護者の方へ", items: ["週1〜2回、10〜15分の短い時間から始めるのがおすすめです", "かるたやゲームは親子で一緒に楽しめます", "なぞり書きシートは毎日の習慣づけに使いやすいです", "お子さんが好きな学習方法（ゲーム・ぬりえなど）から始めると続きやすいです"] },
+];
+const guideUseTips = [
+  { emoji: "🎮", title: "「楽しい」が一番の近道", desc: "かるた・ゲーム・うたなど楽しめる教材を混ぜることで、子どもが日本語を「好き」になるきっかけを作れます。" },
+  { emoji: "📅", title: "週のルーティンに組み込む", desc: "「月曜は練習シート、金曜はかるた」のように曜日で種類を変えると飽きにくく継続しやすくなります。" },
+];
+const guideMoreTips = [
+  { emoji: "📂", title: "ダウンロード履歴を活用する", desc: "過去にダウンロードした教材はマイページの履歴からすぐ再ダウンロードできます。" },
+  { emoji: "❤️", title: "お気に入りリストを整理する", desc: "学習テーマや季節ごとにお気に入りをまとめておくと、授業・学習の計画が立てやすくなります。" },
+  { emoji: "🔓", title: "サブスクプランで全教材を使い放題に", desc: "サブスクプランに登録すると体系的なカリキュラム・全教材が使い放題になります。" },
+  { emoji: "📬", title: "新着教材をチェックする", desc: "トップページの「新着」タブで最新の教材を確認できます。定期的に新しい教材が追加されます。" },
+];
+ 
+function GuideTipItem({ tip }: { tip: { emoji: string; title: string; desc: string } }) {
+  return (
+    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 14, padding: "18px 22px" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}><span>{tip.emoji}</span>{tip.title}</div>
+      <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8 }}>{tip.desc}</div>
+    </div>
+  );
+}
+function GuideCardItem({ card }: { card: { emoji: string; title: string; items: string[] } }) {
+  return (
+    <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 22px" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><span>{card.emoji}</span>{card.title}</div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+        {card.items.map((item) => (
+          <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+            <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+ 
+function GuideSection() {
+  const [guideTab, setGuideTab] = useState("start");
+  return (
+    <div style={{ display: "flex", flexDirection: "column" as const }}>
+      {/* ヘッダー */}
+      <div style={{ padding: "48px 48px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.4) 0%, rgba(228,155,253,0.4) 50%, rgba(163,192,255,0.4) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Guide</p>
+        <h2 style={{ fontSize: 26, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 6 }}>使い方ガイド</h2>
+        <p style={{ fontSize: 13, color: "#aaa", marginBottom: 28, lineHeight: 1.8 }}>お悩みに合わせて、toolioの使い方をご案内します。</p>
+        {/* 横タブ */}
+        <div style={{ display: "flex", borderBottom: "0.5px solid rgba(200,170,240,0.25)", gap: 0, overflowX: "auto" as const }}>
+          {guideTabs.map((tab) => {
+            const active = guideTab === tab.id;
+            return (
+              <button key={tab.id} onClick={() => setGuideTab(tab.id)} style={{ padding: "12px 22px", border: "none", borderBottom: active ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#aaa", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+                <span>{tab.emoji}</span>{tab.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+ 
+      {/* コンテンツ */}
+      <div style={{ padding: "36px 48px 64px", display: "flex", flexDirection: "column" as const, gap: 36 }}>
+        {guideTab === "start" && (
+          <>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 20 }}>toolioをはじめよう</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 22, background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.15)", padding: "28px 32px" }}>
+                {guideStartSteps.map((step) => (
+                  <div key={step.num} style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{step.num}</div>
+                    <div style={{ paddingTop: 6 }}>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>{step.title}</div>
+                      <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8 }}>{step.desc}</div>
+                      {step.sub && <div style={{ fontSize: 11, color: "#bbb", marginTop: 4, lineHeight: 1.7 }}>{step.sub}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>よくある疑問</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                {guideStartTips.map((tip) => <GuideTipItem key={tip.title} tip={tip} />)}
+              </div>
+            </div>
+          </>
+        )}
+        {guideTab === "choose" && (
+          <>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>目的・レベル・場面で選ぶ</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                {guideChooseCards.map((card) => <GuideCardItem key={card.title} card={card} />)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>選び方のヒント</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                {guideChooseTips.map((tip) => <GuideTipItem key={tip.title} tip={tip} />)}
+              </div>
+            </div>
+          </>
+        )}
+        {guideTab === "use" && (
+          <>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>あなたの状況に合わせたヒント</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
+                {guideUseCards.map((card) => <GuideCardItem key={card.title} card={card} />)}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>長続きのコツ</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+                {guideUseTips.map((tip) => <GuideTipItem key={tip.title} tip={tip} />)}
+              </div>
+            </div>
+          </>
+        )}
+        {guideTab === "more" && (
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolioをもっと便利に使う</div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
+              {guideMoreTips.map((tip) => <GuideTipItem key={tip.title} tip={tip} />)}
+            </div>
+          </div>
+        )}
+ 
+        {/* 共通フッター */}
+        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "24px 28px", textAlign: "center" as const }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 6 }}>解決しませんでしたか？</div>
+          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 16, lineHeight: 1.7 }}>お気軽にお問い合わせください。通常2〜3営業日以内にご返信します。</div>
+          <div style={{ display: "flex", justifyContent: "center", gap: 10 }}>
+            <button onClick={() => window.location.href = "/faq"} style={{ fontSize: 12, padding: "9px 24px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#7a50b0", cursor: "pointer", fontWeight: 600 }}>よくある質問を見る</button>
+            <button onClick={() => window.location.href = "/contact"} style={{ fontSize: 12, padding: "9px 24px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", border: "none", cursor: "pointer", fontWeight: 700 }}>お問い合わせする →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
 const ACTIVE_COLOR = "#7a50b0";
 
 type NavItem = {
@@ -114,59 +279,12 @@ type NavItem = {
 };
 
 const navItems: NavItem[] = [
-  {
-    id: "home", label: "ホーム",
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-        <path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-      </svg>
-    ),
-  },
-  {
-    id: "dl", label: "ダウンロード履歴", badge: 3,
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-        <path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-      </svg>
-    ),
-  },
-  {
-    id: "fav", label: "お気に入り",
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-      </svg>
-    ),
-  },
-  {
-    id: "pt", label: "ポイント",
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-      </svg>
-    ),
-  },
-  {
-    id: "plan", label: "プランを見る",
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-        <path d="M8 12h8M8 8h8M8 16h5" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-      </svg>
-    ),
-  },
-  {
-    id: "guide", label: "使い方ガイド",
-    icon: (_id, active) => (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-        <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} />
-        <circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" />
-      </svg>
-    ),
-  },
+  { id: "home", label: "ホーム", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "dl", label: "ダウンロード履歴", badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "fav", label: "お気に入り", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "pt", label: "ポイント", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "plan", label: "プランを見る", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M8 12h8M8 8h8M8 16h5" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "guide", label: "使い方ガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
 ];
 
 type ItemType = { label: string; char: string; color: string; imageSrc?: string; isMore?: boolean; contentId?: string; methodId?: string; };
@@ -174,190 +292,72 @@ type ItemType = { label: string; char: string; color: string; imageSrc?: string;
 function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
   return (
     <div onClick={onClick} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10, cursor: "pointer", flexShrink: 0, width: 76 }}>
-      <div style={{
-        width: 62, height: 62, borderRadius: "50%",
-        background: item.isMore ? "white" : item.color,
-        border: item.isMore ? "1.5px dashed #c9a0f0" : "1px solid rgba(0,0,0,0.06)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        overflow: "hidden",
-        fontSize: item.isMore ? 20 : item.char.length > 1 ? 15 : 22,
-        fontWeight: 700, color: item.isMore ? "#b090d0" : "#555", flexShrink: 0,
-      }}>
-        {item.imageSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-        ) : item.char}
+      <div style={{ width: 62, height: 62, borderRadius: "50%", background: item.isMore ? "white" : item.color, border: item.isMore ? "1.5px dashed #c9a0f0" : "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: item.isMore ? 20 : item.char.length > 1 ? 15 : 22, fontWeight: 700, color: item.isMore ? "#b090d0" : "#555", flexShrink: 0 }}>
+        {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /> : item.char}
       </div>
-      <span style={{ fontSize: 11, fontWeight: 600, color: "#777", textAlign: "center", lineHeight: 1.3, width: "100%" }}>
-        {item.label}
-      </span>
+      <span style={{ fontSize: 11, fontWeight: 600, color: "#777", textAlign: "center", lineHeight: 1.3, width: "100%" }}>{item.label}</span>
     </div>
   );
 }
 
 // ===== 教材一覧モーダル =====
-function MaterialsModal({ initContent, initMethod, onClose }: {
-  initContent: string;
-  initMethod: string;
-  onClose: () => void;
-}) {
+  function MaterialsModal({ initContent, initMethod, onClose, isLoggedIn }: { initContent: string; initMethod: string; onClose: () => void; isLoggedIn: boolean; }) {
   const [activeContent, setActiveContent] = useState(initContent);
   const [activeMethod, setActiveMethod] = useState(initMethod);
+  const [teaserMat, setTeaserMat] = useState<typeof materials[0] | null>(null);
 
   const filtered = materials.filter((m) => {
     const cMatch = activeContent === "all" || m.content === activeContent;
-    const mMatch = activeMethod  === "all" || m.method  === activeMethod;
+    const mMatch = activeMethod === "all" || m.method === activeMethod;
     return cMatch && mMatch;
   });
 
-  // 横タブのタッチスクロール用
   const handleMethodTabWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.currentTarget.scrollLeft += e.deltaY + e.deltaX;
   };
 
   return (
-    // オーバーレイ
-    <div style={{
-      position: "fixed", inset: 0, zIndex: 100,
-      background: "rgba(0,0,0,0.35)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-    }} onClick={onClose}>
-
-      {/* スクロールバースタイル注入 */}
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <style>{scrollbarStyle}</style>
+      <button onClick={onClose} style={{ position: "absolute", top: 20, right: 20, zIndex: 110, width: 40, height: 40, borderRadius: "50%", background: "white", border: "none", cursor: "pointer", fontSize: 18, color: "#888", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>✕</button>
 
-      {/* ×ボタン（モーダル右上） */}
-      <button
-        onClick={onClose}
-        style={{
-          position: "absolute", top: 20, right: 20, zIndex: 110,
-          width: 40, height: 40, borderRadius: "50%",
-          background: "white", border: "none",
-          cursor: "pointer", fontSize: 18, color: "#888",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-        }}
-      >✕</button>
-
-      {/* モーダル本体：四方浮かせ・全角丸 */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          width: "91vw",
-          maxWidth: 1600,
-          height: "calc(100vh - 56px)",
-          background: "white",
-          borderRadius: 16,
-          boxShadow: "0 8px 48px rgba(0,0,0,0.22)",
-          overflow: "hidden",
-        }}
-      >
-
-        {/* ===== 上部ヘッダー ===== */}
-        {/* 【修正②】検索バーの左右余白を均等に */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "24px 28px 20px 28px",
-          borderBottom: "0.5px solid rgba(0,0,0,0.06)",
-          flexShrink: 0,
-          gap: 28,
-        }}>
-          {/* タイトル（左寄せ・固定幅） */}
+      <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", width: "91vw", maxWidth: 1600, height: "calc(100vh - 56px)", background: "white", borderRadius: 16, boxShadow: "0 8px 48px rgba(0,0,0,0.22)", overflow: "hidden" }}>
+        <div style={{ display: "flex", alignItems: "center", padding: "24px 28px 20px 28px", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, gap: 28 }}>
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 2 }}>Materials</div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>
-              教材を探す
-            </div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>教材を探す</div>
           </div>
-          {/* 検索バー（flex: 1 で残り幅を均等に使う） */}
-          <div style={{
-            flex: 1,
-            display: "flex", alignItems: "center", gap: 10,
-            background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)",
-            borderRadius: 28, padding: "12px 24px",
-          }}>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "12px 24px" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-            <input
-              type="text"
-              placeholder="教材を検索..."
-              style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
-            />
+            <input type="text" placeholder="教材を検索..." style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }} />
           </div>
         </div>
 
-        {/* ===== 下部：縦タブ＋メインエリア ===== */}
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-
-          {/* 縦タブ（学習内容）― スクロール対応 */}
-          <div className="toolio-scroll-y" style={{
-            width: 180, flexShrink: 0, overflowY: "auto",
-            padding: "16px 0 28px",
-            borderRight: "0.5px solid rgba(0,0,0,0.06)",
-          }}>
+          <div className="toolio-scroll-y" style={{ width: 180, flexShrink: 0, overflowY: "auto", padding: "16px 0 28px", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
             {contentTabs.map((tab) => {
               const active = activeContent === tab.id;
               return (
-                <button key={tab.id} onClick={() => setActiveContent(tab.id)} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "9px 16px", margin: "0 8px",
-                  background: active ? "rgba(163,192,255,0.15)" : "transparent",
-                  border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left",
-                }}>
-                  <div style={{
-                    width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                    background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color,
-                    border: "1px solid rgba(0,0,0,0.06)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555",
-                  }}>
-                    {tab.imageSrc
-                      // eslint-disable-next-line @next/next/no-img-element
-                      ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : tab.char}
+                <button key={tab.id} onClick={() => setActiveContent(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555" }}>
+                    {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                   </div>
-                  <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#666", whiteSpace: "nowrap" }}>
-                    {tab.label}
-                  </span>
+                  <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#666", whiteSpace: "nowrap" }}>{tab.label}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* メインエリア */}
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-
-            {/* 横タブ ― ホバーで細いスクロールバー表示 */}
             <div style={{ padding: "16px 28px 0", background: "white", flexShrink: 0 }}>
-              <div
-                className="toolio-scroll-x"
-                style={{
-                  display: "flex",
-                  gap: 6,
-                  overflowX: "scroll",
-                  paddingBottom: 6,
-                  // @ts-ignore
-                  WebkitOverflowScrolling: "touch",
-                }}
-                onWheel={handleMethodTabWheel}
-              >
+              <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 6 }} onWheel={handleMethodTabWheel}>
                 {methodTabs.map((tab) => {
                   const active = activeMethod === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{
-                      display: "flex", alignItems: "center", gap: 5,
-                      padding: "6px 12px", flexShrink: 0,
-                      background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)",
-                      border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)",
-                      borderRadius: 20, cursor: "pointer",
-                    }}>
+                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", flexShrink: 0, background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)", border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)", borderRadius: 20, cursor: "pointer" }}>
                       <span style={{ fontSize: 12 }}>{tab.char}</span>
-                      <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" }}>
-                        {tab.label}
-                      </span>
+                      <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" }}>{tab.label}</span>
                     </button>
                   );
                 })}
@@ -369,69 +369,132 @@ function MaterialsModal({ initContent, initMethod, onClose }: {
               </div>
             </div>
 
-            {/* 教材グリッド */}
             <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "4px 24px 40px" }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
                   {filtered.map((mat) => (
-                    <div key={mat.id} onClick={() => {
-  if (mat.tag !== "無料") {
-    onClose();
-    window.location.href = "/plan";
-  } else {
-    window.open(`/materials/${mat.id}`, "_blank");
-  }
-}} style={{ textDecoration: "none", display: "block", borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
-  {/* ハートボタン */}
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      window.location.href = "/auth?reason=favorite";
-    }}
-    style={{
-      position: "absolute", top: 8, right: 8, zIndex: 10,
-      width: 28, height: 28, borderRadius: "50%",
-      background: "rgba(255,255,255,0.85)",
-      border: "0.5px solid rgba(200,180,230,0.3)",
-      cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 0,
-    }}
-  >
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
-    </svg>
-  </button>
-  <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>
-    {mat.char}
-  </div>
-  <div style={{ padding: "10px 12px 14px" }}>
-    <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
-    <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
-  </div>
-</div>
-                
-  
-))}
+                    <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
+                      <button onClick={(e) => { e.stopPropagation(); if (!isLoggedIn) window.location.href = "/auth?reason=favorite"; }} style={{ position: "absolute", top: 8, right: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
+                      </button>
+                      <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>{mat.char}</div>
+                      <div style={{ padding: "10px 12px 14px" }}>
+                        <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
           </div>
         </div>
       </div>
+
+      {/* ティザーモーダル（MaterialsModalのreturnの中） */}
+      {teaserMat && (
+        <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
+            <button onClick={() => setTeaserMat(null)} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
+
+            {/* 左：プレビュー */}
+            <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ position: "relative", width: "100%", aspectRatio: "3/4" }}>
+                <div style={{ width: "100%", height: "100%", background: teaserMat.bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: teaserMat.charColor, fontWeight: 700, filter: teaserMat.tag !== "無料" ? "blur(8px)" : "none", userSelect: "none" }}>
+                  {teaserMat.char}
+                </div>
+                {teaserMat.tag !== "無料" && (
+                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <div style={{ background: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🔒</div>
+                    <div style={{ background: "rgba(80,60,160,0.55)", color: "white", fontSize: 12, padding: "3px 14px", borderRadius: 20, fontWeight: 600 }}>サブスク限定</div>
+                  </div>
+                )}
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[0, 1].map((i) => (
+                  <div key={i} style={{ aspectRatio: "1", background: teaserMat.bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: teaserMat.charColor, fontWeight: 700, filter: teaserMat.tag !== "無料" ? "blur(4px)" : "none", userSelect: "none", opacity: 0.7 }}>
+                    {teaserMat.char}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 右：情報 */}
+            <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
+              <div style={{ display: "flex", gap: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: teaserMat.tagBg, color: teaserMat.tagColor }}>{teaserMat.tag}</span>
+                <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "#f0f0f0", color: "#888" }}>{contentTabs.find(t => t.id === teaserMat.content)?.label}</span>
+              </div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{teaserMat.title}</div>
+              <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>楽しく学べる{contentTabs.find(t => t.id === teaserMat.content)?.label}の教材です。印刷してすぐに使えます。</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[{ label: "対象年齢", value: "4〜10歳" }, { label: "形式", value: "PDF印刷" }, { label: "ページ数", value: "4枚" }, { label: "言語", value: "日本語" }].map(({ label, value }) => (
+                  <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{value}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ height: 1, background: "#f0f0f0" }} />
+              {teaserMat.tag !== "無料" && (
+                <div style={{ background: "#f0eeff", borderRadius: 10, padding: "12px 14px", fontSize: 13, color: "#534AB7", lineHeight: 1.5 }}>
+                  🔒 この教材はサブスク会員限定です。登録するとすべての教材が使い放題になります。
+                </div>
+              )}
+              <button
+                onClick={() => { setTeaserMat(null); if (teaserMat.tag !== "無料") { window.location.href = "/auth"; } else { window.open(`/materials/${teaserMat.id}`, "_blank"); } }}
+                style={{ width: "100%", padding: "13px", background: teaserMat.tag !== "無料" ? "#7F77DD" : "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+              >
+                {teaserMat.tag !== "無料" ? "無料で登録してはじめる" : "この教材をダウンロードする"}
+              </button>
+              {teaserMat.tag !== "無料" && (
+                <div style={{ textAlign: "center", fontSize: 12, color: "#aaa" }}>
+                  すでにアカウントをお持ちの方は
+                  <span onClick={() => { setTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#7F77DD", cursor: "pointer" }}>ログイン</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 // ===== メインページ =====
+
+
 export default function Home() {
   const router = useRouter();
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [activeTab, setActiveTab] = useState("ピックアップ");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
-  const isLoggedIn = false;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInitial, setUserInitial] = useState("？");
+  const [userName, setUserName] = useState("ゲスト");
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) {
+  setUserInitial(session.user.email[0].toUpperCase());
+  const name = session.user.user_metadata?.full_name || session.user.email.split("@")[0];
+  setUserName(name);
+}
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+      if (session?.user?.email) {
+  setUserInitial(session.user.email[0].toUpperCase());
+  const name = session.user.user_metadata?.full_name || session.user.email.split("@")[0];
+  setUserName(name);
+}
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
   const openModal = (content = "all", method = "all") => setModal({ content, method });
   const closeModal = () => setModal(null);
@@ -444,7 +507,6 @@ export default function Home() {
 
   const SB_CLOSED = 72;
   const SB_OPEN = 300;
-
   const navSections = [
     { section: "メイン",     items: navItems.slice(0, 1) },
     { section: "マイページ", items: navItems.slice(1, 4) },
@@ -452,26 +514,12 @@ export default function Home() {
   ];
 
   return (
-    <div style={{
-      display: "flex", height: "100vh",
-      fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif",
-      background: "#f8f4f4",
-      overflow: "hidden",
-      position: "relative",
-    }}>
+    <div style={{ display: "flex", height: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f8f4f4", overflow: "hidden", position: "relative" }}>
 
-      {/* ===== SIDEBAR ===== */}
-      <aside style={{
-        width: sbOpen ? SB_OPEN : SB_CLOSED,
-        transition: "width 0.22s ease",
-        background: "transparent",
-        display: "flex", flexDirection: "column",
-        flexShrink: 0, overflow: "hidden", zIndex: 10,
-      }}>
+      <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED, transition: "width 0.22s ease", background: "transparent", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", zIndex: 10 }}>
         <div style={{ flexShrink: 0 }}>
           {sbOpen ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px" }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/toolio_logo.png" alt="toolio" style={{ height: 52, width: "auto", objectFit: "contain", display: "block" }} />
               <button onClick={() => setSbOpen(false)} style={{ border: "none", background: "transparent", cursor: "pointer", color: "#aaa", fontSize: 22, lineHeight: 1, padding: "0 4px" }}>‹</button>
             </div>
@@ -481,27 +529,12 @@ export default function Home() {
             </button>
           )}
         </div>
-
         <div style={{ flex: 1, padding: "8px 0", overflow: "hidden" }}>
           {navSections.map(({ section, items }) => (
             <div key={section}>
-              {sbOpen && (
-                <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#c0a0a0", padding: "8px 18px 3px", whiteSpace: "nowrap" }}>
-                  {section}
-                </div>
-              )}
+              {sbOpen && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#c0a0a0", padding: "8px 18px 3px", whiteSpace: "nowrap" }}>{section}</div>}
               {items.map((item) => (
-                <div key={item.id} onClick={() => setActivePage(item.id)} style={{
-
-           
-                  display: "flex", alignItems: "center", gap: 12,
-                  padding: sbOpen ? "9px 14px" : "9px 0",
-                  justifyContent: sbOpen ? "flex-start" : "center",
-                  cursor: "pointer", borderRadius: 10,
-                  margin: sbOpen ? "1px 8px" : "1px 4px",
-                  whiteSpace: "nowrap",
-                  background: "transparent",
-                }}>
+                <div key={item.id} onClick={() => setActivePage(item.id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: sbOpen ? "9px 14px" : "9px 0", justifyContent: sbOpen ? "flex-start" : "center", cursor: "pointer", borderRadius: 10, margin: sbOpen ? "1px 8px" : "1px 4px", whiteSpace: "nowrap", background: "transparent" }}>
                   <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: 10, background: activePage === item.id ? "rgba(163,192,255,0.15)" : "transparent", transition: "background 0.15s" }}>
                     {item.icon(item.id, activePage === item.id)}
                   </div>
@@ -516,16 +549,28 @@ export default function Home() {
             </div>
           ))}
         </div>
-
         <div style={{ padding: "10px 6px", flexShrink: 0 }}>
-            <div onClick={() => { if (!isLoggedIn) router.push("/auth?mode=login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer" }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>は</div>
-            {sbOpen && (
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>はるなさん</div>
-                <div style={{ fontSize: 11, color: "#999" }}>Freeプラン</div>
-              </div>
-            )}
+          <div onClick={() => { if (!isLoggedIn) router.push("/auth?mode=login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+{sbOpen && <div><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
+{isLoggedIn && sbOpen && (
+  <button
+    onClick={async () => {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      setIsLoggedIn(false);
+      router.refresh();
+    }}
+    style={{
+      width: "100%", fontSize: 11, padding: "6px 10px",
+      borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.4)",
+      background: "transparent", color: "#c0a0c0",
+      cursor: "pointer", marginTop: 4,
+    }}
+  >
+    ログアウト
+  </button>
+)}
           </div>
           <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>
             <button style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
@@ -535,70 +580,35 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* ===== MAIN ===== */}
-      <main id="main-scroll" style={{
-        flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0,
-        background: "white",
-        borderRadius: "16px 16px 0 0",
-        margin: "12px 12px 0 0",
-        boxShadow: "0 -4px 24px rgba(200,150,150,0.15)",
-      }}>
+      <main id="main-scroll" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0, background: "white", borderRadius: "16px 16px 0 0", margin: "12px 12px 0 0", boxShadow: "0 -4px 24px rgba(200,150,150,0.15)" }}>
         {activePage === "home" && (
           <>
-            {/* HERO */}
-<section style={{
-  padding: "120px 48px 60px", textAlign: "center",
-  background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)",
-  borderRadius: "16px 16px 0 0",
-}}>
-  <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>
-    Japanese Language Tools for Heritage Learners
-  </p>
-  <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-    授業のアイデアが、次々とわいてくる。
-  </h1>
-  <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>
-    海外で学ぶ子どもたちの日本語を、<br />もっとわくわくさせる教材プラットフォーム
-  </p>
-  <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
-    <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>学習内容から探す</button>
-    <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>学習方法から探す</button>
-  </div>
+            <section style={{ padding: "120px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+              <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>Japanese Language Tools for Heritage Learners</p>
+              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>授業のアイデアが、次々とわいてくる。</h1>
+              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>海外で学ぶ子どもたちの日本語を、<br />もっとわくわくさせる教材プラットフォーム</p>
+              <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
+                <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>学習内容から探す</button>
+                <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>学習方法から探す</button>
+              </div>
+              <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12, letterSpacing: 2 }}>or</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+                <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>✦ 教材一覧を見る</button>
+              </div>
+              {!isLoggedIn && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#b090d0", marginBottom: 3 }}>会員登録すると全機能が使えます</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成 →</div>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                    <button onClick={() => router.push("/auth")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
+                  </div>
+                </div>
+              )}
+            </section>
 
-  {/* or */}
-  <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12, letterSpacing: 2 }}>or</div>
-
-  {/* 教材一覧ボタン */}
-  <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-    <button
-      onClick={() => openModal("all", "all")}
-      style={{
-        fontSize: 15, padding: "14px 48px", borderRadius: 28,
-        border: "1px solid rgba(163,192,255,0.5)",
-        cursor: "pointer", fontWeight: 700,
-        background: "white",
-        color: "#7a50b0",
-      }}
-    >
-      ✦ 教材一覧を見る
-    </button>
-  </div>
-
-  {!isLoggedIn && (
-    <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
-      <div>
-        <div style={{ fontSize: 11, color: "#b090d0", marginBottom: 3 }}>会員登録すると全機能が使えます</div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成 →</div>
-      </div>
-      <div style={{ display: "flex", gap: 8 }}>
-        <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
-        <button onClick={() => router.push("/auth")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
-      </div>
-    </div>
-  )}
-</section>
-
-            {/* CONTENT */}
             <section id="anchor-content" style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                 <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
@@ -608,13 +618,10 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
-                {contentItems.map((item) => (
-                  <IconItem key={item.label} item={item} onClick={() => openModal(item.contentId ?? "all", "all")} />
-                ))}
+                {contentItems.map((item) => <IconItem key={item.label} item={item} onClick={() => openModal(item.contentId ?? "all", "all")} />)}
               </div>
             </section>
 
-            {/* METHOD */}
             <section id="anchor-method" style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                 <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
@@ -624,23 +631,17 @@ export default function Home() {
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
-                {methodItems.map((item) => (
-                  <IconItem key={item.label} item={item} onClick={() => openModal("all", item.methodId ?? "all")} />
-                ))}
+                {methodItems.map((item) => <IconItem key={item.label} item={item} onClick={() => openModal("all", item.methodId ?? "all")} />)}
               </div>
             </section>
 
-            {/* FEED */}
             <section style={{ padding: "64px 36px 80px", flex: 1, background: "white" }}>
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 30 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />
                   お知らせ
                 </div>
-                {[
-                  { date: "2026/03/28", text: "ひらがなカード新セット追加しました" },
-                  { date: "2026/03/20", text: "サービスをリリースしました" },
-                ].map((n) => (
+                {[{ date: "2026/03/28", text: "ひらがなカード新セット追加しました" }, { date: "2026/03/20", text: "サービスをリリースしました" }].map((n) => (
                   <div key={n.date} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
                     <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
                     <span style={{ fontSize: 13, color: "#444" }}>{n.text}</span>
@@ -650,8 +651,7 @@ export default function Home() {
               <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 48 }}>
                 {["ピックアップ", "おすすめ", "ランキング", "新着"].map((tab) => (
                   <button key={tab} onClick={() => setActiveTab(tab)} style={{ fontSize: 14, padding: "10px 20px", background: "transparent", border: "none", borderBottom: activeTab === tab ? "2px solid #9b6ed4" : "2px solid transparent", color: activeTab === tab ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: 600, marginBottom: -0.5 }}>
-                    {tab}
-                    {tab === "新着" && <span style={{ fontSize: 10, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", padding: "2px 6px", borderRadius: 8, marginLeft: 4 }}>NEW</span>}
+                    {tab}{tab === "新着" && <span style={{ fontSize: 10, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", padding: "2px 6px", borderRadius: 8, marginLeft: 4 }}>NEW</span>}
                   </button>
                 ))}
               </div>
@@ -672,88 +672,47 @@ export default function Home() {
         )}
 
         {activePage !== "home" && (
-  <div>
-    <div style={{
-      padding: "60px 48px 40px",
-      background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)",
-      borderRadius: "16px 16px 0 0",
-    }}>
-      <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
-        {navItems.find(n => n.id === activePage)?.label}
-      </h2>
+  activePage === "guide" ? (
+    <GuideSection />
+  ) : (
+    <div>
+      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
+          {navItems.find(n => n.id === activePage)?.label}
+        </h2>
+      </div>
+      <div style={{ padding: "32px 48px 56px" }}>
+        {!isLoggedIn ? (
+          <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
+            {activePage === "plan" ? (
+              <>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>もっとわくわくする教材を使いませんか</div>
+                <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>サブスクプランに登録すると<br />全教材・体系的カリキュラムが使い放題になります</div>
+                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                  <button onClick={() => router.push("/plan")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>プランを見る →</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>この機能を使うには登録が必要です</div>
+                <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>無料アカウントを作成すると<br />お気に入り保存・ダウンロード履歴などが使えます</div>
+                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                  <button onClick={() => router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>無料で登録する →</button>
+                  <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                </div>
+              </>
+            )}
+          </div>
+        ) : (
+          <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
+        )}
+      </div>
     </div>
-    <div style={{ padding: "32px 48px 56px" }}>
-      {!isLoggedIn ? (
-        <div style={{
-          display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16,
-          padding: "28px 36px",
-          background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))",
-          border: "0.5px solid rgba(200,170,240,0.3)",
-          borderRadius: 16,
-        }}>
-          {activePage === "plan" ? (
-  <>
-    <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>
-      もっとわくわくする教材を使いませんか
-    </div>
-    <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>
-      サブスクプランに登録すると<br />
-      全教材・体系的カリキュラムが使い放題になります
-    </div>
-    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-      <button onClick={() => router.push("/plan")} style={{
-        fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none",
-        background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
-        color: "white", cursor: "pointer", fontWeight: 700,
-      }}>
-        プランを見る →
-      </button>
-    </div>
-  </>
-) : (
-  <>
-    <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>
-      この機能を使うには登録が必要です
-    </div>
-    <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>
-      無料アカウントを作成すると<br />
-      お気に入り保存・ダウンロード履歴などが使えます
-    </div>
-    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-      <button onClick={() => router.push("/auth")} style={{
-        fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none",
-        background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
-        color: "white", cursor: "pointer", fontWeight: 700,
-      }}>
-        無料で登録する →
-      </button>
-      <button onClick={() => router.push("/auth?mode=login")} style={{
-        fontSize: 13, padding: "10px 28px", borderRadius: 20,
-        border: "0.5px solid #c9a0f0",
-        background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600,
-      }}>
-        ログイン
-      </button>
-    </div>
-  </>
-)}
-        </div>
-      ) : (
-        <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
-      )}
-    </div>
-  </div>
+  )
 )}
       </main>
 
-      {/* ===== 教材一覧モーダル ===== */}
-      {modal && (
-        <MaterialsModal
-          initContent={modal.content}
-          initMethod={modal.method}
-          onClose={closeModal}
-        />
-      )}
+      {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} onClose={closeModal} isLoggedIn={isLoggedIn} />}
     </div>
   );
 }

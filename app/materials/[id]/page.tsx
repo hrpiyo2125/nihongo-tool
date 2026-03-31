@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
+import { createClient } from "../../../lib/supabase";
 
 const materials = [
   { id: 1,  title: "ひらがな練習シート",   content: "hiragana", method: "practice", tag: "無料",  tagBg: "#d6f5e5", tagColor: "#2a6a44", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", char: "あ", charColor: "#4a72c4", meta: "ひらがな · 練習 · A4" },
@@ -132,12 +133,20 @@ export default function MaterialDetailPage() {
   const id = Number(params.id);
   const material = materials.find((m) => m.id === id) ?? materials[0];
 
-　const isLoggedIn = false;
+
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [isFav, setIsFav] = useState(false);
   const [dlHover, setDlHover] = useState(false);
   const [favHover, setFavHover] = useState(false);
   const [homeHover, setHomeHover] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+useEffect(() => {
+  const supabase = createClient();
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setIsLoggedIn(!!session);
+  });
+}, []);
 
   // ズーム・ドラッグ
   const [scale, setScale] = useState(1);

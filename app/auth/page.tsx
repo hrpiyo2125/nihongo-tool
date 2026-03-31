@@ -2,9 +2,8 @@
 
 import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "../../lib/supabase";
 
-
-// ===== 背景タイルデータ =====
 const tiles = [
   { char: "あ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
   { char: "い", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4" },
@@ -38,63 +37,54 @@ const tiles = [
   { char: "数", bg: "linear-gradient(135deg,#fff0ec,#ffe4d9)", color: "#c47a4a" },
 ];
 
-// ===== 登録後に戻るページを取得 =====
-function getRedirectPath(): string {
-  if (typeof window === "undefined") return "/";
-  const params = new URLSearchParams(window.location.search);
-  return params.get("redirect") || "/";
-}
-
 function AuthPageInner() {
   const router = useRouter();
-
-  // searchParamsからmodeを取得（?mode=loginでログインタブ起動）
-    const searchParams = useSearchParams();
-const [mode, setMode] = useState<"signup" | "login">(
-  searchParams.get("mode") === "login" ? "login" : "signup"
-);
-
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<"signup" | "login">(
+    searchParams.get("mode") === "login" ? "login" : "signup"
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const isLogin = mode === "login";
+  const supabase = createClient();
 
-  // ===== 理由テキスト（呼び出し元によって変える想定、今はデフォルト） =====
-  const reasonText = (() => {
-    if (typeof window === "undefined") return "";
-    const p = new URLSearchParams(window.location.search);
-    const reason = p.get("reason");
-    if (reason === "favorite") return "お気に入り保存に登録が必要です";
-    if (reason === "history")  return "ダウンロード履歴に登録が必要です";
-    if (reason === "limit")    return "お気に入りの上限に達しました。登録すると5件まで保存できます";
-    return "お気に入り保存・ダウンロード履歴が使えます";
-  })();
+  
+const reason = searchParams.get("reason");
+const reasonText = reason === "favorite" ? "お気に入り保存に登録が必要です"
+  : reason === "history" ? "ダウンロード履歴に登録が必要です"
+  : "お気に入り保存・ダウンロード履歴が使えます";
 
-  // ===== 仮送信（Supabase実装前のプレースホルダー） =====
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setMessage("");
     if (!email || !password) { setError("メールアドレスとパスワードを入力してください"); return; }
     if (password.length < 8) { setError("パスワードは8文字以上で入力してください"); return; }
     setLoading(true);
-    // TODO: Supabase Auth 実装
-    // const { error } = isLogin
-    //   ? await supabase.auth.signInWithPassword({ email, password })
-    //   : await supabase.auth.signUp({ email, password });
-    await new Promise(r => setTimeout(r, 800)); // 仮ローディング
+
+    if (isLogin) {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) { setError("メールアドレスまたはパスワードが間違っています"); setLoading(false); return; }
+      router.push("/");
+      router.refresh();
+    } else {
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) { setError("登録に失敗しました。もう一度お試しください"); setLoading(false); return; }
+      setMessage("確認メールを送信しました。メールのリンクをクリックして登録を完了してください。");
+    }
     setLoading(false);
-    router.push(getRedirectPath());
   };
 
   const handleGoogle = async () => {
     setLoading(true);
-    // TODO: Supabase Google OAuth
-    // await supabase.auth.signInWithOAuth({ provider: "google" });
-    await new Promise(r => setTimeout(r, 600));
-    setLoading(false);
-    router.push(getRedirectPath());
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/` },
+    });
   };
 
   const TILE_COLS = 6;
@@ -108,8 +98,6 @@ const [mode, setMode] = useState<"signup" | "login">(
       position: "relative", overflow: "hidden",
       background: "linear-gradient(160deg, #fce8f8 0%, #ede8ff 50%, #e8f0ff 100%)",
     }}>
-
-      {/* ===== 背景タイル ===== */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 0,
         display: "grid",
@@ -124,70 +112,45 @@ const [mode, setMode] = useState<"signup" | "login">(
           const tile = tiles[i % tiles.length];
           return (
             <div key={i} style={{
-              background: tile.bg,
-              borderRadius: 10,
+              background: tile.bg, borderRadius: 10,
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 22, fontWeight: 700, color: tile.color,
-            }}>
-              {tile.char}
-            </div>
+            }}>{tile.char}</div>
           );
         })}
       </div>
 
-      {/* ===== オーバーレイ ===== */}
-      <div style={{
-        position: "absolute", inset: 0, zIndex: 1,
-        background: "rgba(248,244,255,0.55)",
-      }} />
+      <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "rgba(248,244,255,0.55)" }} />
 
-      {/* ===== 認証カード ===== */}
       <div style={{
         position: "relative", zIndex: 2,
-        width: "100%", maxWidth: 400,
-        margin: "0 16px",
+        width: "100%", maxWidth: 400, margin: "0 16px",
         background: "rgba(255,255,255,0.88)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        borderRadius: 20,
-        border: "0.5px solid rgba(200,180,230,0.4)",
+        backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)",
+        borderRadius: 20, border: "0.5px solid rgba(200,180,230,0.4)",
         boxShadow: "0 8px 40px rgba(180,130,210,0.12)",
         padding: "32px 36px 28px",
       }}>
-
-        {/* ロゴ */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/toolio_logo.png" alt="toolio" style={{ height: 36, width: "auto", objectFit: "contain" }} />
         </div>
 
-        {/* 登録する理由（文脈に応じた一言） */}
-        <div style={{
-          fontSize: 13, color: "#7a50b0", fontWeight: 600,
-          marginBottom: 6, lineHeight: 1.5,
-        }}>
+        <div style={{ fontSize: 13, color: "#7a50b0", fontWeight: 600, marginBottom: 6, lineHeight: 1.5 }}>
           {reasonText}
         </div>
 
-        {/* 社会的証明 */}
         <div style={{
           fontSize: 11, color: "#b090c8", marginBottom: 18,
-          padding: "6px 10px",
-          background: "rgba(228,155,253,0.07)",
-          borderRadius: 8,
-          border: "0.5px solid rgba(228,155,253,0.2)",
-          lineHeight: 1.6,
+          padding: "6px 10px", background: "rgba(228,155,253,0.07)",
+          borderRadius: 8, border: "0.5px solid rgba(228,155,253,0.2)", lineHeight: 1.6,
         }}>
           ✦ 海外在住の日本語教師・保護者に人気のサービスです
         </div>
 
-        {/* タブ切り替え */}
-        <div style={{
-          display: "flex", background: "#f5f0ff", borderRadius: 24,
-          padding: 3, marginBottom: 20, gap: 2,
-        }}>
+        <div style={{ display: "flex", background: "#f5f0ff", borderRadius: 24, padding: 3, marginBottom: 20, gap: 2 }}>
           {(["signup", "login"] as const).map((m) => (
-            <button key={m} onClick={() => { setMode(m); setError(""); }} style={{
+            <button key={m} onClick={() => { setMode(m); setError(""); setMessage(""); }} style={{
               flex: 1, padding: "8px 0", border: "none", borderRadius: 20, cursor: "pointer",
               fontSize: 13, fontWeight: mode === m ? 700 : 500,
               background: mode === m ? "white" : "transparent",
@@ -200,15 +163,11 @@ const [mode, setMode] = useState<"signup" | "login">(
           ))}
         </div>
 
-        {/* Googleボタン */}
         <button onClick={handleGoogle} disabled={loading} style={{
           width: "100%", height: 44, borderRadius: 10,
-          border: "0.5px solid rgba(0,0,0,0.12)",
-          background: "white", cursor: "pointer",
+          border: "0.5px solid rgba(0,0,0,0.12)", background: "white", cursor: "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-          fontSize: 13, fontWeight: 600, color: "#333",
-          marginBottom: 14,
-          transition: "background 0.15s",
+          fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 14,
         }}>
           <svg width="18" height="18" viewBox="0 0 18 18" style={{ flexShrink: 0 }}>
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
@@ -219,74 +178,55 @@ const [mode, setMode] = useState<"signup" | "login">(
           Googleで{isLogin ? "ログイン" : "登録"}（0入力）
         </button>
 
-        {/* または */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
           <div style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.1)" }} />
           <span style={{ fontSize: 11, color: "#ccc" }}>または</span>
           <div style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.1)" }} />
         </div>
 
-        {/* フォーム */}
-        <form onSubmit={handleSubmit}>
-          <input
-            type="email"
-            placeholder="メールアドレス"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{
-              width: "100%", height: 44, borderRadius: 10,
-              border: "0.5px solid rgba(200,180,230,0.5)",
-              padding: "0 14px", fontSize: 13, color: "#333",
-              background: "rgba(255,255,255,0.9)",
-              outline: "none", marginBottom: 8,
-              boxSizing: "border-box",
-            }}
-          />
-          <input
-            type="password"
-            placeholder="パスワード（8文字以上）"
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            style={{
-              width: "100%", height: 44, borderRadius: 10,
-              border: "0.5px solid rgba(200,180,230,0.5)",
-              padding: "0 14px", fontSize: 13, color: "#333",
-              background: "rgba(255,255,255,0.9)",
-              outline: "none", marginBottom: 4,
-              boxSizing: "border-box",
-            }}
-          />
+        {message && (
+          <div style={{ fontSize: 12, color: "#3a8a5a", marginBottom: 12, padding: "10px 14px", background: "#edfff4", borderRadius: 8, border: "0.5px solid #b0e8c8", lineHeight: 1.7 }}>
+            {message}
+          </div>
+        )}
 
-          {/* パスワード忘れリンク（ログイン時のみ） */}
+        <form onSubmit={handleSubmit}>
+          <input type="email" placeholder="メールアドレス" value={email} onChange={e => setEmail(e.target.value)} style={{
+            width: "100%", height: 44, borderRadius: 10,
+            border: "0.5px solid rgba(200,180,230,0.5)", padding: "0 14px",
+            fontSize: 13, color: "#333", background: "rgba(255,255,255,0.9)",
+            outline: "none", marginBottom: 8, boxSizing: "border-box",
+          }} />
+          <input type="password" placeholder="パスワード（8文字以上）" value={password} onChange={e => setPassword(e.target.value)} style={{
+            width: "100%", height: 44, borderRadius: 10,
+            border: "0.5px solid rgba(200,180,230,0.5)", padding: "0 14px",
+            fontSize: 13, color: "#333", background: "rgba(255,255,255,0.9)",
+            outline: "none", marginBottom: 4, boxSizing: "border-box",
+          }} />
+
           {isLogin && (
             <div style={{ textAlign: "right", marginBottom: 10 }}>
-              <span style={{ fontSize: 11, color: "#b090c8", cursor: "pointer" }}>
-                パスワードをお忘れの方
-              </span>
+              <span style={{ fontSize: 11, color: "#b090c8", cursor: "pointer" }}>パスワードをお忘れの方</span>
             </div>
           )}
 
-          {/* エラー */}
           {error && (
             <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>
               {error}
             </div>
           )}
 
-          {/* CTAボタン */}
           <button type="submit" disabled={loading} style={{
             width: "100%", height: 46, borderRadius: 24, border: "none",
             background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
             color: "white", fontSize: 14, fontWeight: 700,
             cursor: loading ? "not-allowed" : "pointer",
-            marginTop: isLogin ? 0 : 8,
-            transition: "opacity 0.15s",
+            marginTop: isLogin ? 0 : 8, transition: "opacity 0.15s",
           }}>
             {loading ? "処理中..." : isLogin ? "ログイン" : "無料で始める →"}
           </button>
         </form>
 
-        {/* 切り替えリンク */}
         <div style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "#b090c8" }}>
           {isLogin ? (
             <>アカウントをお持ちでない方は<span onClick={() => setMode("signup")} style={{ color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>新規登録</span></>
@@ -295,14 +235,15 @@ const [mode, setMode] = useState<"signup" | "login">(
           )}
         </div>
 
-        {/* 利用規約 */}
         <div style={{ textAlign: "center", marginTop: 12, fontSize: 10, color: "#ccc", lineHeight: 1.6 }}>
           登録することで<span style={{ color: "#b090c8" }}>利用規約</span>・<span style={{ color: "#b090c8" }}>プライバシーポリシー</span>に同意したものとみなします
         </div>
       </div>
     </div>
   );
-}export default function AuthPage() {
+}
+
+export default function AuthPage() {
   return (
     <Suspense>
       <AuthPageInner />
