@@ -303,8 +303,22 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
 // ===== 教材一覧モーダル =====
   function MaterialsModal({ initContent, initMethod, onClose, isLoggedIn }: { initContent: string; initMethod: string; onClose: () => void; isLoggedIn: boolean; }) {
   const [activeContent, setActiveContent] = useState(initContent);
-  const [activeMethod, setActiveMethod] = useState(initMethod);
-  const [teaserMat, setTeaserMat] = useState<typeof materials[0] | null>(null);
+const [activeMethod, setActiveMethod] = useState(initMethod);
+const [teaserMat, setTeaserMat] = useState<typeof materials[0] | null>(null);
+const [favIds, setFavIds] = useState<number[]>([]);
+
+useEffect(() => {
+  if (!isLoggedIn) return;
+  const supabase = createClient();
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
+    if (!session) return;
+    const { data } = await supabase
+      .from("favorites")
+      .select("material_id")
+      .eq("user_id", session.user.id);
+    if (data) setFavIds(data.map((d) => d.material_id));
+  });
+}, [isLoggedIn]);
 
   const filtered = materials.filter((m) => {
     const cMatch = activeContent === "all" || m.content === activeContent;
@@ -376,9 +390,22 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
                   {filtered.map((mat) => (
                     <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
-                      <button onClick={(e) => { e.stopPropagation(); if (!isLoggedIn) window.location.href = "/auth?reason=favorite"; }} style={{ position: "absolute", top: 8, right: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
-                      </button>
+                      <button onClick={async (e) => {
+  e.stopPropagation();
+  if (!isLoggedIn) { window.location.href = "/auth?reason=favorite"; return; }
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+  if (favIds.includes(mat.id)) {
+    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+    setFavIds((prev) => prev.filter((id) => id !== mat.id));
+  } else {
+    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+    setFavIds((prev) => [...prev, mat.id]);
+  }
+}} style={{ position: "absolute", top: 8, right: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+  <svg width="14" height="14" viewBox="0 0 24 24" fill={favIds.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
+</button>
                       <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>{mat.char}</div>
                       <div style={{ padding: "10px 12px 14px" }}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
@@ -464,7 +491,94 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
 }
 
 // ===== メインページ =====
+function FavoritesSection() {
+  const [favMaterials, setFavMaterials] = useState<typeof materials[number][]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data } = await supabase
+        .from("favorites")
+        .select("material_id")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+      if (data) {
+        const ids = data.map((d) => d.material_id);
+        setFavMaterials(materials.filter((m) => ids.includes(m.id)));
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (favMaterials.length === 0) return (
+    <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
+      <div style={{ fontSize: 14 }}>お気に入りはまだありません</div>
+      <div style={{ fontSize: 12, marginTop: 6 }}>教材のハートボタンで保存できます</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+      {favMaterials.map((mat) => (
+        <div key={mat.id} onClick={() => window.open(`/materials/${mat.id}`, "_blank")} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
+          <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>{mat.char}</div>
+          <div style={{ padding: "10px 12px 14px" }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DownloadHistorySection() {
+  const [historyMaterials, setHistoryMaterials] = useState<typeof materials[number][]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data } = await supabase
+        .from("download_history")
+        .select("material_id")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+      if (data) {
+        const ids = [...new Set(data.map((d) => d.material_id))];
+        setHistoryMaterials(materials.filter((m) => ids.includes(m.id)));
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (historyMaterials.length === 0) return (
+    <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+      <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+      {historyMaterials.map((mat) => (
+        <div key={mat.id} onClick={() => window.open(`/materials/${mat.id}`, "_blank")} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
+          <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>{mat.char}</div>
+          <div style={{ padding: "10px 12px 14px" }}>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -682,7 +796,16 @@ export default function Home() {
         </h2>
       </div>
       <div style={{ padding: "32px 48px 56px" }}>
-        {!isLoggedIn ? (
+
+        {activePage === "plan" ? (
+  <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
+    <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>もっとわくわくする教材を使いませんか</div>
+    <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>サブスクプランに登録すると<br />全教材・体系的カリキュラムが使い放題になります</div>
+    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+      <button onClick={() => router.push("/plan")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>プランを見る →</button>
+    </div>
+  </div>
+) : !isLoggedIn ? (
           <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
             {activePage === "plan" ? (
               <>
@@ -703,9 +826,27 @@ export default function Home() {
               </>
             )}
           </div>
-        ) : (
-          <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
-        )}
+        ) : activePage === "fav" ? (
+  <FavoritesSection />
+) : activePage === "dl" ? (
+  <DownloadHistorySection />
+) : activePage === "plan" ? (
+  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>
+      プランの詳細・変更はこちらから確認できます。
+    </div>
+    <button onClick={() => router.push("/plan")} style={{
+      fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none",
+      background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+      color: "white", cursor: "pointer", fontWeight: 700,
+      display: "inline-block", width: "fit-content",
+    }}>
+      プランを見る・変更する →
+    </button>
+  </div>
+) : (
+  <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
+)}
       </div>
     </div>
   )

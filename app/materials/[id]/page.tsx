@@ -143,10 +143,19 @@ export default function MaterialDetailPage() {
 
 useEffect(() => {
   const supabase = createClient();
-  supabase.auth.getSession().then(({ data: { session } }) => {
+  supabase.auth.getSession().then(async ({ data: { session } }) => {
     setIsLoggedIn(!!session);
+    if (session) {
+      const { data } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .eq("material_id", id)
+        .single();
+      setIsFav(!!data);
+    }
   });
-}, []);
+}, [id]);
 
   // ズーム・ドラッグ
   const [scale, setScale] = useState(1);
@@ -248,13 +257,27 @@ useEffect(() => {
         {/* 右：お気に入り → ダウンロード */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <button
-  onClick={() => {
-    if (!isLoggedIn) {
-      window.location.href = "/auth?reason=favorite";
-      return;
-    }
-    setIsFav((v) => !v);
-  }}
+  onClick={async () => {
+  if (!isLoggedIn) {
+    window.location.href = "/auth?reason=favorite";
+    return;
+  }
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+
+  if (isFav) {
+    await supabase.from("favorites")
+      .delete()
+      .eq("user_id", session.user.id)
+      .eq("material_id", id);
+    setIsFav(false);
+  } else {
+    await supabase.from("favorites")
+      .insert({ user_id: session.user.id, material_id: id });
+    setIsFav(true);
+  }
+}}
             onMouseEnter={() => setFavHover(true)}
             onMouseLeave={() => setFavHover(false)}
             style={{
