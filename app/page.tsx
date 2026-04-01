@@ -306,6 +306,7 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
 const [activeMethod, setActiveMethod] = useState(initMethod);
 const [teaserMat, setTeaserMat] = useState<typeof materials[0] | null>(null);
 const [favIds, setFavIds] = useState<number[]>([]);
+const [favTooltipId, setFavTooltipId] = useState<number | null>(null);
 
 useEffect(() => {
   if (!isLoggedIn) return;
@@ -390,22 +391,75 @@ useEffect(() => {
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
                   {filtered.map((mat) => (
                     <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
-                      <button onClick={async (e) => {
-  e.stopPropagation();
-  if (!isLoggedIn) { window.location.href = "/auth?reason=favorite"; return; }
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
-  if (favIds.includes(mat.id)) {
-    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-    setFavIds((prev) => prev.filter((id) => id !== mat.id));
-  } else {
-    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-    setFavIds((prev) => [...prev, mat.id]);
-  }
-}} style={{ position: "absolute", top: 8, right: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-  <svg width="14" height="14" viewBox="0 0 24 24" fill={favIds.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
-</button>
+                      {/* お気に入りボタン＋吹き出し */}
+<div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
+  <button
+    onClick={async (e) => {
+      e.stopPropagation();
+      if (!isLoggedIn) {
+        setFavTooltipId(favTooltipId === mat.id ? null : mat.id);
+        return;
+      }
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      if (favIds.includes(mat.id)) {
+        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+        setFavIds((prev) => prev.filter((id) => id !== mat.id));
+      } else {
+        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+        setFavIds((prev) => [...prev, mat.id]);
+      }
+    }}
+    style={{
+      width: 28, height: 28, borderRadius: "50%",
+      background: "rgba(255,255,255,0.85)",
+      border: "0.5px solid rgba(200,180,230,0.3)",
+      cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+    }}
+  >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill={isLoggedIn && favIds.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
+</svg>
+  </button>
+
+  {/* 吹き出し */}
+  {favTooltipId === mat.id && (
+    <>
+      <div onClick={(e) => { e.stopPropagation(); setFavTooltipId(null); }} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+      <div style={{
+        position: "absolute", top: "calc(100% + 8px)", right: 0, zIndex: 50,
+        background: "white", borderRadius: 12,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
+        padding: "14px 16px", width: 150,
+        border: "0.5px solid rgba(200,170,240,0.25)",
+      }}>
+        {/* 三角 */}
+        <div style={{ position: "absolute", top: -6, right: 10, width: 12, height: 6, overflow: "hidden" }}>
+          <div style={{ width: 8, height: 8, background: "white", border: "0.5px solid rgba(200,170,240,0.25)", transform: "rotate(45deg)", margin: "2px auto 0", boxShadow: "-2px -2px 4px rgba(0,0,0,0.04)" }} />
+        </div>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5 }}>🔒 お気に入り機能</div>
+        <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>
+          ログインするとお気に入りに保存できます。
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); window.location.href = "/auth"; }}
+            style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
+          >
+            新規登録
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); window.location.href = "/auth?mode=login"; }}
+            style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
+          >
+            ログイン
+          </button>
+        </div>
+      </div>
+    </>
+  )}
+</div>
                       <div style={{ height: 135, background: mat.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: mat.charColor, fontWeight: 700 }}>{mat.char}</div>
                       <div style={{ padding: "10px 12px 14px" }}>
                         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: mat.tagBg, color: mat.tagColor, display: "inline-block", marginBottom: 6 }}>{mat.tag}</span>
@@ -422,70 +476,120 @@ useEffect(() => {
 
       {/* ティザーモーダル（MaterialsModalのreturnの中） */}
       {teaserMat && (
-        <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
-            <button onClick={() => setTeaserMat(null)} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
+  <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+    <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
+      <button onClick={() => setTeaserMat(null)} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
-            {/* 左：プレビュー */}
-            <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ position: "relative", width: "100%", aspectRatio: "3/4" }}>
-                <div style={{ width: "100%", height: "100%", background: teaserMat.bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: teaserMat.charColor, fontWeight: 700, filter: teaserMat.tag !== "無料" ? "blur(8px)" : "none", userSelect: "none" }}>
-                  {teaserMat.char}
-                </div>
-                {teaserMat.tag !== "無料" && (
-                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    <div style={{ background: "white", borderRadius: "50%", width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>🔒</div>
-                    <div style={{ background: "rgba(80,60,160,0.55)", color: "white", fontSize: 12, padding: "3px 14px", borderRadius: 20, fontWeight: 600 }}>サブスク限定</div>
-                  </div>
-                )}
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {[0, 1].map((i) => (
-                  <div key={i} style={{ aspectRatio: "1", background: teaserMat.bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: teaserMat.charColor, fontWeight: 700, filter: teaserMat.tag !== "無料" ? "blur(4px)" : "none", userSelect: "none", opacity: 0.7 }}>
-                    {teaserMat.char}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 右：情報 */}
-            <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
-              <div style={{ display: "flex", gap: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: teaserMat.tagBg, color: teaserMat.tagColor }}>{teaserMat.tag}</span>
-                <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "#f0f0f0", color: "#888" }}>{contentTabs.find(t => t.id === teaserMat.content)?.label}</span>
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{teaserMat.title}</div>
-              <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>楽しく学べる{contentTabs.find(t => t.id === teaserMat.content)?.label}の教材です。印刷してすぐに使えます。</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {[{ label: "対象年齢", value: "4〜10歳" }, { label: "形式", value: "PDF印刷" }, { label: "ページ数", value: "4枚" }, { label: "言語", value: "日本語" }].map(({ label, value }) => (
-                  <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ height: 1, background: "#f0f0f0" }} />
-              {teaserMat.tag !== "無料" && (
-                <div style={{ background: "#f0eeff", borderRadius: 10, padding: "12px 14px", fontSize: 13, color: "#534AB7", lineHeight: 1.5 }}>
-                  🔒 この教材はサブスク会員限定です。登録するとすべての教材が使い放題になります。
-                </div>
-              )}
-              <button
-                onClick={() => { setTeaserMat(null); if (teaserMat.tag !== "無料") { window.location.href = "/auth"; } else { window.open(`/materials/${teaserMat.id}`, "_blank"); } }}
-                style={{ width: "100%", padding: "13px", background: teaserMat.tag !== "無料" ? "#7F77DD" : "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
-              >
-                {teaserMat.tag !== "無料" ? "無料で登録してはじめる" : "この教材をダウンロードする"}
-              </button>
-              {teaserMat.tag !== "無料" && (
-                <div style={{ textAlign: "center", fontSize: 12, color: "#aaa" }}>
-                  すでにアカウントをお持ちの方は
-                  <span onClick={() => { setTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#7F77DD", cursor: "pointer" }}>ログイン</span>
-                </div>
-              )}
-            </div>
+      {/* 左：プレビュー */}
+      <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+        <div style={{ position: "relative", width: "100%", aspectRatio: "3/4" }}>
+          <div style={{ width: "100%", height: "100%", background: teaserMat.bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: teaserMat.charColor, fontWeight: 700, userSelect: "none" }}>
+            {teaserMat.char}
           </div>
         </div>
-      )}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[0, 1].map((i) => (
+            <div key={i} style={{ aspectRatio: "1", background: teaserMat.bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: teaserMat.charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>
+              {teaserMat.char}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* 右：情報 */}
+      <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: teaserMat.tagBg, color: teaserMat.tagColor }}>{teaserMat.tag}</span>
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 20, background: "#f0f0f0", color: "#888" }}>{contentTabs.find(t => t.id === teaserMat.content)?.label}</span>
+        </div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{teaserMat.title}</div>
+        <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>楽しく学べる{contentTabs.find(t => t.id === teaserMat.content)?.label}の教材です。印刷してすぐに使えます。</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[{ label: "対象年齢", value: "4〜10歳" }, { label: "形式", value: "PDF印刷" }, { label: "ページ数", value: "4枚" }, { label: "言語", value: "日本語" }].map(({ label, value }) => (
+            <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
+              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{value}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ height: 1, background: "#f0f0f0" }} />
+
+        {/* ダウンロードボタン＋吹き出し */}
+        <div style={{ position: "relative" }}>
+          <button
+            onClick={() => {
+              if (teaserMat.tag === "無料") {
+                window.open(`/materials/${teaserMat.id}`, "_blank");
+                setTeaserMat(null);
+              }
+            }}
+            style={{
+              width: "100%", padding: "13px",
+              background: teaserMat.tag !== "無料" ? "#f0eeff" : "#a3c0ff",
+              color: teaserMat.tag !== "無料" ? "#7F77DD" : "white",
+              border: teaserMat.tag !== "無料" ? "1px solid rgba(163,192,255,0.4)" : "none",
+              borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+            }}
+          >
+            {teaserMat.tag !== "無料" && <span style={{ fontSize: 16 }}>🔒</span>}
+            {teaserMat.tag !== "無料" ? "ダウンロード" : "この教材をダウンロードする"}
+          </button>
+
+          {/* サブスク限定：吹き出し */}
+        {teaserMat.tag !== "無料" && (
+  <div style={{
+    marginTop: 10,
+    background: "linear-gradient(135deg, rgba(244,185,185,0.08), rgba(163,192,255,0.08))",
+    border: "0.5px solid rgba(200,170,240,0.35)",
+    borderRadius: 12, padding: "14px 16px",
+    position: "relative",
+  }}>
+    {/* 上の三角 */}
+    <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
+      <div style={{ width: 8, height: 8, background: "white", border: "0.5px solid rgba(200,170,240,0.35)", transform: "rotate(45deg)", margin: "2px auto 0" }} />
+    </div>
+
+    <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>サブスクプランで使い放題 ✨</div>
+
+    {!isLoggedIn ? (
+      // 未ログイン・未登録
+      <>
+        <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>
+          登録するとすべての教材がダウンロードし放題になります。
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/auth"; }}
+          style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}
+        >
+          無料で登録する
+        </button>
+        <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>
+          すでにアカウントをお持ちの方は
+          <span
+            onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/auth?mode=login"; }}
+            style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}
+          >
+            ログイン
+          </span>
+        </div>
+      </>
+    ) : (
+      // TODO: Notion本番化・Stripe実装後にプラン判定を追加
+      // ログイン済み・無料会員 → 「プランを見る」
+      // ログイン済み・ライトプラン会員でスタンダード以上教材 → 「プランをアップグレードする」
+      // 対応プラン会員 → 吹き出しなし・ダウンロード可
+      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7 }}>
+        プランの詳細はこちらから確認できます。
+      </div>
+    )}
+  </div>
+)}
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

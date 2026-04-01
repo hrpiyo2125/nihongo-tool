@@ -112,7 +112,6 @@ const sidePanels = [
   },
 ];
 
-// タグの色設定
 function TagBadge({ tag }: { tag: string }) {
   const styles: Record<string, { bg: string; color: string }> = {
     "無料":  { bg: "#d6f5e5", color: "#2a6a44" },
@@ -128,11 +127,103 @@ function TagBadge({ tag }: { tag: string }) {
   );
 }
 
+// ===== 吹き出しコンポーネント =====
+type TooltipType = "favorite" | "download";
+
+function LockTooltip({
+  type,
+  visible,
+  onClose,
+}: {
+  type: TooltipType;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  if (!visible) return null;
+
+  const isFav = type === "favorite";
+
+  return (
+    <>
+      {/* 透明オーバーレイ（吹き出し外クリックで閉じる） */}
+      <div
+        onClick={onClose}
+        style={{ position: "fixed", inset: 0, zIndex: 49 }}
+      />
+      {/* 吹き出し本体 */}
+      <div style={{
+        position: "absolute",
+        top: "calc(100% + 10px)",
+        right: 0,
+        zIndex: 50,
+        background: "white",
+        borderRadius: 14,
+        boxShadow: "0 8px 32px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.08)",
+        padding: "16px 18px",
+        width: 230,
+        border: "0.5px solid rgba(200,170,240,0.25)",
+      }}>
+        {/* 三角 */}
+        <div style={{
+          position: "absolute",
+          top: -7,
+          right: 18,
+          width: 14,
+          height: 7,
+          overflow: "hidden",
+        }}>
+          <div style={{
+            width: 10,
+            height: 10,
+            background: "white",
+            border: "0.5px solid rgba(200,170,240,0.25)",
+            transform: "rotate(45deg)",
+            margin: "3px auto 0",
+            boxShadow: "-2px -2px 4px rgba(0,0,0,0.04)",
+          }} />
+        </div>
+
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 6 }}>
+          {isFav ? "🔒 お気に入り機能" : "🔒 ダウンロード"}
+        </div>
+        <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 14 }}>
+          {isFav
+            ? "ログインするとお気に入りに保存できます。"
+            : "ログインするとPDFをダウンロードできます。"}
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => { window.location.href = "/auth"; }}
+            style={{
+              flex: 1, fontSize: 11, fontWeight: 700,
+              padding: "7px 0", borderRadius: 8, border: "none",
+              background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+              color: "white", cursor: "pointer",
+            }}
+          >
+            新規登録
+          </button>
+          <button
+            onClick={() => { window.location.href = "/auth?mode=login"; }}
+            style={{
+              flex: 1, fontSize: 11, fontWeight: 600,
+              padding: "7px 0", borderRadius: 8,
+              border: "0.5px solid rgba(200,170,240,0.5)",
+              background: "white", color: "#9b6ed4", cursor: "pointer",
+            }}
+          >
+            ログイン
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function MaterialDetailPage() {
   const params = useParams();
   const id = Number(params.id);
   const material = materials.find((m) => m.id === id) ?? materials[0];
-
 
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [isFav, setIsFav] = useState(false);
@@ -141,21 +232,24 @@ export default function MaterialDetailPage() {
   const [homeHover, setHomeHover] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-useEffect(() => {
-  const supabase = createClient();
-  supabase.auth.getSession().then(async ({ data: { session } }) => {
-    setIsLoggedIn(!!session);
-    if (session) {
-      const { data } = await supabase
-        .from("favorites")
-        .select("id")
-        .eq("user_id", session.user.id)
-        .eq("material_id", id)
-        .single();
-      setIsFav(!!data);
-    }
-  });
-}, [id]);
+  // 吹き出しの表示状態
+  const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+      if (session) {
+        const { data } = await supabase
+          .from("favorites")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .eq("material_id", id)
+          .single();
+        setIsFav(!!data);
+      }
+    });
+  }, [id]);
 
   // ズーム・ドラッグ
   const [scale, setScale] = useState(1);
@@ -191,8 +285,35 @@ useEffect(() => {
   const SB_PANEL_W = 393;
   const panelOpen = activePanel !== null;
 
-  // 無料かどうか
   const isFree = material.tag === "無料";
+
+  // お気に入りボタンのクリックハンドラ
+  const handleFavClick = async () => {
+    if (!isLoggedIn) {
+      setActiveTooltip(activeTooltip === "favorite" ? null : "favorite");
+      return;
+    }
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    if (isFav) {
+      await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", id);
+      setIsFav(false);
+    } else {
+      await supabase.from("favorites").insert({ user_id: session.user.id, material_id: id });
+      setIsFav(true);
+    }
+  };
+
+  // ダウンロードボタンのクリックハンドラ
+  const handleDownloadClick = () => {
+  if (!isLoggedIn && !isFree) {
+    setActiveTooltip(activeTooltip === "download" ? null : "download");
+    return;
+  }
+  // TODO: 実際のダウンロード処理
+  console.log("download");
+};
 
   return (
     <div style={{
@@ -209,9 +330,7 @@ useEffect(() => {
         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
       }}>
 
-        {/* 左：ホーム → バッジ → 教材名 → メタ情報 → ダウンロード説明 */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
-          {/* ホームボタン */}
           <button
             onClick={() => window.history.back()}
             onMouseEnter={() => setHomeHover(true)}
@@ -229,26 +348,15 @@ useEffect(() => {
             </svg>
           </button>
 
-          {/* セパレーター */}
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-
-          {/* バッジ */}
           <TagBadge tag={material.tag} />
-
-          {/* 教材名 */}
           <span style={{ fontSize: 15, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {material.title}
           </span>
-
-          {/* メタ情報 */}
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>
             {material.meta}
           </span>
-
-          {/* セパレーター */}
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-
-          {/* ダウンロード説明テキスト */}
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>
             {isFree ? "このプリントは無料でダウンロードできます" : "このプリントはサブスク会員限定です"}
           </span>
@@ -256,68 +364,77 @@ useEffect(() => {
 
         {/* 右：お気に入り → ダウンロード */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-          <button
-  onClick={async () => {
-  if (!isLoggedIn) {
-    window.location.href = "/auth?reason=favorite";
-    return;
-  }
-  const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return;
 
-  if (isFav) {
-    await supabase.from("favorites")
-      .delete()
-      .eq("user_id", session.user.id)
-      .eq("material_id", id);
-    setIsFav(false);
-  } else {
-    await supabase.from("favorites")
-      .insert({ user_id: session.user.id, material_id: id });
-    setIsFav(true);
-  }
-}}
-            onMouseEnter={() => setFavHover(true)}
-            onMouseLeave={() => setFavHover(false)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              height: 34, padding: "0 12px", borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.55)",
-              background: favHover ? "rgba(255,255,255,0.22)" : "transparent",
-              cursor: "pointer", transition: "background 0.15s",
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill={isFav ? "white" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="white" />
-            </svg>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>{isFav ? "保存済み" : "お気に入り"}</span>
-          </button>
+          {/* お気に入りボタン */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={handleFavClick}
+              onMouseEnter={() => setFavHover(true)}
+              onMouseLeave={() => setFavHover(false)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                height: 34, padding: "0 12px", borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.55)",
+                background: favHover ? "rgba(255,255,255,0.22)" : "transparent",
+                cursor: "pointer", transition: "background 0.15s",
+              }}
+            >
+              {/* 未ログイン時は鍵アイコン */}
+              {!isLoggedIn ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" stroke="white" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" stroke="white" />
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill={isFav ? "white" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="white" />
+                </svg>
+              )}
+              <span style={{ fontSize: 12, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>
+                {isLoggedIn ? (isFav ? "保存済み" : "お気に入り") : "お気に入り"}
+              </span>
+            </button>
+            <LockTooltip
+              type="favorite"
+              visible={activeTooltip === "favorite"}
+              onClose={() => setActiveTooltip(null)}
+            />
+          </div>
 
-          <button
-            onMouseEnter={() => setDlHover(true)}
-            onMouseLeave={() => setDlHover(false)}
-            style={{
-              display: "flex", alignItems: "center", gap: 6,
-              height: 34, padding: "0 16px", borderRadius: 8, border: "none",
-              background: dlHover ? "rgba(255,255,255,0.85)" : "white",
-              cursor: "pointer", transition: "background 0.15s",
-              boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
-            }}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 3v13M7 11l5 5 5-5" stroke="#333" />
-              <path d="M4 20h16" stroke="#333" />
-            </svg>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
-          </button>
+          {/* ダウンロードボタン */}
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={handleDownloadClick}
+              onMouseEnter={() => setDlHover(true)}
+              onMouseLeave={() => setDlHover(false)}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                height: 34, padding: "0 16px", borderRadius: 8, border: "none",
+                background: dlHover ? "rgba(255,255,255,0.85)" : "white",
+                cursor: "pointer", transition: "background 0.15s",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.1)",
+              }}
+            >
+              {/* 未ログイン時は鍵アイコン */}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <path d="M12 3v13M7 11l5 5 5-5" stroke="#333" />
+  <path d="M4 20h16" stroke="#333" />
+</svg>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
+            </button>
+            <LockTooltip
+              type="download"
+              visible={activeTooltip === "download"}
+              onClose={() => setActiveTooltip(null)}
+            />
+          </div>
+
         </div>
       </header>
 
       {/* ===== BODY ===== */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
 
-        {/* SIDEBAR（overlay） */}
         <aside
           style={{ display: "flex", position: "absolute", top: 0, left: 0, bottom: 0, zIndex: 20, overflow: "hidden" }}
           onMouseLeave={() => setActivePanel(null)}
@@ -369,7 +486,7 @@ useEffect(() => {
               borderRadius: "16px 16px 0 0",
               marginTop: 12,
               boxShadow: "0 -4px 24px rgba(200,150,150,0.12)",
-              scrollbarWidth: "thin",
+              scrollbarWidth: "thin" as const,
               scrollbarColor: "rgba(0,0,0,0.14) rgba(0,0,0,0.04)",
             }}>
               <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(163,192,255,0.2)" }}>
@@ -382,7 +499,6 @@ useEffect(() => {
           </div>
         </aside>
 
-        {/* MAIN（ズーム・ドラッグ・スクロール） */}
         <main
           ref={containerRef}
           onMouseDown={handleMouseDown}
@@ -396,7 +512,7 @@ useEffect(() => {
             minWidth: 0,
             cursor: dragging ? "grabbing" : "grab",
             userSelect: "none",
-            scrollbarWidth: "thin",
+            scrollbarWidth: "thin" as const,
             scrollbarColor: "rgba(0,0,0,0.14) rgba(0,0,0,0.04)",
           }}
         >
@@ -407,7 +523,6 @@ useEffect(() => {
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 32, padding: "60px 40px 100px",
           }}>
-            {/* 教材プレビュー（角丸なし・影あり） */}
             <div style={{
               width: 480,
               aspectRatio: "1 / 1.414",

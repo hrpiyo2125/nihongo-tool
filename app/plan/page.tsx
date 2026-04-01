@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 
@@ -86,7 +86,22 @@ const plans = [
 export default function PlanPage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [currentPlan, setCurrentPlan] = useState<string>("free");
   const supabase = createClient();
+
+  useEffect(() => {
+    const fetchCurrentPlan = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", user.id)
+        .single();
+      if (data?.plan) setCurrentPlan(data.plan);
+    };
+    fetchCurrentPlan();
+  }, []);
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
     if (!plan.priceId) return;
@@ -147,101 +162,132 @@ export default function PlanPage() {
         maxWidth: 900,
         margin: "0 auto 40px",
       }}>
-        {plans.map((plan) => (
-          <div key={plan.key} style={{
-            background: plan.bg,
-            border: `${plan.featured ? 2 : 1}px solid ${plan.border}`,
-            borderRadius: 20,
-            padding: "24px 16px",
-            position: "relative",
-            boxShadow: plan.featured ? "0 8px 32px rgba(180,130,210,0.18)" : "none",
-            transform: plan.featured ? "scale(1.04)" : "scale(1)",
-            transition: "transform 0.2s",
-          }}>
-            {plan.featured && (
-              <div style={{
-                position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)",
-                background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
-                color: "white", fontSize: 11, fontWeight: 700,
-                padding: "3px 14px", borderRadius: 12, whiteSpace: "nowrap",
-              }}>
-                おすすめ
+        {plans.map((plan) => {
+          const isCurrent = plan.key === currentPlan;
+          return (
+            <div key={plan.key} style={{
+              background: plan.bg,
+              border: `${plan.featured ? 2 : 1}px solid ${isCurrent ? plan.color : plan.border}`,
+              borderRadius: 20,
+              padding: "24px 16px",
+              position: "relative",
+              boxShadow: plan.featured
+                ? "0 8px 32px rgba(180,130,210,0.18)"
+                : isCurrent
+                ? "0 4px 16px rgba(150,100,200,0.12)"
+                : "none",
+              transform: plan.featured ? "scale(1.04)" : "scale(1)",
+              transition: "transform 0.2s",
+            }}>
+              {/* おすすめバッジ */}
+              {plan.featured && !isCurrent && (
+                <div style={{
+                  position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)",
+                  background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                  color: "white", fontSize: 11, fontWeight: 700,
+                  padding: "3px 14px", borderRadius: 12, whiteSpace: "nowrap",
+                }}>
+                  おすすめ
+                </div>
+              )}
+
+              {/* 現在のプランバッジ */}
+              {isCurrent && (
+                <div style={{
+                  position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)",
+                  background: "linear-gradient(135deg,#a3c0ff,#e49bfd)",
+                  color: "white", fontSize: 11, fontWeight: 700,
+                  padding: "3px 14px", borderRadius: 12, whiteSpace: "nowrap",
+                }}>
+                  現在のプラン
+                </div>
+              )}
+
+              <div style={{ fontSize: 15, fontWeight: 800, color: plan.color, marginBottom: 8 }}>
+                {plan.name}
               </div>
-            )}
 
-            <div style={{ fontSize: 15, fontWeight: 800, color: plan.color, marginBottom: 8 }}>
-              {plan.name}
-            </div>
+              <div style={{ marginBottom: 20 }}>
+                {plan.price === 0 ? (
+                  <span style={{ fontSize: 26, fontWeight: 800, color: "#888" }}>無料</span>
+                ) : (
+                  <>
+                    <span style={{ fontSize: 26, fontWeight: 800, color: plan.color }}>
+                      ¥{plan.price.toLocaleString()}
+                    </span>
+                    <span style={{ fontSize: 12, color: "#bbb" }}>/月</span>
+                  </>
+                )}
+              </div>
 
-            <div style={{ marginBottom: 20 }}>
-              {plan.price === 0 ? (
-                <span style={{ fontSize: 26, fontWeight: 800, color: "#888" }}>無料</span>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
+                {plan.features.map((f, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{
+                      width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
+                      background: f.ok
+                        ? plan.featured
+                          ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
+                          : "#e0d0f8"
+                        : "#f0f0f0",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      {f.ok ? (
+                        <svg width="9" height="9" viewBox="0 0 10 10">
+                          <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+                        </svg>
+                      ) : (
+                        <svg width="8" height="8" viewBox="0 0 10 10">
+                          <path d="M3 5h4" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 11, color: f.ok ? "#444" : "#ccc", lineHeight: 1.4 }}>
+                      {f.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* ボタン */}
+              {isCurrent ? (
+  <button onClick={() => router.back()} style={{
+    width: "100%", height: 40, borderRadius: 20,
+    border: `1px solid ${plan.color}`,
+    background: "white", color: plan.color,
+    fontSize: 12, fontWeight: 700, cursor: "pointer",
+    opacity: 0.7,
+  }}>
+    このまま使う
+  </button>
+              ) : plan.key === "free" ? (
+                <button onClick={() => router.push("/")} style={{
+                  width: "100%", height: 40, borderRadius: 20, border: "1px solid #eee",
+                  background: "white", color: "#aaa", fontSize: 12, fontWeight: 600,
+                  cursor: "pointer",
+                }}>
+                  無料で使う
+                </button>
               ) : (
-                <>
-                  <span style={{ fontSize: 26, fontWeight: 800, color: plan.color }}>
-                    ¥{plan.price.toLocaleString()}
-                  </span>
-                  <span style={{ fontSize: 12, color: "#bbb" }}>/月</span>
-                </>
+                <button
+                  onClick={() => handleSubscribe(plan)}
+                  disabled={loading === plan.key}
+                  style={{
+                    width: "100%", height: 40, borderRadius: 20, border: "none",
+                    background: plan.featured
+                      ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
+                      : "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
+                    color: "white", fontSize: 12, fontWeight: 700,
+                    cursor: loading === plan.key ? "not-allowed" : "pointer",
+                    opacity: loading === plan.key ? 0.7 : 1,
+                  }}
+                >
+                  {loading === plan.key ? "処理中..." : "始める →"}
+                </button>
               )}
             </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 24 }}>
-              {plan.features.map((f, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{
-                    width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
-                    background: f.ok
-                      ? plan.featured
-                        ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
-                        : "#e0d0f8"
-                      : "#f0f0f0",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    {f.ok ? (
-                      <svg width="9" height="9" viewBox="0 0 10 10">
-                        <path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
-                      </svg>
-                    ) : (
-                      <svg width="8" height="8" viewBox="0 0 10 10">
-                        <path d="M3 5h4" stroke="#ccc" strokeWidth="1.5" strokeLinecap="round"/>
-                      </svg>
-                    )}
-                  </div>
-                  <span style={{ fontSize: 11, color: f.ok ? "#444" : "#ccc", lineHeight: 1.4 }}>
-                    {f.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {plan.key === "free" ? (
-              <button onClick={() => router.push("/")} style={{
-                width: "100%", height: 40, borderRadius: 20, border: "1px solid #eee",
-                background: "white", color: "#aaa", fontSize: 12, fontWeight: 600,
-                cursor: "pointer",
-              }}>
-                無料で使う
-              </button>
-            ) : (
-              <button
-                onClick={() => handleSubscribe(plan)}
-                disabled={loading === plan.key}
-                style={{
-                  width: "100%", height: 40, borderRadius: 20, border: "none",
-                  background: plan.featured
-                    ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
-                    : "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
-                  color: "white", fontSize: 12, fontWeight: 700,
-                  cursor: loading === plan.key ? "not-allowed" : "pointer",
-                  opacity: loading === plan.key ? 0.7 : 1,
-                }}
-              >
-                {loading === plan.key ? "処理中..." : "始める →"}
-              </button>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div style={{ textAlign: "center", fontSize: 11, color: "#ccc" }}>
