@@ -283,7 +283,9 @@ const navItems: NavItem[] = [
   { id: "fav", label: "お気に入り", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "pt", label: "ポイント", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "plan", label: "プランを見る", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M8 12h8M8 8h8M8 16h5" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "tips", label: "お悩み解決", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"> <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>)},
   { id: "guide", label: "使い方ガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
+  
 ];
 
 type ItemType = { label: string; char: string; color: string; imageSrc?: string; isMore?: boolean; contentId?: string; methodId?: string; };
@@ -818,6 +820,24 @@ export default function Home() {
   const [userName, setUserName] = useState("ゲスト");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+
+  useEffect(() => {
+  const el = document.getElementById("main-scroll");
+  if (!el) return;
+  const handler = () => setScrolled(el.scrollTop > 40);
+  el.addEventListener("scroll", handler);
+  return () => el.removeEventListener("scroll", handler);
+}, []);
 
   useEffect(() => {
     fetch("/api/materials")
@@ -864,7 +884,7 @@ export default function Home() {
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "#f8f4f4", overflow: "hidden", position: "relative" }}>
-      <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED, transition: "width 0.22s ease", background: "transparent", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", zIndex: 10 }}>
+      <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED,display: isMobile ? "none" : "flex", transition: "width 0.22s ease", background: "transparent", flexDirection: "column", flexShrink: 0, overflow: "hidden", zIndex: 10 }}>
         <div style={{ flexShrink: 0 }}>
           {sbOpen ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px" }}>
@@ -898,8 +918,16 @@ export default function Home() {
           ))}
         </div>
         <div style={{ padding: "10px 6px", flexShrink: 0 }}>
+          <div style={{ padding: "10px 6px", flexShrink: 0 }}>
           <div onClick={() => { if (!isLoggedIn) router.push("/auth?mode=login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer" }}>
             <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+            {sbOpen && <div><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
+            {isLoggedIn && sbOpen && (
+              <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); setIsLoggedIn(false); router.refresh(); }} style={{ width: "100%", fontSize: 11, padding: "6px 10px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.4)", background: "transparent", color: "#c0a0c0", cursor: "pointer", marginTop: 4 }}>
+                ログアウト
+              </button>
+            )}
+          </div>
             {sbOpen && <div><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
             {isLoggedIn && sbOpen && (
               <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); setIsLoggedIn(false); router.refresh(); }} style={{ width: "100%", fontSize: 11, padding: "6px 10px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.4)", background: "transparent", color: "#c0a0c0", cursor: "pointer", marginTop: 4 }}>
@@ -915,20 +943,22 @@ export default function Home() {
         </div>
       </aside>
 
+       
+
       <main id="main-scroll" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0, background: "white", borderRadius: "16px 16px 0 0", margin: "12px 12px 0 0", boxShadow: "0 -4px 24px rgba(200,150,150,0.15)" }}>
         {activePage === "home" && (
           <>
             <section style={{ padding: "120px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>Japanese Language Tools for Heritage Learners</p>
-              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>授業のアイデアが、次々とわいてくる。</h1>
-              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>海外で学ぶ子どもたちの日本語を、<br />もっとわくわくさせる教材プラットフォーム</p>
-              <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
+              <h1 style={{ fontSize: isMobile ? 22 : 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>にほんごの勉強が、もっと楽しくなる</h1>
+              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>学校でもご家庭でも<br />日本語を教える先生と保護者のための、すぐに使える日本語学習ツールがそろっています。</p>
+              <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 12, padding: isMobile ? "0 24px" : "0" }}>
                 <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>学習内容から探す</button>
                 <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>学習方法から探す</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12, letterSpacing: 2 }}>or</div>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-                <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>✦ 教材一覧を見る</button>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 32, padding: isMobile ? "0 24px" : "0" }}>
+                <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" , width: isMobile ? "100%" : "auto",}}>✦ 教材一覧を見る</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
@@ -1045,6 +1075,33 @@ export default function Home() {
           )
         )}
       </main>
+
+      {isMobile && (
+  <>
+       
+      
+       <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 49, background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", boxShadow: scrolled ? "0 2px 8px rgba(0,0,0,0.06)" : "none", transition: "all 0.2s" }}>
+       <div onClick={() => { if (!isLoggedIn) router.push("/auth?mode=login"); }} style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", cursor: "pointer" }}>{userInitial}</div>
+       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={scrolled ? "#888" : "transparent"} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+       </div>
+      
+  </>
+      )}
+
+      {isMobile && (
+        <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 50, background: "white", borderTop: "0.5px solid rgba(200,170,240,0.25)", display: "flex", justifyContent: "space-around", alignItems: "center", padding: "8px 0 20px" }}>
+        {[
+         { id: "home", label: "ホーム", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={activePage === "home" ? "#7a50b0" : "#bbb"} /><path d="M9 22V12h6v10" stroke={activePage === "home" ? "#7a50b0" : "#bbb"} /></svg> },
+         { id: "materials", label: "教材一覧", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke={activePage === "materials" ? "#7a50b0" : "#bbb"} /><path d="M9 9h6M9 12h6M9 15h4" stroke={activePage === "materials" ? "#7a50b0" : "#bbb"} /></svg> },
+         { id: "fav", label: "お気に入り", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={activePage === "fav" ? "#7a50b0" : "#bbb"} /></svg> },
+         { id: "more", label: "もっと見る", icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="5" cy="12" r="1.5" fill={activePage === "more" ? "#7a50b0" : "#bbb"} /><circle cx="12" cy="12" r="1.5" fill={activePage === "more" ? "#7a50b0" : "#bbb"} /><circle cx="19" cy="12" r="1.5" fill={activePage === "more" ? "#7a50b0" : "#bbb"} /></svg> },
+         ].map((item) => (
+       <button key={item.id} onClick={() => item.id === "materials" ? openModal("all", "all") : setActivePage(item.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, background: "transparent", border: "none", cursor: "pointer", padding: "4px 12px" }}>
+        {item.icon} <span style={{ fontSize: 10, fontWeight: 600, color: activePage === item.id ? "#7a50b0" : "#bbb" }}>{item.label}</span>
+       </button>
+        ))}
+        </nav>
+     )}
 
       {modal && (
         <MaterialsModal
