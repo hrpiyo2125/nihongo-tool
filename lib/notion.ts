@@ -1,0 +1,106 @@
+import { Client } from '@notionhq/client'
+
+const notion = new Client({
+  auth: process.env.NOTION_API_KEY,
+})
+
+const databaseId = process.env.NOTION_DATABASE_ID!
+
+// Notionの日本語表示名 → page.tsxで使うID に変換
+const contentLabelToId: Record<string, string> = {
+  'ひらがな': 'hiragana',
+  'カタカナ': 'katakana',
+  '漢字':     'kanji',
+  '算数':     'math',
+  '語彙':     'vocab',
+  '文法':     'grammar',
+  '絵本':     'picture',
+  'うた':     'song',
+  '日常':     'daily',
+  '季節':     'season',
+  '数字':     'number',
+}
+
+const methodLabelToId: Record<string, string> = {
+  'テスト':     'test',
+  'かるた':     'karuta',
+  '練習':       'practice',
+  'ゲーム':     'game',
+  'ぬりえ':     'nurie',
+  '読み物':     'reading',
+  '工作':       'craft',
+  'うた':       'music',
+  '会話':       'talk',
+  'なぞり書き': 'nazori',
+  'パズル':     'puzzle',
+}
+const requiredPlanLabelToId: Record<string, string> = {
+  '無料':         'free',
+  'ライト':       'light',
+  'スタンダード': 'standard',
+  'プレミアム':   'premium',
+}
+export async function getMaterials() {
+  const response = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      property: 'isPublished',
+      checkbox: {
+        equals: true,
+      },
+    },
+  } as any)
+
+  return response.results.map((page: any) => {
+    const props = page.properties
+    return {
+      id: page.id,
+      title: props.name?.title[0]?.plain_text ?? '',
+      description: props.description?.rich_text[0]?.plain_text ?? '',
+      level: props.level?.select?.name ?? '',
+      // 日本語ラベル → IDに変換（マップにない値はそのまま通す）
+      content: (props.content?.multi_select ?? []).map((s: any) => contentLabelToId[s.name] ?? s.name),
+      method:  (props.method?.multi_select  ?? []).map((s: any) => methodLabelToId[s.name]  ?? s.name),
+      ageGroup:     props.ageGroup?.select?.name ?? '',
+      requiredPlan: requiredPlanLabelToId[
+      props.requiredPlan?.select?.name ?? 
+      props.requiredPlan?.rich_text?.[0]?.plain_text ?? ''
+      ] ?? 'free',
+      thumbnail:    props.thumbnail?.files[0]?.file?.url ?? props.thumbnail?.files[0]?.external?.url ?? '',
+      isPickup:     props.isPickup?.checkbox     ?? false,
+      isRecommended: props.isRecommended?.checkbox ?? false,
+      ranking:      props.ranking?.number        ?? null,
+      isNew:        props.isNew?.checkbox        ?? false,
+    }
+  })
+}
+export async function getMaterialById(id: string) {
+  console.log('getMaterialById called with id:', id)
+  try {
+    const page = await notion.pages.retrieve({ page_id: id }) as any
+    console.log('page retrieved:', page.id)
+    const props = page.properties
+    return {
+      id: page.id,
+      title:       props.name?.title[0]?.plain_text ?? '',
+      description: props.description?.rich_text[0]?.plain_text ?? '',
+      level:       props.level?.select?.name ?? '',
+      content:     (props.content?.multi_select ?? []).map((s: any) => contentLabelToId[s.name] ?? s.name),
+      method:      (props.method?.multi_select  ?? []).map((s: any) => methodLabelToId[s.name]  ?? s.name),
+      ageGroup:    props.ageGroup?.select?.name ?? '',
+      requiredPlan: requiredPlanLabelToId[
+        props.requiredPlan?.select?.name ?? 
+        props.requiredPlan?.rich_text?.[0]?.plain_text ?? ''
+      ] ?? 'free',
+      thumbnail:   props.thumbnail?.files[0]?.file?.url ?? props.thumbnail?.files[0]?.external?.url ?? '',
+      mockupImage: props.mockupImage?.files[0]?.file?.url ?? props.mockupImage?.files[0]?.external?.url ?? '',
+      isPickup:    props.isPickup?.checkbox ?? false,
+      isRecommended: props.isRecommended?.checkbox ?? false,
+      ranking:     props.ranking?.number ?? null,
+      isNew:       props.isNew?.checkbox ?? false,
+    }
+  } catch (e) {
+    console.error('getMaterialById error:', e)
+    throw e
+  }
+}

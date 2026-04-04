@@ -7,7 +7,7 @@ import { createClient } from "../../lib/supabase";
 const plans = [
   {
     key: "free",
-    name: "Free",
+    name: "無料",
     price: 0,
     priceId: null,
     color: "#888",
@@ -26,7 +26,7 @@ const plans = [
   },
   {
     key: "light",
-    name: "Light",
+    name: "ライト",
     price: 980,
     priceId: "price_1THEnBGhqjyGHGfCXxb9uRNa",
     color: "#7a50b0",
@@ -45,7 +45,7 @@ const plans = [
   },
   {
     key: "standard",
-    name: "Standard",
+    name: "スタンダード",
     price: 1980,
     priceId: "price_1THEo4GhqjyGHGfCt2x1xP3t",
     color: "#7a50b0",
@@ -64,7 +64,7 @@ const plans = [
   },
   {
     key: "premium",
-    name: "Premium",
+    name: "プレミアム",
     price: 3980,
     priceId: "price_1THEofGhqjyGHGfC6yPrXrrr",
     color: "#c44a88",

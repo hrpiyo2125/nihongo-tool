@@ -1,16 +1,23 @@
 import Script from "next/script";
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Libre_Baskerville, Josefin_Sans } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+
+
+const libreBaskerville = Libre_Baskerville({
   subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-libre",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const josefinSans = Josefin_Sans({
   subsets: ["latin"],
+  weight: ["300", "400", "600", "700"],
+  variable: "--font-josefin",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -24,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+   <html lang="ja" className={`${libreBaskerville.variable} ${josefinSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Script
           id="crisp-widget"
