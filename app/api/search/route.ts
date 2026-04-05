@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // Supabaseでベクトル検索
     const { data, error } = await supabase.rpc('match_materials', {
       query_embedding: embedding,
-      match_threshold: 0.5,
+      match_threshold: 0.3,
       match_count: 20
     })
 
