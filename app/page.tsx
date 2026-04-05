@@ -16,33 +16,34 @@ const scrollbarStyle = `
 `;
 
 const contentTabs = [
-  { id: "all",      label: "すべて",   char: "✦", color: "#e8efff", imageSrc: null },
-  { id: "hiragana", label: "ひらがな", char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
-  { id: "katakana", label: "カタカナ", char: "ア", color: "#f0e8ff", imageSrc: "/kanakana.png" },
-  { id: "kanji",    label: "漢字",     char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
-  { id: "math",     label: "算数",     char: "＋", color: "#e8f8ee", imageSrc: "/math.png" },
-  { id: "vocab",    label: "語彙",     char: "語", color: "#fff8e0", imageSrc: null },
-  { id: "grammar",  label: "文法",     char: "文", color: "#fff0ec", imageSrc: null },
-  { id: "picture",  label: "絵本",     char: "絵", color: "#e8f8ff", imageSrc: null },
-  { id: "song",     label: "うた",     char: "♪", color: "#edfff0", imageSrc: null },
-  { id: "daily",    label: "日常",     char: "日", color: "#f8e8ff", imageSrc: null },
-  { id: "season",   label: "季節",     char: "季", color: "#e8efff", imageSrc: null },
-  { id: "number",   label: "数字",     char: "数", color: "#f0e8ff", imageSrc: null },
+  { id: "all",        label: "すべて",     char: "✦", color: "#e8efff", imageSrc: null },
+  { id: "hiragana",   label: "ひらがな",   char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
+  { id: "katakana",   label: "カタカナ",   char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png" },
+  { id: "kanji",      label: "漢字",       char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
+  { id: "vocab",      label: "語彙",       char: "語", color: "#fff8e0", imageSrc: null },
+  { id: "joshi",      label: "助詞",       char: "は", color: "#fff0ec", imageSrc: null },
+  { id: "bunkei",     label: "文型",       char: "文", color: "#f0ffe8", imageSrc: null },
+  { id: "aisatsu",    label: "あいさつ",   char: "👋", color: "#e8f8ff", imageSrc: null },
+  { id: "kaiwa",      label: "場面会話",   char: "話", color: "#f8e8ff", imageSrc: null },
+  { id: "season",     label: "季節・行事", char: "季", color: "#e8efff", imageSrc: null },
+  { id: "food",       label: "食べ物",     char: "🍎", color: "#fff0e8", imageSrc: null },
+  { id: "animal",     label: "動物",       char: "🐾", color: "#e8f8ee", imageSrc: null },
+  { id: "body",       label: "体・健康",   char: "💪", color: "#ffe8f4", imageSrc: null },
+  { id: "color",      label: "色・形",     char: "🔵", color: "#f0e8ff", imageSrc: null },
+  { id: "number",     label: "数・算数",   char: "数", color: "#e8f8ff", imageSrc: null },
 ];
 
 const methodTabs = [
-  { id: "all",      label: "すべて",     char: "✦" },
-  { id: "test",     label: "テスト",     char: "✓" },
-  { id: "karuta",   label: "かるた",     char: "札" },
-  { id: "practice", label: "練習",       char: "✏" },
-  { id: "game",     label: "ゲーム",     char: "▶" },
-  { id: "nurie",    label: "ぬりえ",     char: "◎" },
-  { id: "reading",  label: "読み物",     char: "本" },
-  { id: "craft",    label: "工作",       char: "✂" },
-  { id: "music",    label: "うた",       char: "♪" },
-  { id: "talk",     label: "会話",       char: "話" },
-  { id: "nazori",   label: "なぞり書き", char: "な" },
-  { id: "puzzle",   label: "パズル",     char: "⊞" },
+  { id: "all",        label: "すべて",     char: "✦" },
+  { id: "drill",      label: "ドリル",     char: "✏" },
+  { id: "test",       label: "テスト",     char: "✓" },
+  { id: "card",       label: "カード",     char: "🃏" },
+  { id: "karuta",     label: "かるた",     char: "札" },
+  { id: "game",       label: "ゲーム",     char: "▶" },
+  { id: "nurie",      label: "ぬりえ",     char: "◎" },
+  { id: "reading",    label: "読み物",     char: "本" },
+  { id: "music",      label: "うた",       char: "♪" },
+  { id: "roleplay",   label: "ロールプレイ", char: "🎭" },
 ];
 
 type Material = {
@@ -68,33 +69,34 @@ type Material = {
 };
 
 const contentItems = [
-  { label: "ひらがな", char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
-  { label: "カタカナ", char: "ア", color: "#f0e8ff", imageSrc: "/kanakana.png", contentId: "katakana" },
-  { label: "漢字",     char: "字", color: "#ffe8f4", imageSrc: "/kanji.png",    contentId: "kanji" },
-  { label: "算数",     char: "＋", color: "#e8f8ee", imageSrc: "/math.png",     contentId: "math" },
-  { label: "語彙",     char: "語", color: "#fff8e0", contentId: "vocab" },
-  { label: "文法",     char: "文", color: "#fff0ec", contentId: "grammar" },
-  { label: "絵本",     char: "絵", color: "#e8f8ff", contentId: "picture" },
-  { label: "うた",     char: "♪", color: "#edfff0", contentId: "song" },
-  { label: "日常",     char: "日", color: "#f8e8ff", contentId: "daily" },
-  { label: "季節",     char: "季", color: "#e8efff", contentId: "season" },
-  { label: "数字",     char: "数", color: "#f0e8ff", contentId: "number" },
-  { label: "もっと見る", char: "›", color: "#f8f4ff", isMore: true, contentId: "all" },
+  { label: "ひらがな",   char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
+  { label: "カタカナ",   char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png",  contentId: "katakana" },
+  { label: "漢字",       char: "字", color: "#ffe8f4", imageSrc: "/kanji.png",     contentId: "kanji" },
+  { label: "語彙",       char: "語", color: "#fff8e0", contentId: "vocab" },
+  { label: "助詞",       char: "は", color: "#fff0ec", contentId: "joshi" },
+  { label: "文型",       char: "文", color: "#f0ffe8", contentId: "bunkei" },
+  { label: "あいさつ",   char: "👋", color: "#e8f8ff", contentId: "aisatsu" },
+  { label: "場面会話",   char: "話", color: "#f8e8ff", contentId: "kaiwa" },
+  { label: "季節・行事", char: "季", color: "#e8efff", contentId: "season" },
+  { label: "食べ物",     char: "🍎", color: "#fff0e8", contentId: "food" },
+  { label: "動物",       char: "🐾", color: "#e8f8ee", contentId: "animal" },
+  { label: "体・健康",   char: "💪", color: "#ffe8f4", contentId: "body" },
+  { label: "色・形",     char: "🔵", color: "#f0e8ff", contentId: "color" },
+  { label: "数・算数",   char: "数", color: "#e8f8ff", contentId: "number" },
+  { label: "もっと見る", char: "›",  color: "#f8f4ff", isMore: true, contentId: "all" },
 ];
 
 const methodItems = [
-  { label: "テスト",     char: "✓", color: "#f0e8ff", methodId: "test" },
-  { label: "かるた",     char: "札", color: "#ffe8f4", methodId: "karuta" },
-  { label: "練習",       char: "✏", color: "#e8efff", methodId: "practice" },
-  { label: "ゲーム",     char: "▶", color: "#e8f8ee", methodId: "game" },
-  { label: "ぬりえ",     char: "◎", color: "#fff8e0", methodId: "nurie" },
-  { label: "読み物",     char: "本", color: "#fff0ec", methodId: "reading" },
-  { label: "工作",       char: "✂", color: "#e8f8ff", methodId: "craft" },
-  { label: "うた",       char: "♪", color: "#edfff0", methodId: "music" },
-  { label: "会話",       char: "話", color: "#f8e8ff", methodId: "talk" },
-  { label: "なぞり書き", char: "な", color: "#e8efff", methodId: "nazori" },
-  { label: "パズル",     char: "⊞", color: "#f0e8ff", methodId: "puzzle" },
-  { label: "もっと見る", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
+  { label: "ドリル",       char: "✏", color: "#e8efff", methodId: "drill" },
+  { label: "テスト",       char: "✓", color: "#f0e8ff", methodId: "test" },
+  { label: "カード",       char: "🃏", color: "#ffe8f4", methodId: "card" },
+  { label: "かるた",       char: "札", color: "#fff8e0", methodId: "karuta" },
+  { label: "ゲーム",       char: "▶", color: "#e8f8ee", methodId: "game" },
+  { label: "ぬりえ",       char: "◎", color: "#fff0ec", methodId: "nurie" },
+  { label: "読み物",       char: "本", color: "#e8f8ff", methodId: "reading" },
+  { label: "うた",         char: "♪", color: "#edfff0", methodId: "music" },
+  { label: "ロールプレイ", char: "🎭", color: "#f8e8ff", methodId: "roleplay" },
+  { label: "もっと見る",   char: "›",  color: "#f8f4ff", isMore: true, methodId: "all" },
 ];
 
 const cards = [
@@ -984,7 +986,7 @@ export default function Home() {
 
             <section id="anchor-method" style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
+               å<div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb" }}>Browse by Method</div>
                   <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>学習方法から探す</div>
