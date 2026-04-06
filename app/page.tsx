@@ -180,7 +180,7 @@ const troubleTabs = [
   { id: "goal",     label: "何を目標にすればいい？" },
 ];
 
-function TroubleSection() {
+function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
   const [tab, setTab] = useState("start");
   return (
     <div style={{ display: "flex", flexDirection: "column" as const }}>
@@ -281,8 +281,62 @@ function TroubleSection() {
   </div>
 )}
         {tab === "level" && (
-          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「レベルがわからない」の内容が入ります。</div>
-        )}
+  <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
+
+    {/* ブロック1：言語習得の基本の流れ */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>言語習得の基本の流れ</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto" as const, padding: "4px 0" }}>
+        {[
+          { icon: "👂", label: "聞く" },
+          { icon: "🗣", label: "話す" },
+          { icon: "📖", label: "読む" },
+          { icon: "✏️", label: "書く" },
+        ].map((item, i, arr) => (
+          <div key={item.label} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
+            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 8, padding: "16px 20px", background: "white", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12 }}>
+              <div style={{ fontSize: 28 }}>{item.icon}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{item.label}</div>
+            </div>
+            {i < arr.length - 1 && (
+              <div style={{ fontSize: 20, color: "#ddd", padding: "0 8px" }}>→</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12, fontSize: 13, color: "#888", lineHeight: 1.8, padding: "12px 16px", background: "#f8f6ff", borderRadius: 10 }}>
+        これは基本の流れです。継承語の子どもはこの通りにはいかないことも多いです。まず「どこができて、どこがまだかな？」を確認するところから始めましょう。
+      </div>
+    </div>
+
+    {/* ブロック2：簡易チェックリスト（内容は後から追加） */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 8 }}>簡易チェックリスト</div>
+      <div style={{ fontSize: 13, color: "#aaa", marginBottom: 16 }}>やさしい日本語で話しかけながら確認してみましょう。</div>
+      <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "24px", fontSize: 13, color: "#bbb", textAlign: "center" as const }}>
+        チェックリストを準備中です。
+      </div>
+      <button style={{ marginTop: 12, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}>
+        📄 チェックリストをダウンロード（準備中）
+      </button>
+    </div>
+
+    {/* ブロック3：レベルがわかったら */}
+    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>レベルがわかったら、好きな教材を選んでOK</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>toolioの教材はレベルで縛っていません。同じ教材でも使い方次第でどのレベルにも使えます。各教材ページの「使い方」タブに具体的な活用例を載せています。</div>
+      <button onClick={onOpenModal} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        教材一覧を見る →
+      </button>
+    </div>
+
+    {/* ブロック4：DLAへの一言 */}
+    <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.8, padding: "12px 16px", background: "#fafafa", borderRadius: 10 }}>
+      💡 より正確なレベル判定をしたい場合は、<span style={{ fontWeight: 700 }}>DLA（Developmental Language Assessment）</span>という専門ツールがあります。学校や専門機関に相談してみてください。
+    </div>
+
+  </div>
+)}
         {tab === "material" && (
           <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「どの教材を使えばいい？」の内容が入ります。</div>
         )}
@@ -1165,7 +1219,7 @@ export default function Home() {
           activePage === "guide" ? (
             <GuideSection />
           ) : activePage === "trouble" ? (
-            <TroubleSection />
+            <TroubleSection onOpenModal={() => setModal({ content: "all", method: "all" })} />
           ) : (
             <div>
               <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
