@@ -1,9 +1,10 @@
 "use client";
 import Link from "next/link";
-
-import { useRouter } from "next/navigation";
-import { createClient } from "../lib/supabase";
+import { createClient } from "../../lib/supabase";
 import { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname } from 'next/navigation';
+import { useLocale } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
@@ -1147,15 +1148,6 @@ type NavItem = {
   badge?: number;
 };
 
-const navItems: NavItem[] = [
-  { id: "home", label: "ホーム", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "materials", label: "教材一覧", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "dl", label: "ダウンロード履歴", badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "fav", label: "お気に入り", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "pt", label: "ポイント", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "trouble", label: "お悩み解決", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "guide", label: "使い方ガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
-];
 
 type ItemType = { label: string; char: string; color: string; imageSrc?: string; isMore?: boolean; contentId?: string; methodId?: string; };
 
@@ -1739,16 +1731,15 @@ function UserMenuPopup({
         </div>
       </div>
       {[
-        { icon: "👤", label: "プロフィール・登録情報", href: "/settings/profile" },
-        { icon: "📋", label: "プラン確認・変更", href: "/plan" },
+        { icon: "👤", label: "プロフィール・登録情報", page: "settings-profile" },
+        { icon: "📋", label: "プラン確認・変更", page: "plan" },
         { icon: "⭐", label: "ポイント", page: "pt" },
-        { icon: "🧾", label: "支払い履歴", href: "/settings/billing" },
-        { icon: "🔔", label: "通知設定", href: "/settings/notifications" },
+        { icon: "🧾", label: "支払い履歴", page: "settings-billing" },
+        { icon: "🔔", label: "通知設定", page: "settings-notifications" },
       ].map((item) => (
         <button key={item.label} onClick={() => {
-          if ("page" in item && item.page) { onNavigate(item.page); }
-          else if ("href" in item && item.href) { onRouterPush(item.href); }
-        }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+         onNavigate(item.page);
+         }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
           <span style={{ fontSize: 16 }}>{item.icon}</span>{item.label}
         </button>
       ))}
@@ -1761,9 +1752,29 @@ function UserMenuPopup({
 
 export default function Home() {
   const router = useRouter();
+  const locale = useLocale();
+  const t = useTranslations('nav');
+  const th = useTranslations('home');
+  const tm = useTranslations('mypage');
+const tmm = useTranslations('materials_modal');
+const pathname = usePathname();
+
+const switchLanguage = () => {
+  const nextLocale = locale === 'ja' ? 'en' : 'ja';
+  const newPath = pathname.replace(`/${locale}`, '') || '/';
+  router.push(`/${nextLocale}${newPath}`);
+};
+const navItems: NavItem[] = [
+  { id: "home", label: t("home"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "materials", label: t("materials"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "dl", label: t("dl"), badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "trouble", label: t("trouble"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
+];
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
-  const [activeTab, setActiveTab] = useState("ピックアップ");
+  const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
@@ -1771,6 +1782,9 @@ export default function Home() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+ const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
+const [editingField, setEditingField] = useState<string | null>(null);
+const [editingValue, setEditingValue] = useState<string>("");
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -1782,11 +1796,34 @@ export default function Home() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
         setUserInitial(session.user.email[0].toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+        if (profileData) {
+          setProfile({
+            full_name: profileData.full_name || "",
+            country: profileData.country || "",
+            city: profileData.city || "",
+            purpose: profileData.purpose || [],
+            occupation: profileData.occupation || "",
+            student_level: profileData.student_level || "",
+            occupation_other: profileData.occupation_other || "",
+            purpose_other: profileData.purpose_other || "",
+            notif_new_material: profileData.notif_new_material ?? true,
+            notif_favorite: profileData.notif_favorite ?? false,
+            notif_billing: profileData.notif_billing ?? true,
+            notif_announcement: profileData.notif_announcement ?? false,
+            plan: profileData.plan || "free",
+          });
+          if (profileData.full_name) setUserName(profileData.full_name);
+        }
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -1811,9 +1848,9 @@ export default function Home() {
   const SB_CLOSED = 72;
   const SB_OPEN = 300;
   const navSections = [
-  { section: "メイン",     items: navItems.slice(0, 2) },
-  { section: "マイページ", items: navItems.slice(2, 5) },
-  { section: "サービス",   items: navItems.slice(5) },
+  { section: t("main"),   items: navItems.slice(0, 2) },
+  { section: t("mypage"), items: navItems.slice(2, 4) },
+  { section: t("service"), items: navItems.slice(4) },
 ];
 
   return (
@@ -1879,8 +1916,8 @@ export default function Home() {
     {sbOpen && isLoggedIn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>}
   </div>
   <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>
-    <button style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
-      {sbOpen ? "🌐 日本語 / EN" : "🌐"}
+    <button onClick={switchLanguage}style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
+      {sbOpen ? (locale === 'ja' ? "🌐 日本語 / EN" : "🌐 EN / 日本語") : "🌐"}
     </button>
   </div>
 </div>
@@ -1890,16 +1927,16 @@ export default function Home() {
         {activePage === "home" && (
           <>
             <section style={{ padding: "120px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-              <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>Japanese Language Tools for Heritage Learners</p>
-              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>にほんごの勉強が、もっとたのしくなる。</h1>
-              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>日本語を学ぶ子供を支える方のための日本語学習ツールサイト。<br />学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
+              <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>{th("hero_sub")}</p>
+              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{th("hero_title")}</h1>
+              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>{th("hero_desc1")}<br />{th("hero_desc2")}</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
-                <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>学習内容から探す</button>
-                <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>学習方法から探す</button>
+                <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
+                <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-                <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>✦ 教材一覧を見る</button>
+                <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
@@ -1944,7 +1981,7 @@ export default function Home() {
             <section style={{ padding: "64px 36px 80px", flex: 1, background: "white" }}>
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 30 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />お知らせ
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />{th("notice")}
                 </div>
                 {[{ date: "2026/03/28", text: "ひらがなカード新セット追加しました" }, { date: "2026/03/20", text: "サービスをリリースしました" }].map((n) => (
                   <div key={n.date} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
@@ -1954,11 +1991,17 @@ export default function Home() {
                 ))}
               </div>
               <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 48 }}>
-                {["ピックアップ", "おすすめ", "ランキング", "新着"].map((tab) => (
-                  <button key={tab} onClick={() => setActiveTab(tab)} style={{ fontSize: 14, padding: "10px 20px", background: "transparent", border: "none", borderBottom: activeTab === tab ? "2px solid #9b6ed4" : "2px solid transparent", color: activeTab === tab ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: 600, marginBottom: -0.5 }}>
-                    {tab}{tab === "新着" && <span style={{ fontSize: 10, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", padding: "2px 6px", borderRadius: 8, marginLeft: 4 }}>NEW</span>}
-                  </button>
+                {[
+                { key: "pickup", label: th("pickup") },
+                { key: "recommended", label: th("recommended") },
+                { key: "ranking", label: th("ranking") },
+                { key: "new", label: th("new") },
+                ].map(({ key, label }) => (
+              <button key={key} onClick={() => setActiveTab(key)} style={{ fontSize: 14, padding: "10px 20px", background: "transparent", border: "none", borderBottom: activeTab === key ? "2px solid #9b6ed4" : "2px solid transparent", color: activeTab === key ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: 600, marginBottom: -0.5 }}>
+                {label}{key === "new" && <span style={{ fontSize: 10, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", padding: "2px 6px", borderRadius: 8, marginLeft: 4 }}>NEW</span>}
+              </button>
                 ))}
+                  
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
                 {cards.map((card) => (
@@ -1979,10 +2022,319 @@ export default function Home() {
         {activePage !== "home" && (
           activePage === "guide" ? (
             <GuideSection />
-          ) : activePage === "trouble" ? (
-            <TroubleSection onOpenModal={() => setModal({ content: "all", method: "all" })} />
-          ) : (
+
+            ) : activePage === "trouble" ? (
+    <TroubleSection onOpenModal={() => setModal({ content: "all", method: "all" })} />
+
+  ) : activePage === "settings-profile" ? (
+    <div>
+      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>My Account</p>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>プロフィール・登録情報</h2>
+      </div>
+      <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: 600 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>{userName}</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>Freeプラン</div>
+            <button style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>写真を変更</button>
+          </div>
+        </div>
+        {[
+          { label: "名前", value: profile.full_name || userName },
+          { label: "指導している児童のレベル", value: profile.student_level || "未設定" },
+        ].map((field) => (
+          <div key={field.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{field.label}</div>
+              {editingField === field.label ? (
+                <input
+                  autoFocus
+                  value={editingValue}
+                  onChange={(e) => setEditingValue(e.target.value)}
+                  style={{ fontSize: 14, fontWeight: 600, color: "#333", border: "0.5px solid rgba(200,170,240,0.5)", borderRadius: 8, padding: "6px 10px", width: "100%", outline: "none" }}
+                />
+              ) : (
+                <div style={{ fontSize: 14, fontWeight: 600, color: field.value === "未設定" ? "#ccc" : "#333" }}>{field.value}</div>
+              )}
+            </div>
+            {editingField === field.label ? (
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={async () => {
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    const fieldMap: Record<string, string> = {
+                      "名前": "full_name",
+                      "居住地": "country",
+                      "職業": "occupation",
+                      "利用目的": "purpose",
+                      "指導している児童のレベル": "student_level",
+                    };
+                    const col = fieldMap[field.label];
+                    if (!col) return;
+                    const isArray = col === "purpose";
+                    const value = isArray ? editingValue.split("・").map(s => s.trim()).filter(Boolean) : editingValue;
+                    await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
+                    setProfile((prev) => ({ ...prev, [col]: value as any }));
+                    if (col === "full_name") setUserName(editingValue);
+                    setEditingField(null);
+                  }}
+                  style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
+                >保存</button>
+                <button
+                  onClick={() => setEditingField(null)}
+                  style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                >キャンセル</button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { setEditingField(field.label); setEditingValue(field.value === "未設定" ? "" : field.value); }}
+                style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}
+              >編集</button>
+            )}
+          </div>
+        ))}
+
+        {/* 居住地 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>居住地</div>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
             <div>
+              <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>国</div>
+              <select
+                value={profile.country || ""}
+                onChange={async (e) => {
+                  const val = e.target.value;
+                  setProfile((prev: any) => ({ ...prev, country: val, city: "" }));
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  await supabase.from("profiles").upsert({ id: session.user.id, country: val, city: "" });
+                }}
+                style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555", background: "white" }}
+              >
+                <option value="">選択してください</option>
+                {["日本", "オーストラリア", "アメリカ", "カナダ", "イギリス", "ニュージーランド", "シンガポール", "マレーシア", "台湾", "韓国", "中国", "タイ", "フランス", "ドイツ", "その他"].map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            {profile.country && (
+              <div>
+                <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>都市</div>
+                <input
+                  placeholder="都市名を入力してください"
+                  value={profile.city || ""}
+                  onChange={(e) => setProfile((prev: any) => ({ ...prev, city: e.target.value }))}
+                  onBlur={async () => {
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    await supabase.from("profiles").upsert({ id: session.user.id, city: profile.city });
+                  }}
+                  style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555" }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 職業 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>職業</div>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+            {["教師・講師", "保護者", "学校教員", "塾・スクール運営者", "その他"].map((opt) => (
+              <div key={opt} onClick={async () => {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                await supabase.from("profiles").upsert({ id: session.user.id, occupation: opt });
+                setProfile((prev) => ({ ...prev, occupation: opt }));
+              }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${profile.occupation === opt ? "#e49bfd" : "#ddd"}`, background: profile.occupation === opt ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {profile.occupation === opt && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "white" }} />}
+                </div>
+                <span style={{ fontSize: 13, color: profile.occupation === opt ? "#7a50b0" : "#555", fontWeight: profile.occupation === opt ? 700 : 400 }}>{opt}</span>
+                
+              </div>
+            ))}
+            {profile.occupation === "その他" && (
+              <input
+                placeholder="職業を入力してください"
+                value={profile.occupation_other || ""}
+                onChange={(e) => setProfile((prev: any) => ({ ...prev, occupation_other: e.target.value }))}
+                onBlur={async () => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  await supabase.from("profiles").upsert({ id: session.user.id, occupation_other: profile.occupation_other });
+                }}
+                style={{ marginTop: 8, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* 利用目的 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>利用目的（複数選択可）</div>
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+            {["授業・レッスンで使う", "家庭学習で使う", "教材研究・教材作成の参考に", "その他"].map((opt) => {
+              const checked = profile.purpose?.includes(opt);
+              return (
+                <div key={opt} onClick={async () => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  const newPurpose = checked
+                    ? profile.purpose.filter((p: string) => p !== opt)
+                    : [...(profile.purpose || []), opt];
+                  await supabase.from("profiles").upsert({ id: session.user.id, purpose: newPurpose });
+                  setProfile((prev) => ({ ...prev, purpose: newPurpose }));
+                }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${checked ? "#e49bfd" : "#ddd"}`, background: checked ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {checked && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                  </div>
+                  <span style={{ fontSize: 13, color: checked ? "#7a50b0" : "#555", fontWeight: checked ? 700 : 400 }}>{opt}</span>
+                </div>
+              );
+            })}
+            {profile.purpose?.includes("その他") && (
+              <input
+                placeholder="利用目的を入力してください"
+                value={profile.purpose_other || ""}
+                onChange={(e) => setProfile((prev: any) => ({ ...prev, purpose_other: e.target.value }))}
+                onBlur={async () => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  await supabase.from("profiles").upsert({ id: session.user.id, purpose_other: profile.purpose_other });
+                }}
+                style={{ marginTop: 8, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }}
+              />
+            )}
+          </div>
+        </div>
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>••••••••</div>
+          </div>
+          <button style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>変更</button>
+        </div>
+        <div style={{ paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+          <button style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}>アカウントを削除する</button>
+        </div>
+      </div>
+    </div>
+
+  ) : activePage === "settings-billing" ? (
+    <div>
+      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Billing</p>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>支払い履歴</h2>
+      </div>
+      <div style={{ padding: "32px 48px 56px", maxWidth: 640 }}>
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "1.5fr 2fr 1fr 1fr", fontSize: 11, color: "#bbb", fontWeight: 700 }}>
+            <span>日付</span><span>内容</span><span>金額</span><span>ステータス</span>
+          </div>
+          <div style={{ padding: "56px 0", textAlign: "center" as const, color: "#bbb", fontSize: 14 }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>🧾</div>
+            支払い履歴はまだありません
+          </div>
+        </div>
+        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "20px 24px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 6 }}>現在のプラン</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#7a50b0" }}>
+                {profile.plan === "light" ? "Lightプラン" : profile.plan === "standard" ? "Standardプラン" : profile.plan === "premium" ? "Premiumプラン" : "Freeプラン"}
+              </div>
+              <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>
+                {profile.plan === "light" ? "¥980 / 月" : profile.plan === "standard" ? "¥1,980 / 月" : profile.plan === "premium" ? "¥3,980 / 月" : "無料"}
+              </div>
+            </div>
+            <button onClick={() => setActivePage("plan")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>プランを変更する →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  ) : activePage === "settings-notifications" ? (
+    <div>
+      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Notifications</p>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>通知設定</h2>
+      </div>
+      <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: 600 }}>
+        {[
+          { label: "新着教材のお知らせ", desc: "新しい教材が追加されたときに通知します", col: "notif_new_material" },
+          { label: "お気に入り教材の更新", desc: "お気に入りに保存した教材が更新されたときに通知します", col: "notif_favorite" },
+          { label: "プラン・支払いに関するお知らせ", desc: "プランの更新や請求に関する重要な通知", col: "notif_billing" },
+          { label: "toolioからのお知らせ", desc: "機能追加やキャンペーンなどのお知らせ", col: "notif_announcement" },
+        ].map((item) => {
+          const on = !!profile[item.col];
+          return (
+            <div key={item.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 3 }}>{item.label}</div>
+                <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>{item.desc}</div>
+              </div>
+              <div onClick={async () => {
+                const newVal = !on;
+                setProfile((prev: any) => ({ ...prev, [item.col]: newVal }));
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                await supabase.from("profiles").upsert({ id: session.user.id, [item.col]: newVal });
+              }} style={{ flexShrink: 0, width: 44, height: 24, borderRadius: 12, background: on ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e8e8e8", position: "relative" as const, cursor: "pointer", transition: "background 0.2s" }}>
+                <div style={{ position: "absolute" as const, top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.15)", transition: "left 0.15s" }} />
+              </div>
+            </div>
+          );
+        })}
+        <p style={{ fontSize: 12, color: "#ccc", marginTop: 8 }}>※ メール通知の設定です。登録メールアドレス宛に送信されます。</p>
+      </div>
+    </div>
+
+  ) : activePage === "pt" ? (
+    <div>
+      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Points</p>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ポイント</h2>
+      </div>
+      <div style={{ padding: "32px 48px 56px", maxWidth: 600 }}>
+        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.15),rgba(228,155,253,0.15),rgba(163,192,255,0.15))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "32px", textAlign: "center" as const, marginBottom: 20 }}>
+          <div style={{ fontSize: 11, color: "#c9a0f0", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>現在のポイント</div>
+          <div style={{ fontSize: 56, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>0</div>
+          <div style={{ fontSize: 13, color: "#aaa", marginTop: 6 }}>pt</div>
+        </div>
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
+          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", fontSize: 13, fontWeight: 700, color: "#555" }}>ポイント履歴</div>
+          <div style={{ padding: "48px 0", textAlign: "center" as const, color: "#bbb", fontSize: 14 }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>⭐</div>
+            ポイント履歴はまだありません
+          </div>
+        </div>
+        <div style={{ background: "#f8f6ff", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12, padding: "16px 20px" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 8 }}>ポイントについて</div>
+          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.9 }}>
+            ・教材をダウンロードするとポイントが貯まります<br />
+            ・貯まったポイントはサブスクプランの割引に使えます<br />
+            ・ポイントの有効期限は取得から1年間です
+          </div>
+        </div>
+      </div>
+    </div>
+
+  ) : (
+    <div>
+          
+          
               <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
                 <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
                   {navItems.find(n => n.id === activePage)?.label}
