@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
+import { useState, useEffect, useRef } from "react";
 
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
@@ -1148,10 +1149,10 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { id: "home", label: "ホーム", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "materials", label: "教材一覧", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "dl", label: "ダウンロード履歴", badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "fav", label: "お気に入り", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "pt", label: "ポイント", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "plan", label: "プランを見る", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M8 12h8M8 8h8M8 16h5" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "trouble", label: "お悩み解決", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "guide", label: "使い方ガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
 ];
@@ -1701,6 +1702,62 @@ function DownloadHistorySection({ allMaterials }: { allMaterials: Material[] }) 
     </div>
   );
 }
+function UserMenuPopup({
+  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen,
+}: {
+  userIconRef: React.RefObject<HTMLDivElement | null>;
+  sbOpen: boolean;
+  userInitial: string;
+  userName: string;
+  onClose: () => void;
+  onNavigate: (page: string) => void;
+  onRouterPush: (href: string) => void;
+  onLogout: () => void;
+}) {
+  const el = userIconRef.current;if (!el) return null;
+  const rect = el.getBoundingClientRect();if (!rect) return null;
+  const left = sbOpen ? 308 : 80;
+
+  return (
+    <div style={{
+      position: "fixed",
+      left: sbOpen ? 200 : 80,
+      bottom: window.innerHeight - rect.bottom - 8,
+      width: 240,
+      background: "white",
+      borderRadius: 14,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+      border: "0.5px solid rgba(200,170,240,0.25)",
+      zIndex: 50,
+      overflow: "hidden",
+    }}>
+      <div style={{ padding: "16px 18px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>Freeプラン</div>
+        </div>
+      </div>
+      {[
+        { icon: "👤", label: "プロフィール・登録情報", href: "/settings/profile" },
+        { icon: "📋", label: "プラン確認・変更", href: "/plan" },
+        { icon: "⭐", label: "ポイント", page: "pt" },
+        { icon: "🧾", label: "支払い履歴", href: "/settings/billing" },
+        { icon: "🔔", label: "通知設定", href: "/settings/notifications" },
+      ].map((item) => (
+        <button key={item.label} onClick={() => {
+          if ("page" in item && item.page) { onNavigate(item.page); }
+          else if ("href" in item && item.href) { onRouterPush(item.href); }
+        }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+          <span style={{ fontSize: 16 }}>{item.icon}</span>{item.label}
+        </button>
+      ))}
+      <button onClick={onLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#e49bfd" }}>
+        <span style={{ fontSize: 16 }}>🚪</span>ログアウト
+      </button>
+    </div>
+  );
+}
 
 export default function Home() {
   const router = useRouter();
@@ -1713,6 +1770,8 @@ export default function Home() {
   const [userName, setUserName] = useState("ゲスト");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userIconRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetch("/api/materials")
@@ -1752,14 +1811,14 @@ export default function Home() {
   const SB_CLOSED = 72;
   const SB_OPEN = 300;
   const navSections = [
-    { section: "メイン",     items: navItems.slice(0, 1) },
-    { section: "マイページ", items: navItems.slice(1, 4) },
-    { section: "サービス",   items: navItems.slice(4) },
-  ];
+  { section: "メイン",     items: navItems.slice(0, 2) },
+  { section: "マイページ", items: navItems.slice(2, 5) },
+  { section: "サービス",   items: navItems.slice(5) },
+];
 
   return (
     <div style={{ display: "flex", height: "100vh", background: "#f8f4f4", overflow: "hidden", position: "relative" }}>
-      <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED, transition: "width 0.22s ease", background: "transparent", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "hidden", zIndex: 10 }}>
+      <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED, transition: "width 0.22s ease", background: "transparent", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "visible", zIndex: 10 }}>
         <div style={{ flexShrink: 0 }}>
           {sbOpen ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px" }}>
@@ -1777,7 +1836,7 @@ export default function Home() {
             <div key={section}>
               {sbOpen && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#c0a0a0", padding: "8px 18px 3px", whiteSpace: "nowrap" }}>{section}</div>}
               {items.map((item) => (
-                <div key={item.id} onClick={() => setActivePage(item.id)} style={{ display: "flex", alignItems: "center", gap: 12, padding: sbOpen ? "9px 14px" : "9px 0", justifyContent: sbOpen ? "flex-start" : "center", cursor: "pointer", borderRadius: 10, margin: sbOpen ? "1px 8px" : "1px 4px", whiteSpace: "nowrap", background: "transparent" }}>
+                <div key={item.id} onClick={() => {if (item.id === "materials") { openModal("all", "all")} else {setActivePage(item.id);}}} style={{ display: "flex", alignItems: "center", gap: 12, padding: sbOpen ? "9px 14px" : "9px 0", justifyContent: sbOpen ? "flex-start" : "center", cursor: "pointer", borderRadius: 10, margin: sbOpen ? "1px 8px" : "1px 4px", whiteSpace: "nowrap", background: "transparent" }}>
                   <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: 10, background: activePage === item.id ? "rgba(163,192,255,0.15)" : "transparent", transition: "background 0.15s" }}>
                     {item.icon(item.id, activePage === item.id)}
                   </div>
@@ -1792,22 +1851,39 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <div style={{ padding: "10px 6px", flexShrink: 0 }}>
-          <div onClick={() => { if (!isLoggedIn) router.push("/auth?mode=login"); }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer" }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
-            {sbOpen && <div><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
-            {isLoggedIn && sbOpen && (
-              <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); setIsLoggedIn(false); router.refresh(); }} style={{ width: "100%", fontSize: 11, padding: "6px 10px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.4)", background: "transparent", color: "#c0a0c0", cursor: "pointer", marginTop: 4 }}>
-                ログアウト
-              </button>
-            )}
-          </div>
-          <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>
-            <button style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
-              {sbOpen ? "🌐 日本語 / EN" : "🌐"}
-            </button>
-          </div>
-        </div>
+        <div style={{ padding: "10px 6px", flexShrink: 0, position: "relative" }}>
+  {userMenuOpen && isLoggedIn && (
+  <>
+    <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+    <UserMenuPopup
+      userIconRef={userIconRef}
+      userInitial={userInitial}
+      userName={userName}
+      onClose={() => setUserMenuOpen(false)}
+      onNavigate={(page) => { setUserMenuOpen(false); setActivePage(page); }}
+      onRouterPush={(href) => { setUserMenuOpen(false); router.push(href); }}
+      onLogout={async () => {
+        setUserMenuOpen(false);
+        const supabase = createClient();
+        await supabase.auth.signOut();
+        setIsLoggedIn(false);
+        router.refresh();
+      }}
+      sbOpen={sbOpen}
+    />
+  </>
+)}
+  <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { router.push("/auth?mode=login"); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
+    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+    {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
+    {sbOpen && isLoggedIn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>}
+  </div>
+  <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>
+    <button style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
+      {sbOpen ? "🌐 日本語 / EN" : "🌐"}
+    </button>
+  </div>
+</div>
       </aside>
 
       <main id="main-scroll" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0, background: "white", borderRadius: "16px 16px 0 0", margin: "12px 12px 0 0", boxShadow: "0 -4px 24px rgba(200,150,150,0.15)" }}>
