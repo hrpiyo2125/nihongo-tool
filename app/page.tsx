@@ -200,9 +200,86 @@ function TroubleSection() {
         </div>
       </div>
       <div style={{ padding: "36px 48px 64px", display: "flex", flexDirection: "column" as const, gap: 24 }}>
-        {tab === "start" && (
-          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「何から始める？」の内容が入ります。</div>
-        )}
+      　{tab === "start" && (
+  <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
+    {/* ブロック1：指導の全体像 */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>指導の全体像</div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
+        {[
+          { icon: "👀", title: "子どもを観察する", desc: "ニーズ・育った環境・これまでの学習歴を理解する" },
+          { icon: "📊", title: "レベルを知る", desc: "その子の今の日本語力を把握する" },
+          { icon: "🎯", title: "指導方針を決める", desc: "この3つが揃って初めて「何を・どう教えるか」が決まる" },
+          { icon: "📚", title: "教材を使って指導する", desc: "子どもの様子を見ながら、教材を駆使して進める" },
+          { icon: "✨", title: "「もっと！」を引き出す", desc: "もっとやりたいという気持ちが、次への意欲につながる" },
+        ].map((step, i, arr) => (
+          <div key={step.title}>
+            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
+              <div style={{ paddingTop: 4 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
+                <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
+              </div>
+            </div>
+            {i < arr.length - 1 && (
+              <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 14, background: "rgba(244,185,185,0.1)", border: "0.5px solid rgba(244,185,185,0.4)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#888", lineHeight: 1.8 }}>
+        ⚠️ この順番を飛ばすと…「習得しない」「飽きてしまう」「続かない」につながり、日本語が嫌いになってしまうことも。
+      </div>
+    </div>
+
+    {/* ブロック2：レベルを知ることの大切さ */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>なぜレベルを知ることが大切なの？</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+        {[
+          { icon: "🌍", label: "環境を知る", desc: "どんな場所で日本語に触れているか" },
+          { icon: "📖", label: "歴史を知る", desc: "これまでどんな学習をしてきたか" },
+          { icon: "📊", label: "レベルを知る", desc: "今どのくらい日本語ができるか" },
+        ].map((item) => (
+          <div key={item.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12, padding: "16px 14px", textAlign: "center" as const }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 4 }}>{item.label}</div>
+            <div style={{ fontSize: 11, color: "#999", lineHeight: 1.6 }}>{item.desc}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12, fontSize: 13, color: "#888", lineHeight: 1.8, padding: "12px 16px", background: "#f8f6ff", borderRadius: 10 }}>
+        この3つの中で、特に<span style={{ fontWeight: 700, color: "#7a50b0" }}>「レベルを知る」</span>ことが一番難しいと感じる方が多いです。次のタブで詳しく解説します。
+      </div>
+      <button onClick={() => setTab("level")} style={{ marginTop: 12, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        レベルの確認方法を見る →
+      </button>
+    </div>
+
+    {/* ブロック3：楽しむことが大切 */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>すべての段階で「楽しむ」ことが鍵</div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+        {[
+          { phase: "知る段階", icon: "🔍", text: "子どものことをよく知れた！という喜びが生まれる" },
+          { phase: "準備の段階", icon: "📝", text: "「自分だったら何が楽しいか」を考えることが楽しくなる" },
+          { phase: "指導の段階", icon: "🌟", text: "「できた！」の経験が、子どもも自分もうれしくさせる" },
+        ].map((item) => (
+          <div key={item.phase} style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 16px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10 }}>
+            <div style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</div>
+            <div>
+              <div style={{ fontSize: 11, color: "#c9a0f0", fontWeight: 700, marginBottom: 2 }}>{item.phase}</div>
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{item.text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 10, padding: "14px 16px", fontSize: 13, color: "#666", lineHeight: 1.8 }}>
+        楽しむことで、<span style={{ fontWeight: 700, color: "#7a50b0" }}>続けられる・大切な要素を引き出せる・「もっと！」につながる</span>という好循環が生まれます。
+      </div>
+    </div>
+  </div>
+)}
         {tab === "level" && (
           <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「レベルがわからない」の内容が入ります。</div>
         )}
