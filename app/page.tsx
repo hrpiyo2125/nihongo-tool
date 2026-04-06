@@ -171,6 +171,57 @@ function GuideCardItem({ card }: { card: { emoji: string; title: string; items: 
     </div>
   );
 }
+const troubleTabs = [
+  { id: "start",    label: "何から始める？" },
+  { id: "level",    label: "レベルがわからない" },
+  { id: "material", label: "どの教材を使えばいい？" },
+  { id: "teach",    label: "どう教えればいい？" },
+  { id: "bored",    label: "子どもが飽きてしまう" },
+  { id: "goal",     label: "何を目標にすればいい？" },
+];
+
+function TroubleSection() {
+  const [tab, setTab] = useState("start");
+  return (
+    <div style={{ display: "flex", flexDirection: "column" as const }}>
+      <div style={{ padding: "48px 48px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.4) 0%, rgba(228,155,253,0.4) 50%, rgba(163,192,255,0.4) 100%)", borderRadius: "16px 16px 0 0" }}>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Trouble Shooting</p>
+        <h2 style={{ fontSize: 26, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 6 }}>お悩み解決</h2>
+        <p style={{ fontSize: 13, color: "#aaa", marginBottom: 28, lineHeight: 1.8 }}>日本語指導でよくあるお悩みに、一緒に向き合います。</p>
+        <div style={{ display: "flex", borderBottom: "0.5px solid rgba(200,170,240,0.25)", gap: 0, overflowX: "auto" as const }}>
+          {troubleTabs.map((t) => {
+            const active = tab === t.id;
+            return (
+              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "12px 20px", border: "none", borderBottom: active ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#aaa", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div style={{ padding: "36px 48px 64px", display: "flex", flexDirection: "column" as const, gap: 24 }}>
+        {tab === "start" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「何から始める？」の内容が入ります。</div>
+        )}
+        {tab === "level" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「レベルがわからない」の内容が入ります。</div>
+        )}
+        {tab === "material" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「どの教材を使えばいい？」の内容が入ります。</div>
+        )}
+        {tab === "teach" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「どう教えればいい？」の内容が入ります。</div>
+        )}
+        {tab === "bored" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「子どもが飽きてしまう」の内容が入ります。</div>
+        )}
+        {tab === "goal" && (
+          <div style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>ここに「何を目標にすればいい？」の内容が入ります。</div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function GuideSection() {
   const [guideTab, setGuideTab] = useState("start");
@@ -285,6 +336,7 @@ const navItems: NavItem[] = [
   { id: "fav", label: "お気に入り", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "pt", label: "ポイント", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "plan", label: "プランを見る", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M8 12h8M8 8h8M8 16h5" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "trouble", label: "お悩み解決", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "guide", label: "使い方ガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
 ];
 
@@ -947,8 +999,8 @@ export default function Home() {
           <>
             <section style={{ padding: "120px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>Japanese Language Tools for Heritage Learners</p>
-              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>授業のアイデアが、次々とわいてくる。</h1>
-              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>海外で学ぶ子どもたちの日本語を、<br />もっとわくわくさせる教材プラットフォーム</p>
+              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>にほんごの勉強が、もっとたのしくなる。</h1>
+              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>日本語を学ぶ子供を支える方のための日本語学習ツールサイト。<br />学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
                 <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>学習内容から探す</button>
                 <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>学習方法から探す</button>
@@ -1035,6 +1087,8 @@ export default function Home() {
         {activePage !== "home" && (
           activePage === "guide" ? (
             <GuideSection />
+          ) : activePage === "trouble" ? (
+            <TroubleSection />
           ) : (
             <div>
               <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
