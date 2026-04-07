@@ -1332,7 +1332,7 @@ function MaterialsModal({
 
       {/* ティザーモーダル */}
       {teaserMat && (() => {
-        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat);
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
         return (
           <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
@@ -1534,7 +1534,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
         {favMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat} onClick={() => setTeaserMat(mat)}locale={locale} />)}
       </div>
       {teaserMat && (() => {
-        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat);
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
         return (
           <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
             <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
