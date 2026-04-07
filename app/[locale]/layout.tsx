@@ -39,7 +39,7 @@ export default async function RootLayout({
  
 
   return (
-   <html lang={locale} className={`${libreBaskerville.variable} ${josefinSans.variable} h-full antialiased`}>
+   <html lang={locale} className={`${libreBaskerville.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Script
           id="crisp-widget"
