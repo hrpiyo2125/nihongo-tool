@@ -1800,9 +1800,12 @@ const methodItems = [
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
- const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
-const [editingField, setEditingField] = useState<string | null>(null);
-const [editingValue, setEditingValue] = useState<string>("");
+  const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
+  const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
+  const [topFavIds, setTopFavIds] = useState<string[]>([]);
+  const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState<string>("");
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -2035,17 +2038,52 @@ const [editingValue, setEditingValue] = useState<string>("");
                   
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
-                {cards.map((card) => (
-                  <div key={card.title} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
-                    <div style={{ height: 180, background: card.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, color: card.color, fontWeight: 700 }}>{card.img}</div>
-                    <div style={{ padding: "16px 18px 22px" }}>
-                      <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 8, background: card.tagBg, color: card.tagColor, display: "inline-block", marginBottom: 10 }}>{card.tag}</span>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", lineHeight: 1.4, marginBottom: 8 }}>{card.title}</div>
-                      <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.7 }}>{card.sub}</div>
-                    </div>
-                  </div>
-                ))}
+  {materialsLoading ? (
+    <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>読み込み中...</div>
+  ) : materials
+    .filter((mat) => {
+      if (activeTab === "pickup") return mat.isPickup === true;
+      if (activeTab === "recommended") return mat.isRecommended === true;
+      if (activeTab === "ranking") return mat.ranking !== null;
+      if (activeTab === "new") return mat.isNew === true;
+      return true;
+    })
+    .sort((a, b) => {
+      if (activeTab === "ranking") return (a.ranking ?? 999) - (b.ranking ?? 999);
+      return 0;
+    })
+    .slice(0, 8)
+    .length === 0 ? (
+      <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>該当する教材がありません</div>
+    ) : (
+      materials
+        .filter((mat) => {
+          if (activeTab === "pickup") return mat.isPickup === true;
+          if (activeTab === "recommended") return mat.isRecommended === true;
+          if (activeTab === "ranking") return mat.ranking !== null;
+          if (activeTab === "new") return mat.isNew === true;
+          return true;
+        })
+        .sort((a, b) => {
+          if (activeTab === "ranking") return (a.ranking ?? 999) - (b.ranking ?? 999);
+          return 0;
+        })
+        .slice(0, 8)
+        .map((mat) => {
+          const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
+          return (
+            <div key={mat.id} onClick={() => setTopTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
+              <div style={{ height: 180, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, color: charColor, fontWeight: 700 }}>{char}</div>
+              <div style={{ padding: "16px 18px 22px" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 8, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 10 }}>{tag}</span>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#333", lineHeight: 1.4, marginBottom: 8 }}>{mat.title}</div>
+                <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.7 }}>{mat.description}</div>
               </div>
+            </div>
+          );
+        })
+    )}
+</div>
             </section>
           </>
         )}
@@ -2401,6 +2439,116 @@ const [editingValue, setEditingValue] = useState<string>("");
           )
         )}
       </main>
+
+      {topTeaserMat && (() => {
+  const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(topTeaserMat, locale);
+  return (
+    <div onClick={() => setTopTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
+        <button onClick={() => setTopTeaserMat(null)} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
+        <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{ position: "relative", width: "100%", aspectRatio: "3/4" }}>
+            <div style={{ width: "100%", height: "100%", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[0, 1].map((i) => (
+              <div key={i} style={{ aspectRatio: "1", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
+            ))}
+          </div>
+        </div>
+        <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{topTeaserMat.title}</div>
+          <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>{topTeaserMat.description}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[
+              { label: tmm("age"), value: topTeaserMat.ageGroup || "－" },
+              { label: tmm("content"), value: (topTeaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+              { label: tmm("method"), value: (topTeaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
+              { label: tmm("level"), value: topTeaserMat.level || "－" },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{value}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ height: 1, background: "#f0f0f0" }} />
+          <div style={{ position: "relative" }}>
+            <button
+              onClick={async (e) => {
+                e.stopPropagation();
+                if (!isLoggedIn) { setTopTeaserFavTooltip(!topTeaserFavTooltip); return; }
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                if (topFavIds.includes(topTeaserMat.id)) {
+                  await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", topTeaserMat.id);
+                  setTopFavIds((prev) => prev.filter((id) => id !== topTeaserMat.id));
+                } else {
+                  await supabase.from("favorites").insert({ user_id: session.user.id, material_id: topTeaserMat.id });
+                  setTopFavIds((prev) => [...prev, topTeaserMat.id]);
+                }
+              }}
+              style={{ width: "100%", padding: "11px", marginBottom: 10, borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, fontWeight: 600, color: isLoggedIn && topFavIds.includes(topTeaserMat.id) ? "#c9a0f0" : "#999" }}
+            >
+              {!isLoggedIn ? (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#bbb" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="#bbb" /></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill={topFavIds.includes(topTeaserMat.id) ? "#c9a0f0" : "none"} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
+              )}
+              {!isLoggedIn ? tmm("add_fav") : topFavIds.includes(topTeaserMat.id) ? tmm("added_fav") : tmm("add_fav")}
+            </button>
+            {topTeaserFavTooltip && (
+              <>
+                <div onClick={() => setTopTeaserFavTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
+                <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "14px 16px", width: 220, border: "0.5px solid rgba(200,170,240,0.25)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5 }}>🔒 お気に入り機能</div>
+                  <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>ログインするとお気に入りに保存できます。</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => { setTopTeaserMat(null); window.location.href = "/auth"; }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
+                    <button onClick={() => { setTopTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <button
+            onClick={() => {
+              if (topTeaserMat.requiredPlan === "free") {
+                window.open(`/materials/${topTeaserMat.id}`, "_blank");
+                setTopTeaserMat(null);
+              }
+            }}
+            style={{ width: "100%", padding: "13px", background: topTeaserMat.requiredPlan !== "free" ? "#f0eeff" : "#a3c0ff", color: topTeaserMat.requiredPlan !== "free" ? "#7F77DD" : "white", border: topTeaserMat.requiredPlan !== "free" ? "1px solid rgba(163,192,255,0.4)" : "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          >
+            {topTeaserMat.requiredPlan !== "free" && <span style={{ fontSize: 16 }}>🔒</span>}
+            {topTeaserMat.requiredPlan !== "free" ? tmm("lock_download") : tmm("download")}
+          </button>
+          {topTeaserMat.requiredPlan !== "free" && (
+            <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px" }}>
+              <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>サブスクプランで使い放題 ✨</div>
+              {!isLoggedIn ? (
+                <>
+                  <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>登録するとすべての教材がダウンロードし放題になります。</div>
+                  <button onClick={() => { setTopTeaserMat(null); window.location.href = "/auth"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
+                  <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>
+                    すでにアカウントをお持ちの方は
+                    <span onClick={() => { setTopTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7 }}>プランの詳細はこちらから確認できます。</div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+})()}
 
       {modal && (
         <MaterialsModal
