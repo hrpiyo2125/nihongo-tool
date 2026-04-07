@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { Client } from "@notionhq/client";
 
 const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const dbId = process.env.NOTION_ANNOUNCEMENTS_DB_ID ?? "33b6cbe7cfef80f793e2e329f37b4381";
+const dbId = process.env.NOTION_ANNOUNCEMENTS_DB_ID!;
 
 export async function GET() {
   console.log("DB ID:", dbId);
