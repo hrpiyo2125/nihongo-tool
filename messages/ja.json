@@ -52,7 +52,47 @@
     "no_billing": "支払い履歴はまだありません",
     "current_points": "現在のポイント",
     "no_points": "ポイント履歴はまだありません",
-    "about_points": "ポイントについて"
+    "about_points": "ポイントについて",
+
+    
+    "my_account": "My Account",
+    "profile_title": "プロフィール・登録情報",
+    "name": "名前",
+    "student_level": "指導している児童のレベル",
+    "country": "国",
+    "city": "都市",
+    "residence": "居住地",
+    "occupation": "職業",
+    "purpose": "利用目的（複数選択可）",
+    "occ_teacher": "教師・講師",
+    "occ_parent": "保護者",
+    "occ_school": "学校教員",
+    "occ_school_owner": "塾・スクール運営者",
+    "occ_other": "その他",
+    "purpose_lesson": "授業・レッスンで使う",
+    "purpose_home": "家庭学習で使う",
+    "purpose_research": "教材研究・教材作成の参考に",
+    "purpose_other": "その他",
+    "enter_city": "都市名を入力してください",
+    "select_country": "選択してください",
+    "date": "日付",
+    "item": "内容",
+    "amount": "金額",
+    "status": "ステータス",
+    "points_history": "ポイント履歴",
+    "no_points_desc": "ポイント履歴はまだありません",
+    "points_info_1": "教材をダウンロードするとポイントが貯まります",
+    "points_info_2": "貯まったポイントはサブスクプランの割引に使えます",
+    "points_info_3": "ポイントの有効期限は取得から1年間です",
+    "notif_new_material_label": "新着教材のお知らせ",
+    "notif_new_material_desc": "新しい教材が追加されたときに通知します",
+    "notif_favorite_label": "お気に入り教材の更新",
+    "notif_favorite_desc": "お気に入りに保存した教材が更新されたときに通知します",
+    "notif_billing_label": "プラン・支払いに関するお知らせ",
+    "notif_billing_desc": "プランの更新や請求に関する重要な通知",
+    "notif_announcement_label": "toolioからのお知らせ",
+    "notif_announcement_desc": "機能追加やキャンペーンなどのお知らせ",
+    "notif_note": "※ メール通知の設定です。登録メールアドレス宛に送信されます。"
   },
   "materials_modal": {
     "title": "教材を探す",
@@ -74,4 +114,5 @@
     "method": "学習方法",
     "level": "レベル"
   }
+
 }

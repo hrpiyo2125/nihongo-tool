@@ -1947,7 +1947,7 @@ const [editingValue, setEditingValue] = useState<string>("");
           <>
             <section style={{ padding: "120px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18 }}>{th("hero_sub")}</p>
-              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{th("hero_title")}</h1>
+              <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
               <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>{th("hero_desc1")}<br />{th("hero_desc2")}</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
                 <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
@@ -1975,8 +1975,8 @@ const [editingValue, setEditingValue] = useState<string>("");
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                 <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb" }}>Browse by Content</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>{th("browse_content_label")}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", fontFamily: "var(--font-libre)" }}>Browse by Content</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>{th("browse_content_label")}</div>
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
@@ -1988,8 +1988,8 @@ const [editingValue, setEditingValue] = useState<string>("");
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                å<div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
                 <div style={{ textAlign: "left" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb" }}>Browse by Method</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>{th("browse_method_label")}</div>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", fontFamily: "var(--font-libre)" }}>Browse by Method</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>{th("browse_method_label")}</div>
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
@@ -2049,20 +2049,20 @@ const [editingValue, setEditingValue] = useState<string>("");
     <div>
       <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
         <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>My Account</p>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>プロフィール・登録情報</h2>
+        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{tm("profile_title")}</h2>
       </div>
       <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: 600 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>{userName}</div>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>Freeプラン</div>
-            <button style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>写真を変更</button>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>{tm("free_plan")}</div>
+            <button style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>{tm("change_photo")}</button>
           </div>
         </div>
         {[
-          { label: "名前", value: profile.full_name || userName },
-          { label: "指導している児童のレベル", value: profile.student_level || "未設定" },
+          { label: tm("name"), value: profile.full_name || userName },
+          { label: tm("student_level"), value: profile.student_level || tm("not_registered") },
         ].map((field) => (
           <div key={field.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
             <div style={{ flex: 1 }}>
@@ -2102,11 +2102,11 @@ const [editingValue, setEditingValue] = useState<string>("");
                     setEditingField(null);
                   }}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                >保存</button>
+                >{tm("save")}</button>
                 <button
                   onClick={() => setEditingField(null)}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                >キャンセル</button>
+                >{tm("cancel")}</button>
               </div>
             ) : (
               <button
@@ -2119,10 +2119,10 @@ const [editingValue, setEditingValue] = useState<string>("");
 
         {/* 居住地 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>居住地</div>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("residence")}</div>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
             <div>
-              <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>国</div>
+              <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("country")}</div>
               <select
                 value={profile.country || ""}
                 onChange={async (e) => {
@@ -2135,7 +2135,7 @@ const [editingValue, setEditingValue] = useState<string>("");
                 }}
                 style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555", background: "white" }}
               >
-                <option value="">選択してください</option>
+                <option value="">{tm("select_country")}</option>
                 {["日本", "オーストラリア", "アメリカ", "カナダ", "イギリス", "ニュージーランド", "シンガポール", "マレーシア", "台湾", "韓国", "中国", "タイ", "フランス", "ドイツ", "その他"].map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
@@ -2143,9 +2143,9 @@ const [editingValue, setEditingValue] = useState<string>("");
             </div>
             {profile.country && (
               <div>
-                <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>都市</div>
+                <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("city")}</div>
                 <input
-                  placeholder="都市名を入力してください"
+                  placeholder={tm("enter_city")}
                   value={profile.city || ""}
                   onChange={(e) => setProfile((prev: any) => ({ ...prev, city: e.target.value }))}
                   onBlur={async () => {
@@ -2163,9 +2163,9 @@ const [editingValue, setEditingValue] = useState<string>("");
 
         {/* 職業 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>職業</div>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("occupation")}</div>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {["教師・講師", "保護者", "学校教員", "塾・スクール運営者", "その他"].map((opt) => (
+            {[tm("occ_teacher"), tm("occ_parent"), tm("occ_school"), tm("occ_school_owner"), tm("occ_other")].map((opt) => (
               <div key={opt} onClick={async () => {
                 const supabase = createClient();
                 const { data: { session } } = await supabase.auth.getSession();
@@ -2199,9 +2199,9 @@ const [editingValue, setEditingValue] = useState<string>("");
 
         {/* 利用目的 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>利用目的（複数選択可）</div>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("purpose")}</div>
           <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {["授業・レッスンで使う", "家庭学習で使う", "教材研究・教材作成の参考に", "その他"].map((opt) => {
+            {[tm("purpose_lesson"), tm("purpose_home"), tm("purpose_research"), tm("purpose_other")].map((opt) => {
               const checked = profile.purpose?.includes(opt);
               return (
                 <div key={opt} onClick={async () => {
@@ -2291,10 +2291,10 @@ const [editingValue, setEditingValue] = useState<string>("");
       </div>
       <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: 600 }}>
         {[
-          { label: "新着教材のお知らせ", desc: "新しい教材が追加されたときに通知します", col: "notif_new_material" },
-          { label: "お気に入り教材の更新", desc: "お気に入りに保存した教材が更新されたときに通知します", col: "notif_favorite" },
-          { label: "プラン・支払いに関するお知らせ", desc: "プランの更新や請求に関する重要な通知", col: "notif_billing" },
-          { label: "toolioからのお知らせ", desc: "機能追加やキャンペーンなどのお知らせ", col: "notif_announcement" },
+          { label: tm("notif_new_material_label"), desc: tm("notif_new_material_desc"), col: "notif_new_material" },
+          { label: tm("notif_favorite_label"), desc: tm("notif_favorite_desc"), col: "notif_favorite" },
+          { label: tm("notif_billing_label"), desc: tm("notif_billing_desc"), col: "notif_billing" },
+          { label: tm("notif_announcement_label"), desc: tm("notif_announcement_desc"), col: "notif_announcement" },
         ].map((item) => {
           const on = !!profile[item.col];
           return (
@@ -2316,7 +2316,7 @@ const [editingValue, setEditingValue] = useState<string>("");
             </div>
           );
         })}
-        <p style={{ fontSize: 12, color: "#ccc", marginTop: 8 }}>※ メール通知の設定です。登録メールアドレス宛に送信されます。</p>
+        <p style={{ fontSize: 12, color: "#ccc", marginTop: 8 }}>{tm("notif_note")}</p>
       </div>
     </div>
 
