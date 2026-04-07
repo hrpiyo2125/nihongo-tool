@@ -1799,6 +1799,7 @@ const methodItems = [
   const [userName, setUserName] = useState("ゲスト");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
@@ -1814,6 +1815,12 @@ const methodItems = [
       .then((data) => { setMaterials(Array.isArray(data) ? data : []); setMaterialsLoading(false); })
       .catch(() => setMaterialsLoading(false));
   }, []);
+
+  useEffect(() => {
+  fetch("/api/announcements")
+    .then((res) => res.json())
+    .then((data) => setAnnouncements(Array.isArray(data) ? data : []));
+}, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -2017,11 +2024,13 @@ const methodItems = [
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />{th("notice")}
                 </div>
-                {[{ date: "2026/03/28", text: "ひらがなカード新セット追加しました" }, { date: "2026/03/20", text: "サービスをリリースしました" }].map((n) => (
-                  <div key={n.date} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
-                    <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
-                    <span style={{ fontSize: 13, color: "#444" }}>{n.text}</span>
-                  </div>
+                {announcements.length === 0 ? (
+                 <div style={{ fontSize: 13, color: "#bbb" }}>お知らせはありません</div>
+                 ) : announcements.map((n) => (
+                 <div key={n.id} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                   <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
+                   <span style={{ fontSize: 13, color: "#444" }}>{n.title}</span>
+                 </div>
                 ))}
               </div>
               <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 48 }}>
