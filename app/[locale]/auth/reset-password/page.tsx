@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "../../../lib/supabase";
+import { createClient } from "../../../../lib/supabase";
 
 function ResetPasswordInner() {
   const router = useRouter();
