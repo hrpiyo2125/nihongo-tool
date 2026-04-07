@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { createClient } from "../../../lib/supabase";
+import { createClient } from "../../../../lib/supabase";
 
 // ── 型定義 ─────────────────────────────────────────
 type Material = {

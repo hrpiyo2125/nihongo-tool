@@ -16,37 +16,15 @@ const scrollbarStyle = `
   .toolio-scroll-x::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
   .toolio-scroll-x::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
 `;
+const contentTabLabels: Record<string, Record<string, string>> = {
+  ja: { all: "すべて", hiragana: "ひらがな", katakana: "カタカナ", kanji: "漢字", vocab: "語彙", joshi: "助詞", bunkei: "文型", aisatsu: "あいさつ", kaiwa: "場面会話", season: "季節・行事", food: "食べ物", animal: "動物", body: "体・健康", color: "色・形", number: "数・算数" },
+  en: { all: "All", hiragana: "Hiragana", katakana: "Katakana", kanji: "Kanji", vocab: "Vocabulary", joshi: "Particles", bunkei: "Sentence Patterns", aisatsu: "Greetings", kaiwa: "Conversations", season: "Seasons & Events", food: "Food", animal: "Animals", body: "Body & Health", color: "Colors & Shapes", number: "Numbers" },
+};
 
-const contentTabs = [
-  { id: "all",        label: "すべて",     char: "✦", color: "#e8efff", imageSrc: null },
-  { id: "hiragana",   label: "ひらがな",   char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
-  { id: "katakana",   label: "カタカナ",   char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png" },
-  { id: "kanji",      label: "漢字",       char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
-  { id: "vocab",      label: "語彙",       char: "語", color: "#fff8e0", imageSrc: null },
-  { id: "joshi",      label: "助詞",       char: "は", color: "#fff0ec", imageSrc: null },
-  { id: "bunkei",     label: "文型",       char: "文", color: "#f0ffe8", imageSrc: null },
-  { id: "aisatsu",    label: "あいさつ",   char: "👋", color: "#e8f8ff", imageSrc: null },
-  { id: "kaiwa",      label: "場面会話",   char: "話", color: "#f8e8ff", imageSrc: null },
-  { id: "season",     label: "季節・行事", char: "季", color: "#e8efff", imageSrc: null },
-  { id: "food",       label: "食べ物",     char: "🍎", color: "#fff0e8", imageSrc: null },
-  { id: "animal",     label: "動物",       char: "🐾", color: "#e8f8ee", imageSrc: null },
-  { id: "body",       label: "体・健康",   char: "💪", color: "#ffe8f4", imageSrc: null },
-  { id: "color",      label: "色・形",     char: "🔵", color: "#f0e8ff", imageSrc: null },
-  { id: "number",     label: "数・算数",   char: "数", color: "#e8f8ff", imageSrc: null },
-];
-
-const methodTabs = [
-  { id: "all",        label: "すべて",     char: "✦" },
-  { id: "drill",      label: "ドリル",     char: "✏" },
-  { id: "test",       label: "テスト",     char: "✓" },
-  { id: "card",       label: "カード",     char: "🃏" },
-  { id: "karuta",     label: "かるた",     char: "札" },
-  { id: "game",       label: "ゲーム",     char: "▶" },
-  { id: "nurie",      label: "ぬりえ",     char: "◎" },
-  { id: "reading",    label: "読み物",     char: "本" },
-  { id: "music",      label: "うた",       char: "♪" },
-  { id: "roleplay",   label: "ロールプレイ", char: "🎭" },
-];
+const methodTabLabels: Record<string, Record<string, string>> = {
+  ja: { all: "すべて", drill: "ドリル", test: "テスト", card: "カード", karuta: "かるた", game: "ゲーム", nurie: "ぬりえ", reading: "読み物", music: "うた", roleplay: "ロールプレイ" },
+  en: { all: "All", drill: "Drill", test: "Test", card: "Cards", karuta: "Karuta", game: "Game", nurie: "Coloring", reading: "Reading", music: "Song", roleplay: "Role Play" },
+};
 
 type Material = {
   id: string;
@@ -70,36 +48,7 @@ type Material = {
   tagColor?: string;
 };
 
-const contentItems = [
-  { label: "ひらがな",   char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
-  { label: "カタカナ",   char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png",  contentId: "katakana" },
-  { label: "漢字",       char: "字", color: "#ffe8f4", imageSrc: "/kanji.png",     contentId: "kanji" },
-  { label: "語彙",       char: "語", color: "#fff8e0", contentId: "vocab" },
-  { label: "助詞",       char: "は", color: "#fff0ec", contentId: "joshi" },
-  { label: "文型",       char: "文", color: "#f0ffe8", contentId: "bunkei" },
-  { label: "あいさつ",   char: "👋", color: "#e8f8ff", contentId: "aisatsu" },
-  { label: "場面会話",   char: "話", color: "#f8e8ff", contentId: "kaiwa" },
-  { label: "季節・行事", char: "季", color: "#e8efff", contentId: "season" },
-  { label: "食べ物",     char: "🍎", color: "#fff0e8", contentId: "food" },
-  { label: "動物",       char: "🐾", color: "#e8f8ee", contentId: "animal" },
-  { label: "体・健康",   char: "💪", color: "#ffe8f4", contentId: "body" },
-  { label: "色・形",     char: "🔵", color: "#f0e8ff", contentId: "color" },
-  { label: "数・算数",   char: "数", color: "#e8f8ff", contentId: "number" },
-  { label: "もっと見る", char: "›",  color: "#f8f4ff", isMore: true, contentId: "all" },
-];
 
-const methodItems = [
-  { label: "ドリル",       char: "✏", color: "#e8efff", methodId: "drill" },
-  { label: "テスト",       char: "✓", color: "#f0e8ff", methodId: "test" },
-  { label: "カード",       char: "🃏", color: "#ffe8f4", methodId: "card" },
-  { label: "かるた",       char: "札", color: "#fff8e0", methodId: "karuta" },
-  { label: "ゲーム",       char: "▶", color: "#e8f8ee", methodId: "game" },
-  { label: "ぬりえ",       char: "◎", color: "#fff0ec", methodId: "nurie" },
-  { label: "読み物",       char: "本", color: "#e8f8ff", methodId: "reading" },
-  { label: "うた",         char: "♪", color: "#edfff0", methodId: "music" },
-  { label: "ロールプレイ", char: "🎭", color: "#f8e8ff", methodId: "roleplay" },
-  { label: "もっと見る",   char: "›",  color: "#f8f4ff", isMore: true, methodId: "all" },
-];
 
 const cards = [
   { img: "あ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4", tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44", title: "ひらがな練習シート", sub: "50音すべて収録・なぞり書き対応" },
@@ -1162,7 +1111,7 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
   );
 }
 
-function getCardStyle(mat: Material) {
+function getCardStyle(mat: Material, locale: string = "ja") {
   const bgMap: Record<string, string> = {
     hiragana: "linear-gradient(135deg,#dbe8ff,#c8d8ff)",
     katakana: "linear-gradient(135deg,#ecdeff,#ddc8ff)",
@@ -1197,15 +1146,15 @@ function getCardStyle(mat: Material) {
   if (!mat.tag) {
     if (mat.isPickup) { tag = "PICK"; tagBg = "#ecdeff"; tagColor = "#7040b0"; }
     else if (mat.isNew) { tag = "NEW"; tagBg = "#ffd9ee"; tagColor = "#a03070"; }
-    else if (mat.requiredPlan === "free") { tag = "無料"; tagBg = "#d6f5e5"; tagColor = "#2a6a44"; }
-    else { tag = "サブスク"; tagBg = "#ecdeff"; tagColor = "#7040b0"; }
+    else if (mat.requiredPlan === "free") { tag = locale === "ja" ? "無料" : "Free"; tagBg = "#d6f5e5"; tagColor = "#2a6a44"; }
+    else { tag = locale === "ja" ? "サブスク" : "Subscribe"; tagBg = "#ecdeff"; tagColor = "#7040b0"; }
   }
 
   return { bg, char, charColor, tag, tagBg, tagColor };
 }
 
-function MaterialCard({ mat, onClick }: { mat: Material; onClick: () => void }) {
-  const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat);
+function MaterialCard({ mat, onClick, locale }: { mat: Material; onClick: () => void; locale: string }) {
+  const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
   return (
     <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
       <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
@@ -1219,9 +1168,10 @@ function MaterialCard({ mat, onClick }: { mat: Material; onClick: () => void }) 
 
 // ===== 教材一覧モーダル =====
 function MaterialsModal({
-  initContent, initMethod, onClose, isLoggedIn, materials,
+  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale,
 }: {
-  initContent: string; initMethod: string; onClose: () => void; isLoggedIn: boolean; materials: Material[];
+  initContent: string; initMethod: string; onClose: () => void; isLoggedIn: boolean; materials: Material[]; tmm: (key: string) => string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[]; methodTabs: {id: string; label: string; char: string}[];
+  locale: string;
 }) {
   const [activeContent, setActiveContent] = useState(initContent);
   const [activeMethod, setActiveMethod] = useState(initMethod);
@@ -1263,13 +1213,13 @@ function MaterialsModal({
         <div style={{ display: "flex", alignItems: "center", padding: "24px 28px 20px 28px", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, gap: 28 }}>
           <div style={{ flexShrink: 0 }}>
             <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 2 }}>Materials</div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>教材を探す</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>{tmm("title")}</div>
           </div>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "12px 24px" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input
                type="text"
-               placeholder="教材を検索..."
+               placeholder={tmm("search_placeholder")}
                value={searchQuery}
                onChange={async (e) => {
                   const q = e.target.value;
@@ -1333,7 +1283,7 @@ function MaterialsModal({
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
                   {filtered.map((mat) => {
-                    const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat);
+                    const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                     return (
                       <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
 
@@ -1411,10 +1361,10 @@ function MaterialsModal({
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {[
-                    { label: "対象年齢", value: teaserMat.ageGroup || "－" },
-                    { label: "学習内容", value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
-                    { label: "学習方法", value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-                    { label: "レベル", value: teaserMat.level || "－" },
+                   { label: tmm("age"), value: teaserMat.ageGroup || "－" },
+                   { label: tmm("content"), value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+                   { label: tmm("method"), value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
+                   { label: tmm("level"), value: teaserMat.level || "－" },
                   ].map(({ label, value }) => (
                     <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -1465,7 +1415,7 @@ function MaterialsModal({
                         <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
                       </svg>
                     )}
-                    {!isLoggedIn ? "お気に入りに追加" : favIds.includes(teaserMat.id) ? "お気に入りに追加済み" : "お気に入りに追加"}
+                    {!isLoggedIn ? tmm("add_fav") : favIds.includes(teaserMat.id) ? tmm("added_fav") : tmm("add_fav")}
                   </button>
 
                   {/* 吹き出し（未ログイン時） */}
@@ -1496,7 +1446,7 @@ function MaterialsModal({
                     style={{ width: "100%", padding: "13px", background: teaserMat.requiredPlan !== "free" ? "#f0eeff" : "#a3c0ff", color: teaserMat.requiredPlan !== "free" ? "#7F77DD" : "white", border: teaserMat.requiredPlan !== "free" ? "1px solid rgba(163,192,255,0.4)" : "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                   >
                     {teaserMat.requiredPlan !== "free" && <span style={{ fontSize: 16 }}>🔒</span>}
-                    {teaserMat.requiredPlan !== "free" ? "ダウンロード" : "この教材をダウンロードする"}
+                    {teaserMat.requiredPlan !== "free" ? tmm("lock_download") : tmm("download")}
                   </button>
                   {teaserMat.requiredPlan !== "free" && (
                     <div style={{ marginTop: 10, background: "linear-gradient(135deg, rgba(244,185,185,0.08), rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px", position: "relative" }}>
@@ -1528,7 +1478,9 @@ function MaterialsModal({
   );
 }
 
-function FavoritesSection({ allMaterials, isLoggedIn }: { allMaterials: Material[]; isLoggedIn: boolean }) {
+function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, locale, tmm }: { allMaterials: Material[]; isLoggedIn: boolean; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string}[];
+  locale: string; 
+　tmm: (key: string) => string;}) {
   const [favMaterials, setFavMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -1579,7 +1531,7 @@ function FavoritesSection({ allMaterials, isLoggedIn }: { allMaterials: Material
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-        {favMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat} onClick={() => setTeaserMat(mat)} />)}
+        {favMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat} onClick={() => setTeaserMat(mat)}locale={locale} />)}
       </div>
       {teaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat);
@@ -1607,10 +1559,10 @@ function FavoritesSection({ allMaterials, isLoggedIn }: { allMaterials: Material
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                   {[
-                    { label: "対象年齢", value: teaserMat.ageGroup || "－" },
-                    { label: "学習内容", value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
-                    { label: "学習方法", value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-                    { label: "レベル", value: teaserMat.level || "－" },
+                    { label: tmm("age"), value: teaserMat.ageGroup || "－" },
+                    { label: tmm("content"), value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+                    { label: tmm("method"), value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
+                    { label: tmm("level"), value: teaserMat.level || "－" },
                   ].map(({ label, value }) => (
                     <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -1646,7 +1598,7 @@ function FavoritesSection({ allMaterials, isLoggedIn }: { allMaterials: Material
                     ) : (
                       <svg width="16" height="16" viewBox="0 0 24 24" fill={favIds.includes(teaserMat.id) ? "#c9a0f0" : "none"} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
                     )}
-                    {!isLoggedIn ? "お気に入りに追加" : favIds.includes(teaserMat.id) ? "お気に入りに追加済み" : "お気に入りに追加"}
+                    {!isLoggedIn ? tmm("add_fav") : favIds.includes(teaserMat.id) ? tmm("added_fav") : tmm("add_fav")}
                   </button>
                 </div>
                 <button
@@ -1664,7 +1616,7 @@ function FavoritesSection({ allMaterials, isLoggedIn }: { allMaterials: Material
   );
 }
 
-function DownloadHistorySection({ allMaterials }: { allMaterials: Material[] }) {
+function DownloadHistorySection({ allMaterials, locale }: { allMaterials: Material[]; locale: string }) {
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -1690,12 +1642,12 @@ function DownloadHistorySection({ allMaterials }: { allMaterials: Material[] }) 
   );
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-      {historyMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat} onClick={() => window.open(`/materials/${mat.id}`, "_blank")} />)}
+      {historyMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat}locale={locale} onClick={() => window.open(`/materials/${mat.id}`, "_blank")} />)}
     </div>
   );
 }
 function UserMenuPopup({
-  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen,
+  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, tm,
 }: {
   userIconRef: React.RefObject<HTMLDivElement | null>;
   sbOpen: boolean;
@@ -1705,6 +1657,7 @@ function UserMenuPopup({
   onNavigate: (page: string) => void;
   onRouterPush: (href: string) => void;
   onLogout: () => void;
+  tm: (key: string) => string;
 }) {
   const el = userIconRef.current;if (!el) return null;
   const rect = el.getBoundingClientRect();if (!rect) return null;
@@ -1727,15 +1680,15 @@ function UserMenuPopup({
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
-          <div style={{ fontSize: 11, color: "#aaa" }}>Freeプラン</div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>{tm("free_plan")}</div>
         </div>
       </div>
       {[
-        { icon: "👤", label: "プロフィール・登録情報", page: "settings-profile" },
-        { icon: "📋", label: "プラン確認・変更", page: "plan" },
-        { icon: "⭐", label: "ポイント", page: "pt" },
-        { icon: "🧾", label: "支払い履歴", page: "settings-billing" },
-        { icon: "🔔", label: "通知設定", page: "settings-notifications" },
+        { icon: "👤", label: tm("profile"), page: "settings-profile" },
+        { icon: "📋", label: tm("plan"), page: "plan" },
+        { icon: "⭐", label: tm("points"), page: "pt" },
+        { icon: "🧾", label: tm("billing"), page: "settings-billing" },
+        { icon: "🔔", label: tm("notifications"), page: "settings-notifications" },
       ].map((item) => (
         <button key={item.label} onClick={() => {
          onNavigate(item.page);
@@ -1744,7 +1697,8 @@ function UserMenuPopup({
         </button>
       ))}
       <button onClick={onLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#e49bfd" }}>
-        <span style={{ fontSize: 16 }}>🚪</span>ログアウト
+        
+        <span style={{ fontSize: 16 }}>🚪</span>{tm("logout")}
       </button>
     </div>
   );
@@ -1771,6 +1725,70 @@ const navItems: NavItem[] = [
   { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "trouble", label: t("trouble"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
+];
+  const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
+  const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
+
+  const contentTabs = [
+  { id: "all",      label: cl.all,      char: "✦", color: "#e8efff", imageSrc: null },
+  { id: "hiragana", label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
+  { id: "katakana", label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png" },
+  { id: "kanji",    label: cl.kanji,    char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
+  { id: "vocab",    label: cl.vocab,    char: "語", color: "#fff8e0", imageSrc: null },
+  { id: "joshi",    label: cl.joshi,    char: "は", color: "#fff0ec", imageSrc: null },
+  { id: "bunkei",   label: cl.bunkei,   char: "文", color: "#f0ffe8", imageSrc: null },
+  { id: "aisatsu",  label: cl.aisatsu,  char: "👋", color: "#e8f8ff", imageSrc: null },
+  { id: "kaiwa",    label: cl.kaiwa,    char: "話", color: "#f8e8ff", imageSrc: null },
+  { id: "season",   label: cl.season,   char: "季", color: "#e8efff", imageSrc: null },
+  { id: "food",     label: cl.food,     char: "🍎", color: "#fff0e8", imageSrc: null },
+  { id: "animal",   label: cl.animal,   char: "🐾", color: "#e8f8ee", imageSrc: null },
+  { id: "body",     label: cl.body,     char: "💪", color: "#ffe8f4", imageSrc: null },
+  { id: "color",    label: cl.color,    char: "🔵", color: "#f0e8ff", imageSrc: null },
+  { id: "number",   label: cl.number,   char: "数", color: "#e8f8ff", imageSrc: null },
+];
+
+const methodTabs = [
+  { id: "all",      label: ml.all,      char: "✦" },
+  { id: "drill",    label: ml.drill,    char: "✏" },
+  { id: "test",     label: ml.test,     char: "✓" },
+  { id: "card",     label: ml.card,     char: "🃏" },
+  { id: "karuta",   label: ml.karuta,   char: "札" },
+  { id: "game",     label: ml.game,     char: "▶" },
+  { id: "nurie",    label: ml.nurie,    char: "◎" },
+  { id: "reading",  label: ml.reading,  char: "本" },
+  { id: "music",    label: ml.music,    char: "♪" },
+  { id: "roleplay", label: ml.roleplay, char: "🎭" },
+];
+
+  const contentItems = [
+  { label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
+  { label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png", contentId: "katakana" },
+  { label: cl.kanji,    char: "字", color: "#ffe8f4", imageSrc: "/kanji.png",    contentId: "kanji" },
+  { label: cl.vocab,    char: "語", color: "#fff8e0", contentId: "vocab" },
+  { label: cl.joshi,    char: "は", color: "#fff0ec", contentId: "joshi" },
+  { label: cl.bunkei,   char: "文", color: "#f0ffe8", contentId: "bunkei" },
+  { label: cl.aisatsu,  char: "👋", color: "#e8f8ff", contentId: "aisatsu" },
+  { label: cl.kaiwa,    char: "話", color: "#f8e8ff", contentId: "kaiwa" },
+  { label: cl.season,   char: "季", color: "#e8efff", contentId: "season" },
+  { label: cl.food,     char: "🍎", color: "#fff0e8", contentId: "food" },
+  { label: cl.animal,   char: "🐾", color: "#e8f8ee", contentId: "animal" },
+  { label: cl.body,     char: "💪", color: "#ffe8f4", contentId: "body" },
+  { label: cl.color,    char: "🔵", color: "#f0e8ff", contentId: "color" },
+  { label: cl.number,   char: "数", color: "#e8f8ff", contentId: "number" },
+  { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, contentId: "all" },
+];
+
+const methodItems = [
+  { label: ml.drill,    char: "✏", color: "#e8efff", methodId: "drill" },
+  { label: ml.test,     char: "✓", color: "#f0e8ff", methodId: "test" },
+  { label: ml.card,     char: "🃏", color: "#ffe8f4", methodId: "card" },
+  { label: ml.karuta,   char: "札", color: "#fff8e0", methodId: "karuta" },
+  { label: ml.game,     char: "▶", color: "#e8f8ee", methodId: "game" },
+  { label: ml.nurie,    char: "◎", color: "#fff0ec", methodId: "nurie" },
+  { label: ml.reading,  char: "本", color: "#e8f8ff", methodId: "reading" },
+  { label: ml.music,    char: "♪", color: "#edfff0", methodId: "music" },
+  { label: ml.roleplay, char: "🎭", color: "#f8e8ff", methodId: "roleplay" },
+  { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
 ];
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -1907,6 +1925,7 @@ const [editingValue, setEditingValue] = useState<string>("");
         router.refresh();
       }}
       sbOpen={sbOpen}
+      tm={tm} 
     />
   </>
 )}
@@ -1952,12 +1971,12 @@ const [editingValue, setEditingValue] = useState<string>("");
               )}
             </section>
 
-            <section id="anchor-content" style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
+            <section id="anchor-content" suppressHydrationWarning style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                 <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb" }}>Browse by Content</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>学習内容から探す</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>{th("browse_content_label")}</div>
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
@@ -1965,12 +1984,12 @@ const [editingValue, setEditingValue] = useState<string>("");
               </div>
             </section>
 
-            <section id="anchor-method" style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
+            <section id="anchor-method" suppressHydrationWarning style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 32 }}>
                å<div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />
                 <div style={{ textAlign: "left" }}>
                   <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb" }}>Browse by Method</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>学習方法から探す</div>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>{th("browse_method_label")}</div>
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-start", gap: 16, flexWrap: "wrap", padding: "0 32px" }}>
@@ -2359,9 +2378,9 @@ const [editingValue, setEditingValue] = useState<string>("");
                     </div>
                   </div>
                 ) : activePage === "fav" ? (
-                  <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} />
+                  <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} />
                 ) : activePage === "dl" ? (
-                  <DownloadHistorySection allMaterials={materials} />
+                  <DownloadHistorySection allMaterials={materials} locale={locale} />
                 ) : (
                   <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
                 )}
@@ -2378,6 +2397,10 @@ const [editingValue, setEditingValue] = useState<string>("");
           onClose={closeModal}
           isLoggedIn={isLoggedIn}
           materials={materials}
+          tmm={tmm}
+          contentTabs={contentTabs}
+          methodTabs={methodTabs}
+          locale={locale}
         />
       )}
     </div>
