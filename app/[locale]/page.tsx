@@ -1939,6 +1939,18 @@ const [editingValue, setEditingValue] = useState<string>("");
       {sbOpen ? (locale === 'ja' ? "🌐 日本語 / EN" : "🌐 EN / 日本語") : "🌐"}
     </button>
   </div>
+  {sbOpen && (
+  <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: "10px 0 4px", flexWrap: "wrap" }}>
+    <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
+    <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+    <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
+    <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+    <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
+  </div>
+)}
+<div style={{ textAlign: "center", padding: "2px 0 8px", fontSize: 11, color: "#ccc" }}>
+  © 2026 toolio
+</div>
 </div>
       </aside>
 
