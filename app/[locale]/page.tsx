@@ -1153,10 +1153,31 @@ function getCardStyle(mat: Material, locale: string = "ja") {
   return { bg, char, charColor, tag, tagBg, tagColor };
 }
 
-function MaterialCard({ mat, onClick, locale }: { mat: Material; onClick: () => void; locale: string }) {
+function MaterialCard({
+  mat, onClick, locale, isLoggedIn, favIds, onFavToggle,
+}: {
+  mat: Material;
+  onClick: () => void;
+  locale: string;
+  isLoggedIn?: boolean;
+  favIds?: string[];
+  onFavToggle?: (mat: Material) => void;
+}) {
   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
   return (
-    <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
+    <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
+      {isLoggedIn && onFavToggle && (
+        <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onFavToggle(mat); }}
+            style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill={favIds?.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
+            </svg>
+          </button>
+        </div>
+      )}
       <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       <div style={{ padding: "10px 12px 14px" }}>
         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
@@ -1531,7 +1552,31 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-        {favMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat} onClick={() => setTeaserMat(mat)}locale={locale} />)}
+        {favMaterials.map((mat) => (
+  <MaterialCard
+    key={mat.id}
+    mat={mat}
+    onClick={() => setTeaserMat(mat)}
+    locale={locale}
+    isLoggedIn={isLoggedIn}
+    favIds={favIds}
+    onFavToggle={async (mat) => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      if (favIds.includes(mat.id)) {
+        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+        setFavIds((prev) => prev.filter((id) => id !== mat.id));
+        setFavMaterials((prev) => prev.filter((m) => m.id !== mat.id));
+        window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+      } else {
+        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+        setFavIds((prev) => [...prev, mat.id]);
+        window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+      }
+    }}
+  />
+))}
       </div>
       {teaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
@@ -1826,6 +1871,10 @@ const methodItems = [
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setIsLoggedIn(!!session);
+      if (session) {
+      const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
+      if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+      }
       if (session?.user?.email) {
         setUserInitial(session.user.email[0].toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
@@ -2081,8 +2130,34 @@ const methodItems = [
         .map((mat) => {
           const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
           return (
-            <div key={mat.id} onClick={() => setTopTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
-              <div style={{ height: 180, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, color: charColor, fontWeight: 700 }}>{char}</div>
+            <div key={mat.id} onClick={() => setTopTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
+              {isLoggedIn && (
+  <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
+    <button
+      onClick={async (e) => {
+        e.stopPropagation();
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+        if (topFavIds.includes(mat.id)) {
+          await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+          setTopFavIds((prev) => prev.filter((id) => id !== mat.id));
+          window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+        } else {
+          await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+          setTopFavIds((prev) => [...prev, mat.id]);
+          window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+        }
+      }}
+      style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill={topFavIds.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
+      </svg>
+    </button>
+  </div>
+)}
+<div style={{ height: 180, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, color: charColor, fontWeight: 700 }}>{char}</div>
               <div style={{ padding: "16px 18px 22px" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 8, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 10 }}>{tag}</span>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#333", lineHeight: 1.4, marginBottom: 8 }}>{mat.title}</div>
