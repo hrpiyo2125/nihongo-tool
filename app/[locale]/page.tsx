@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
+import ToolioConceptSection from "./ToolioConceptSection"
 
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
@@ -123,14 +124,14 @@ function GuideCardItem({ card }: { card: { emoji: string; title: string; items: 
   );
 }
 const troubleTabs = [
-  { id: "start",    label: "何から始める？" },
-  { id: "level",    label: "レベルがわからない" },
-  { id: "material", label: "どの教材を使えばいい？" },
-  { id: "teach",    label: "どう教えればいい？" },
+  { id: "start",      label: "何から始める？" },
+  { id: "level",      label: "レベルがわからない" },
+  { id: "goal",       label: "何を目標にすればいい？" },
+  { id: "material",   label: "どの教材を使えばいい？" },
+  { id: "teach",      label: "どう教えればいい？" },
   { id: "motivation", label: "やる気を出さない" },
-  { id: "bored",    label: "子どもが飽きてしまう" },
-  { id: "improve",  label: "できるようにならない" },
-  { id: "goal",     label: "何を目標にすればいい？" },
+  { id: "bored",      label: "子どもが飽きてしまう" },
+  { id: "improve",    label: "できるようにならない" },
 ];
 
 function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
@@ -153,172 +154,599 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         </div>
       </div>
       <div style={{ padding: "36px 48px 64px", display: "flex", flexDirection: "column" as const, gap: 24 }}>
-      　{tab === "start" && (
+ {tab === "start" && (
   <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
-    {/* ブロック1：指導の全体像 */}
-    <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>指導の全体像</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
+
+    {/* リード文 */}
+    <p style={{ fontSize: 14, color: "#555", lineHeight: 1.9, margin: 0 }}>
+      子供に日本語を教える時、どんなやり方が思いつきますか？
+    </p>
+
+    {/* 実体験ブロック */}
+    <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+      <p style={{ fontSize: 13, color: "#aaa", lineHeight: 1.8, marginBottom: 16 }}>
+        子供の日本語教師として日本語を教えている中で、こんな経験がよくありました。
+      </p>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
         {[
-          { icon: "👀", title: "子どもを観察する", desc: "ニーズ・育った環境・これまでの学習歴を理解する" },
-          { icon: "📊", title: "レベルを知る", desc: "その子の今の日本語力を把握する" },
-          { icon: "🎯", title: "指導方針を決める", desc: "この3つが揃って初めて「何を・どう教えるか」が決まる" },
-          { icon: "📚", title: "教材を使って指導する", desc: "子どもの様子を見ながら、教材を駆使して進める" },
-          { icon: "✨", title: "「もっと！」を引き出す", desc: "もっとやりたいという気持ちが、次への意欲につながる" },
-        ].map((step, i, arr) => (
-          <div key={step.title}>
-            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
-              <div style={{ paddingTop: 4 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
-                <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
+          { icon: "📝", title: "ひらがな50音表を書く", result: "子供が楽しんでやっているように見えない、なんだか緊張感がある…", highlight: false },
+          { icon: "📝", title: "語彙や文の練習問題を重ねる", result: "プリントを出すと嫌がる、意外とすぐに終わってしまうので時間が余る、だけど準備が意外と大変", highlight: false },
+          { icon: "📝", title: "大人向けの日本語教材を使う", result: "場面や文法が難しくて続かない", highlight: false },
+          { icon: "📺", title: "アニメ・漫画を見る", result: "話していることや書いてあることが難しくて、日本語の勉強になっているのか？と不安になることもある", highlight: false },
+          { icon: "📚", title: "子ども向けの教科書を使う", result: "教科書を出すと、途端に嫌がる", highlight: false },
+          { icon: "🃏", title: "かるたをやる", result: "毎回楽しそう！", highlight: true },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13 }}>
+            <span style={{ flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
+            <div style={{ lineHeight: 1.75 }}>
+              <span style={{ fontWeight: 700, color: "#444" }}>{item.title}</span>
+              <span style={{ color: item.highlight ? "#e49bfd" : "#888", fontWeight: item.highlight ? 700 : 400 }}>
+                {" "}→ {item.result}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* まとめ文 */}
+    <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
+      日本語を教えてきたみなさんも、こんな経験、あるのではないでしょうか。そして結局、毎回これでいいのか…またゲームで終わってしまった…となる。
+    </p>
+
+    {/* でも強調ブロック */}
+    <div style={{ borderLeft: "3px solid #f4b9b9", background: "#fafafa", borderRadius: "0 12px 12px 0", padding: "16px 20px" }}>
+      <p style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>でも——</p>
+      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0 }}>
+        ゲームや楽しい活動を準備しようとすると、教材を作るのに時間がかかる。当日までに間に合わない。結局プリントや教科書に戻ってしまう…。
+      </p>
+    </div>
+
+    {/* ブリッジ文 */}
+    <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
+      でも、子供たちは、楽しんでいる時ほど、自然に言葉を覚えていました。かるたで遊びながら、気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。「勉強した」という感覚がないまま、できることが増えていく。そして楽しい活動の中で、ちゃんと日本語を吸収していました。それに気づいた時、toolioのアイデアが生まれました。
+    </p>
+
+    {/* ループ図 */}
+    <div style={{ display: "flex", justifyContent: "center" }}>
+      <svg viewBox="0 0 580 540" style={{ width: "100%", maxWidth: 680 }} role="img" aria-label="toolioの学びのループ図">
+        <defs>
+          <marker id="arr-loop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </marker>
+        </defs>
+        <rect x="80" y="20" width="360" height="72" rx="14" fill="#fce4f8" stroke="#e49bfd" strokeWidth="1" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="46" textAnchor="middle" dominantBaseline="central" fill="#7a2e7a">楽しい活動</text>
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="72" textAnchor="middle" dominantBaseline="central" fill="#9e4a9e">かるた・ゲーム・ロールプレイ</text>
+        <line x1="260" y1="93" x2="260" y2="124" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
+        <rect x="80" y="126" width="360" height="72" rx="14" fill="#ddeeff" stroke="#a3c0ff" strokeWidth="1" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="152" textAnchor="middle" dominantBaseline="central" fill="#1a4a8a">気づいたら日本語に触れてる</text>
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="178" textAnchor="middle" dominantBaseline="central" fill="#2a5aa0">先生がさりげなく言葉を添える</text>
+        <line x1="260" y1="199" x2="260" y2="230" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
+        <rect x="80" y="232" width="360" height="72" rx="14" fill="#ede8ff" stroke="#b89aff" strokeWidth="1" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="258" textAnchor="middle" dominantBaseline="central" fill="#3d1f8a">あれ、できた！</text>
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="284" textAnchor="middle" dominantBaseline="central" fill="#5530a0">小さな「できた！」を積み重ねる</text>
+        <line x1="260" y1="305" x2="260" y2="336" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
+        <rect x="80" y="338" width="360" height="72" rx="14" fill="#d6f5ee" stroke="#6dcfb8" strokeWidth="1" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="364" textAnchor="middle" dominantBaseline="central" fill="#0d5c4a">またやりたい！</text>
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="390" textAnchor="middle" dominantBaseline="central" fill="#1a7a64">やらされ感ゼロ・自分から動く</text>
+        <path d="M440 374 Q520 374 520 215 Q520 56 440 56" fill="none" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="6 4" markerEnd="url(#arr-loop)" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="13" x="538" y="220" textAnchor="middle" fill="#c07070" transform="rotate(90,538,220)">くり返す</text>
+        <line x1="260" y1="411" x2="260" y2="450" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#arr-loop)" />
+        <rect x="55" y="452" width="410" height="76" rx="16" fill="#fff7e6" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="6 3" />
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="20" fontWeight="500" x="260" y="480" textAnchor="middle" dominantBaseline="central" fill="#8a4a20">気づいたらできてた！</text>
+        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="506" textAnchor="middle" dominantBaseline="central" fill="#a05a30">大きな「できた！」へ</text>
+      </svg>
+    </div>
+
+    {/* toolioの核心ブロック */}
+    <div style={{ border: "0.5px solid rgba(228,155,253,0.5)", borderRadius: 14, padding: "24px 28px", background: "linear-gradient(135deg,rgba(252,228,248,0.3),rgba(221,238,255,0.3))" }}>
+      <p style={{ fontSize: 14, fontWeight: 700, color: "#444", lineHeight: 1.85, marginBottom: 14 }}>
+        toolioは、そのギャップを埋めたくて生まれました。
+      </p>
+      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 12 }}>
+        先生や保護者のみなさんが、教材づくりに追われることなく、子どもと向き合う時間を大切にできるように。ダウンロードしてすぐ使える教材を届けることで、準備の負担を少しでも減らしたい。
+      </p>
+      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
+        そして何より、子どもたちに「あれ、楽しい」と感じてほしい。気づいたら言葉が出てきた、気づいたら読めるようになっていた——そんな「気づいたらできてた」の積み重ねが、子どもの自信になると信じています。だから、toolioの教材はすべて、まず楽しい活動があります。説明は最小限。難しさは気づかないうちに少しずつ上がっていく。それがtoolioです。
+      </p>
+    </div>
+
+    {/* つなぎ文 */}
+    <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginTop: 8 }}>
+      では、実際にどうやるか、簡単なステップをご紹介します。
+    </div>
+
+    {/* ステップ */}
+    <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
+
+      {/* STEP 1 */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>01</div>
+        <div style={{ flex: 1, paddingTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>その子の今を知る</div>
+          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 12 }}>
+            難しすぎても簡単すぎても「楽しい」にはなりません。ざっくりでいいので、今どのくらいできるかを観察してみましょう。
+          </div>
+
+          {/* 難しすぎ・簡単すぎの例 */}
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 14 }}>
+            {[
+              { icon: "😣", label: "難しすぎ", desc: "ひらがなをまだ知らない子に漢字テストを渡す→わからなくてつまらない", color: "#ffe8f4", border: "rgba(244,185,185,0.5)" },
+              { icon: "😪", label: "簡単すぎ", desc: "ひらがなを全部読める子になぞり書きを渡す→簡単すぎてつまらない", color: "#e8efff", border: "rgba(163,192,255,0.5)" },
+              { icon: "😊", label: "ちょうどいい", desc: "少し頑張ればできる、くらいの教材が「楽しい！」につながる", color: "#edfff0", border: "rgba(109,207,184,0.5)" },
+            ].map((item) => (
+              <div key={item.label} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: item.color, border: `0.5px solid ${item.border}`, borderRadius: 10, padding: "10px 14px" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 2 }}>{item.label}</div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.desc}</div>
+                </div>
               </div>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+            ひらがなは読める？日本語に反応する？好きなものは何？——そのくらいのざっくり観察でOKです。やりながら見えてくることもたくさんあります。
+          </div>
+
+          <button
+            onClick={() => setTab("level")}
+            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
+          >
+            詳しいチェックの仕方はこちら →
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
+
+      {/* STEP 2 */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>02</div>
+        <div style={{ flex: 1, paddingTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>ゴールを決める</div>
+          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+            「何ができるようになってほしいか」を決めておくと、教材選びがスムーズになります。大きな目標でなくてOK。「お菓子のパッケージが読める」「あいさつができる」くらいの小さなCan-doから始めましょう。
+          </div>
+          <button
+            onClick={() => setTab("goal")}
+            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
+          >
+            目標の決め方はこちら →
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
+
+      {/* STEP 3 */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>02</div>
+        <div style={{ flex: 1, paddingTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>楽しい活動を選ぶ</div>
+          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+            toolioの教材はBasic→Middle→Advancedと段階があります。まずは「なんか楽しそう！」で選んでOK。やりながら自然にステップアップしていきます。
+          </div>
+
+          {/* Basic→Middle→Advancedの例 */}
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: 0, marginBottom: 14 }}>
+            {[
+              { level: "Basic", color: "#d6f5e5", textColor: "#2a6a44", example: "かるたで遊ぶ → 札が取れた！", icon: "🃏" },
+              { level: "Middle", color: "#e8efff", textColor: "#3a5a9a", example: "食べ物ゲームをする → 全部言えた！", icon: "🎮" },
+              { level: "Advanced", color: "#ffe8f4", textColor: "#a03070", example: "お買い物ロールプレイ → お店屋さんと話せた！", icon: "🎭" },
+            ].map((item, i, arr) => (
+              <div key={item.level}>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", background: item.color, border: `0.5px solid rgba(200,170,240,0.2)`, borderRadius: 10, padding: "10px 14px" }}>
+                  <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: item.textColor, marginRight: 8 }}>{item.level}</span>
+                    <span style={{ fontSize: 13, color: "#555" }}>{item.example}</span>
+                  </div>
+                </div>
+                {i < arr.length - 1 && (
+                  <div style={{ display: "flex", justifyContent: "center", padding: "4px 0", fontSize: 14, color: "#ddd" }}>↓</div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* 横断学習 */}
+          <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#9b6ed4", marginBottom: 8 }}>💡 一つの活動で複数のことが学べる（横断学習）</div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+              {[
+                "食べ物かるた → 語彙＋「赤いいちご」で色にも自然に触れる",
+                "お買い物ロールプレイ → 語彙＋「3つください」で数＋会話表現",
+                "季節のぬりえ → 色の名前＋季節の語彙に同時に触れる",
+                "動物カード → 動物の名前＋耳・しっぽなど体の部位も自然に出てくる",
+              ].map((item) => (
+                <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+                  <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>{item}</div>
+                </div>
+              ))}
             </div>
-            {i < arr.length - 1 && (
-              <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
-            )}
           </div>
-        ))}
+
+          <button
+            onClick={() => setTab("material")}
+            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
+          >
+            どんな教材を使えばいい？ →
+          </button>
+        </div>
       </div>
-      <div style={{ marginTop: 14, background: "rgba(244,185,185,0.1)", border: "0.5px solid rgba(244,185,185,0.4)", borderRadius: 10, padding: "12px 16px", fontSize: 13, color: "#888", lineHeight: 1.8 }}>
-        ⚠️ この順番を飛ばすと…「習得しない」「飽きてしまう」「続かない」につながり、日本語が嫌いになってしまうことも。
+
+      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
+
+      {/* STEP 4 */}
+      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>03</div>
+        <div style={{ flex: 1, paddingTop: 4 }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>まず試してみる</div>
+          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+            最初の「楽しい！」が、続けるための一番の近道です。
+          </div>
+          <button
+            onClick={onOpenModal}
+            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
+          >
+            教材一覧を見る →
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    {/* 締めの言葉 */}
+    <div style={{ textAlign: "center" as const, padding: "32px 24px", background: "linear-gradient(135deg,rgba(244,185,185,0.15),rgba(228,155,253,0.15),rgba(163,192,255,0.15))", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.25)" }}>
+      <div style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.6, marginBottom: 8 }}>
+        さあ、toolioと一緒に始めましょう。
+      </div>
+      <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.8 }}>
+        まずは気になった教材を1つ、試してみてください。
       </div>
     </div>
 
-    {/* ブロック2：レベルを知ることの大切さ */}
-    <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>なぜレベルを知ることが大切なの？</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-        {[
-          { icon: "🌍", label: "環境を知る", desc: "どんな場所で日本語に触れているか" },
-          { icon: "📖", label: "歴史を知る", desc: "これまでどんな学習をしてきたか" },
-          { icon: "📊", label: "レベルを知る", desc: "今どのくらい日本語ができるか" },
-        ].map((item) => (
-          <div key={item.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12, padding: "16px 14px", textAlign: "center" as const }}>
-            <div style={{ fontSize: 24, marginBottom: 8 }}>{item.icon}</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 4 }}>{item.label}</div>
-            <div style={{ fontSize: 11, color: "#999", lineHeight: 1.6 }}>{item.desc}</div>
-          </div>
-        ))}
-      </div>
-      <div style={{ marginTop: 12, fontSize: 13, color: "#888", lineHeight: 1.8, padding: "12px 16px", background: "#f8f6ff", borderRadius: 10 }}>
-        この3つの中で、特に<span style={{ fontWeight: 700, color: "#7a50b0" }}>「レベルを知る」</span>ことが一番難しいと感じる方が多いです。次のタブで詳しく解説します。
-      </div>
-      <button onClick={() => setTab("level")} style={{ marginTop: 12, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
-        レベルの確認方法を見る →
-      </button>
+  </div>
+)}
+ {tab === "level" && (
+  <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
+
+    {/* ① 日常の中で観察しよう */}
+    <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "16px 20px" }}>
+      テストしなくて大丈夫。レベルは、日常の会話の中でざっくり観察するだけで十分です。<br />
+      大切なのは「できないこと」を探すのではなく、<span style={{ fontWeight: 700, color: "#7a50b0" }}>「できること」を見つけること</span>。できることが見えれば、最初の一歩が自信を持って踏み出せます。
     </div>
 
-    {/* ブロック3：楽しむことが大切 */}
+    {/* ② やさしい日本語とは？ */}
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>すべての段階で「楽しむ」ことが鍵</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>やさしい日本語で話しかけてみよう</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+        子どもに日本語で話しかけるとき、難しい言葉・長い文・早口では正確に伝わりません。まず「やさしい日本語」を意識してみましょう。
+      </div>
+
+      {/* 3つのポイント */}
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 16 }}>
         {[
-          { phase: "知る段階", icon: "🔍", text: "子どものことをよく知れた！という喜びが生まれる" },
-          { phase: "準備の段階", icon: "📝", text: "「自分だったら何が楽しいか」を考えることが楽しくなる" },
-          { phase: "指導の段階", icon: "🌟", text: "「できた！」の経験が、子どもも自分もうれしくさせる" },
+          { icon: "✂️", point: "短く話す", desc: "一文に一つの内容だけ。「ごはん、食べた？」" },
+          { icon: "🐢", point: "ゆっくり話す", desc: "急がず、間をとって。子どもが処理する時間を作る" },
+          { icon: "💬", point: "知っている言葉を使う", desc: "「食事」より「ごはん」。子どもが知っていそうな言葉で" },
         ].map((item) => (
-          <div key={item.phase} style={{ display: "flex", gap: 14, alignItems: "center", padding: "12px 16px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10 }}>
-            <div style={{ fontSize: 22, flexShrink: 0 }}>{item.icon}</div>
+          <div key={item.point} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
             <div>
-              <div style={{ fontSize: 11, color: "#c9a0f0", fontWeight: 700, marginBottom: 2 }}>{item.phase}</div>
-              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.6 }}>{item.text}</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#444", marginBottom: 3 }}>{item.point}</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
             </div>
           </div>
         ))}
       </div>
-      <div style={{ marginTop: 12, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 10, padding: "14px 16px", fontSize: 13, color: "#666", lineHeight: 1.8 }}>
-        楽しむことで、<span style={{ fontWeight: 700, color: "#7a50b0" }}>続けられる・大切な要素を引き出せる・「もっと！」につながる</span>という好循環が生まれます。
+
+      {/* NG→OK例 */}
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>NG → OK の例</div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+        {[
+          { ng: "今日学校でどんなことがあったか教えて", ok: "今日、楽しかった？" },
+          { ng: "急いで準備しないと遅刻するよ", ok: "はやく！急いで！" },
+          { ng: "この字、なんて読むかわかる？", ok: "これ、読める？" },
+          { ng: "もう少し大きな声で話してみて", ok: "もっと大きい声で" },
+        ].map((item) => (
+          <div key={item.ng} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
+            <div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#f4b9b9", marginBottom: 3 }}>NG</div>
+              <div style={{ fontSize: 13, color: "#aaa" }}>{item.ng}</div>
+            </div>
+            <div style={{ fontSize: 16, color: "#ddd" }}>→</div>
+            <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(163,192,255,0.1))", borderRadius: 8, padding: "8px 12px" }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "#a3c0ff", marginBottom: 3 }}>OK ✅</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{item.ok}</div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
+
+    {/* ③ 四技能チェックリスト */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 6 }}>日常の中でチェックしてみよう</div>
+      <div style={{ fontSize: 13, color: "#aaa", marginBottom: 16 }}>やさしい日本語で話しかけながら、できることに✓を入れてみましょう。</div>
+
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 16 }}>
+        {[
+          {
+            skill: "聞く",
+            icon: "👂",
+            color: "#e8efff",
+            border: "rgba(163,192,255,0.4)",
+            titleColor: "#3a5a9a",
+            items: [
+              "名前を呼ばれたら振り向く",
+              "「座って」「来て」など簡単な指示がわかる",
+              "「〇〇はどこ？」という質問に体や指で答えられる",
+              "短いお話を最後まで聞ける",
+              "話の内容について「うん」「ちがう」で答えられる",
+            ],
+          },
+          {
+            skill: "話す",
+            icon: "🗣",
+            color: "#fce4f8",
+            border: "rgba(228,155,253,0.4)",
+            titleColor: "#7a2e7a",
+            items: [
+              "単語（「おなかすいた」「いや」など）で気持ちを伝えられる",
+              "「〇〇したい」「〇〇がすき」と言える",
+              "経験を一文で話せる（「公園いった」など）",
+              "知らない言葉を身振りや別の言葉で伝えようとする",
+              "日本語で話しかけられたとき、日本語で返そうとする",
+            ],
+          },
+          {
+            skill: "読む",
+            icon: "📖",
+            color: "#fff8e0",
+            border: "rgba(240,200,80,0.4)",
+            titleColor: "#7a5a00",
+            items: [
+              "自分の名前がひらがなで読める",
+              "ひらがな50音がだいたい読める",
+              "短い単語（「ねこ」「りんご」など）が読める",
+              "簡単な文（「ねこがいる」など）が読める",
+              "初めて見た文章を自分で読もうとする",
+            ],
+          },
+          {
+            skill: "書く",
+            icon: "✏️",
+            color: "#d6f5ee",
+            border: "rgba(109,207,184,0.4)",
+            titleColor: "#0d5c4a",
+            items: [
+              "自分の名前がひらがなで書ける",
+              "見本を見ながらひらがなが書ける",
+              "見本なしでひらがなが書ける",
+              "短い文が書ける（「わたしは〇〇です」など）",
+              "自分の考えを文章で書こうとする",
+            ],
+          },
+        ].map((skill) => (
+          <div key={skill.skill} style={{ background: skill.color, border: `0.5px solid ${skill.border}`, borderRadius: 12, padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <span style={{ fontSize: 20 }}>{skill.icon}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: skill.titleColor }}>{skill.skill}</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
+              {skill.items.map((item) => (
+                <div key={item} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 18, height: 18, borderRadius: 4, border: `1.5px solid ${skill.border}`, background: "white", flexShrink: 0, marginTop: 1 }} />
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 印刷ボタン */}
+      <button style={{ marginTop: 14, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}>
+        📄 チェックリストを印刷する（準備中）
+      </button>
+    </div>
+
+    {/* ④ チェックした後は？ */}
+    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 10 }}>チェックした後は？</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 16 }}>
+        チェックが多くついた力が、今のお子さんの<span style={{ fontWeight: 700, color: "#7a50b0" }}>得意な入口</span>です。その力から使える教材を選ぶと、最初の一歩が踏み出しやすくなります。toolioの教材はレベルで縛っていません。同じ教材でも使い方次第でどのレベルにも使えます。
+      </div>
+      <button onClick={() => setTab("material")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        どんな教材を使えばいい？ →
+      </button>
+    </div>
+
   </div>
 )}
-        {tab === "level" && (
+{tab === "material" && (
   <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
 
-    {/* ブロック1：言語習得の基本の流れ */}
+    {/* ① チェックリストの結果を活かして選ぼう */}
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>言語習得の基本の流れ</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto" as const, padding: "4px 0" }}>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>チェックリストの結果を活かして選ぼう</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+        レベルチェックの結果を参考に、得意な力から入るのが一番スムーズです。
+      </div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
         {[
-          { icon: "👂", label: "聞く" },
-          { icon: "🗣", label: "話す" },
-          { icon: "📖", label: "読む" },
-          { icon: "✏️", label: "書く" },
-        ].map((item, i, arr) => (
-          <div key={item.label} style={{ display: "flex", alignItems: "center", flexShrink: 0 }}>
-            <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 8, padding: "16px 20px", background: "white", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12 }}>
-              <div style={{ fontSize: 28 }}>{item.icon}</div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{item.label}</div>
+          { icon: "👂🗣", skill: "聞く・話すにチェックが多い", desc: "まず音声・会話系の教材から（かるた・カード・ロールプレイ）" },
+          { icon: "📖", skill: "読むに興味が出てきた", desc: "ひらがな・文字系の教材から（練習シート・読み物）" },
+          { icon: "✏️", skill: "書くが得意", desc: "練習シート・ドリル系から始めてみましょう" },
+        ].map((item) => (
+          <div key={item.skill} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
+            <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 3 }}>{item.skill}</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>→ {item.desc}</div>
             </div>
-            {i < arr.length - 1 && (
-              <div style={{ fontSize: 20, color: "#ddd", padding: "0 8px" }}>→</div>
-            )}
           </div>
         ))}
       </div>
       <div style={{ marginTop: 12, fontSize: 13, color: "#888", lineHeight: 1.8, padding: "12px 16px", background: "#f8f6ff", borderRadius: 10 }}>
-        これは基本の流れです。継承語の子どもはこの通りにはいかないことも多いです。まず「どこができて、どこがまだかな？」を確認するところから始めましょう。
+        ただし、レベルの縛りはありません。同じ教材でも使い方次第でどのレベルにも使えます。各教材ページの「使い方」タブに具体的な活用例を載せています。
       </div>
     </div>
 
-    {/* ブロック2：簡易チェックリスト（内容は後から追加） */}
+    {/* ② Basic→Middle→Advancedって何？ */}
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 8 }}>簡易チェックリスト</div>
-      <div style={{ fontSize: 13, color: "#aaa", marginBottom: 16 }}>やさしい日本語で話しかけながら確認してみましょう。</div>
-      <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "24px", fontSize: 13, color: "#bbb", textAlign: "center" as const }}>
-        チェックリストを準備中です。
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>Basic・Middle・Advancedって何？</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>
+        toolioの教材には3つの活動の形があります。難しさが気づかないうちに上がっていくので、子どもはストレスなく自然にステップアップできます。
       </div>
-      <button style={{ marginTop: 12, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}>
-        📄 チェックリストをダウンロード（準備中）
-      </button>
-    </div>
 
-    {/* ブロック3：レベルがわかったら */}
-    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>レベルがわかったら、好きな教材を選んでOK</div>
-      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>toolioの教材はレベルで縛っていません。同じ教材でも使い方次第でどのレベルにも使えます。各教材ページの「使い方」タブに具体的な活用例を載せています。</div>
-      <button onClick={() => setTab("material")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
-      詳しい教材の選び方はこちら →
-      </button>
-    </div>
-
-    {/* ブロック4：DLAへの一言 */}
-    <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.8, padding: "12px 16px", background: "#fafafa", borderRadius: 10 }}>
-      💡 より正確なレベル判定をしたい場合は、<span style={{ fontWeight: 700 }}>DLA（Developmental Language Assessment）</span>という専門ツールがあります。学校や専門機関に相談してみてください。
-    </div>
-
-  </div>
-)}
-        {tab === "material" && (
-  <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
-
-    {/* ブロック1：教材内容の大まかな目安 */}
-    <div>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#888", marginBottom: 8 }}>参考：よく使われる順番</div>
-      <div style={{ fontSize: 13, color: "#aaa", marginBottom: 16 }}>あくまで目安です。この通りでなくて大丈夫です。</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 24 }}>
         {[
-         { step: "STEP 1", color: "#d6f5e5", textColor: "#2a6a44", items: ["ひらがな", "あいさつ", "身近な語彙", "かんたんな場面会話"] },
-         { step: "STEP 2", color: "#e8efff", textColor: "#3a5a9a", items: ["カタカナ", "季節・行事", "文型（〜です・〜ます）"] },
-         { step: "STEP 3", color: "#ffe8f4", textColor: "#a03070", items: ["漢字", "助詞", "複雑な文型", "読み物"] },
-        ].map((level) => (
-          <div key={level.step} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-            <div style={{ flexShrink: 0, background: level.color, color: level.textColor, fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20, whiteSpace: "nowrap" as const, marginTop: 2 }}>{level.step}</div>
-            <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8 }}>{level.items.join("・")}</div>
+          {
+            level: "Basic",
+            icon: "🃏",
+            color: "#d6f5e5",
+            border: "rgba(109,207,184,0.4)",
+            titleColor: "#2a6a44",
+            desc: "説明なしで飛び込める活動。ルールがシンプルで、すぐに「できた！」が生まれます。",
+            examples: "かるた・カード・ぬりえ",
+            dekita: "「札が取れた！」「全部塗れた！」",
+          },
+          {
+            level: "Middle",
+            icon: "🎮",
+            color: "#e8efff",
+            border: "rgba(163,192,255,0.4)",
+            titleColor: "#3a5a9a",
+            desc: "少しルールがある活動。Basicで触れた言葉が自然に出てきます。",
+            examples: "ゲーム・クイズ・ビンゴ",
+            dekita: "「全部言えた！」「勝った！」",
+          },
+          {
+            level: "Advanced",
+            icon: "🎭",
+            color: "#ffe8f4",
+            border: "rgba(244,185,185,0.4)",
+            titleColor: "#a03070",
+            desc: "やり取りが生まれる活動。気づいたら日本語で話せるようになっています。",
+            examples: "ロールプレイ・インタビュー・お店屋さんごっこ",
+            dekita: "「お店屋さんと話せた！」「インタビューできた！」",
+          },
+        ].map((item) => (
+          <div key={item.level} style={{ background: item.color, border: `0.5px solid ${item.border}`, borderRadius: 12, padding: "16px 20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <span style={{ fontSize: 14, fontWeight: 800, color: item.titleColor }}>{item.level}</span>
+            </div>
+            <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8, marginBottom: 8 }}>{item.desc}</div>
+            <div style={{ fontSize: 12, color: "#777", marginBottom: 4 }}>例：{item.examples}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: item.titleColor }}>できた！の例：{item.dekita}</div>
           </div>
         ))}
       </div>
+
+      <div style={{ background: "#f8f6ff", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 10, padding: "14px 18px", fontSize: 13, color: "#666", lineHeight: 1.8 }}>
+        Basicから始めるのが入りやすいですが、順番の縛りはありません。「この教材、うちの子に合いそう」という直感で選んでOKです。toolioの教材はどの段階から入っても、活動の中で自然に「やりたい！」が生まれるように設計しています。
+      </div>
     </div>
 
-    {/* ブロック2：一番大切なのは子どもの興味 */}
+    {/* 授業例 */}
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>でも、一番大切なのは「子どもの興味」</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>授業の流れの例</div>
+
+      {/* パターンA */}
+      <div style={{ marginBottom: 20 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#7a50b0", marginBottom: 12 }}>パターンA｜1回の授業で完結（約30分）</div>
+        <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 12 }}>
+          同じテーマをその日のうちにBasic→Middle→Advancedと進みます。毎回必ず「できた！」で終わるのがポイントです。
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
+          {[
+            { time: "導入（5分）", icon: "💬", desc: "食べ物カードを見ながら「これ知ってる？」と話しかける" },
+            { time: "Basic（10分）", icon: "🃏", desc: "食べ物かるたで遊ぶ → 札が取れた！" },
+            { time: "Middle（10分）", icon: "🎮", desc: "食べ物ビンゴをする → 全部言えた！" },
+            { time: "Advanced（5分）", icon: "🎭", desc: "お買い物ロールプレイ → お店屋さんと話せた！" },
+          ].map((step, i, arr) => (
+            <div key={step.time}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10, padding: "12px 16px" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#c9a0f0", marginBottom: 3 }}>{step.time}</div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{step.desc}</div>
+                </div>
+              </div>
+              {i < arr.length - 1 && (
+                <div style={{ display: "flex", justifyContent: "center", padding: "4px 0", fontSize: 14, color: "#ddd" }}>↓</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* パターンB */}
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#7a50b0", marginBottom: 12 }}>パターンB｜複数回にまたがる構成（例：3回）</div>
+        <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 12 }}>
+          同じテーマで少しずつ難しくしていきます。前回の「できた！」が次回の土台になり、子どもが「あ、これ知ってる！」と自信を持って入れます。
+        </div>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
+          {[
+            { time: "1回目", icon: "🃏", desc: "食べ物かるたで遊ぶ（Basic）→ 札が取れた！で終わる" },
+            { time: "2回目", icon: "🎮", desc: "食べ物ビンゴをする（Middle）→ 前回のかるたで覚えた言葉が出てくる！" },
+            { time: "3回目", icon: "🎭", desc: "お買い物ロールプレイ（Advanced）→ 気づいたら話せるようになってた！" },
+          ].map((step, i, arr) => (
+            <div key={step.time}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10, padding: "12px 16px" }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</span>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#c9a0f0", marginBottom: 3 }}>{step.time}</div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{step.desc}</div>
+                </div>
+              </div>
+              {i < arr.length - 1 && (
+                <div style={{ display: "flex", justifyContent: "center", padding: "4px 0", fontSize: 14, color: "#ddd" }}>↓</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* ③ 横断学習 */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 8 }}>一つの活動で複数のことが学べる</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
+        toolioの教材は、一つの活動の中で別の学習項目も自然に深まるように設計されています。「これだけを教えよう」と構えなくても、活動の中で自然にいろんな言葉に触れられます。
+      </div>
+      <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12, padding: "16px 20px" }}>
+        <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+          {[
+            { icon: "🍎", text: "食べ物かるた → 食べ物の語彙＋「赤いいちご」で色にも自然に触れる" },
+            { icon: "🛒", text: "お買い物ロールプレイ → 食べ物の語彙＋「3つください」で数＋会話表現が同時に深まる" },
+            { icon: "🍂", text: "季節のぬりえ → 色の名前＋季節の語彙に同時に触れる" },
+            { icon: "🐾", text: "動物カード → 動物の名前＋耳・しっぽなど体の部位も自然に出てくる" },
+          ].map((item) => (
+            <div key={item.text} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.text}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    {/* ④ 子どもの興味も大切 */}
+    <div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>子どもの興味も大切</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
         {[
           { icon: "🚗", title: "好きなものから", desc: "車が好き→乗り物の語彙、動物が好き→動物の教材など、興味のあるテーマから入ると吸収が早い" },
           { icon: "🍂", title: "季節・生活に合わせて", desc: "今の季節の教材、日常生活で使う言葉など、子どもの生活に近いものが定着しやすい" },
-          { icon: "✨", title: "「やってみたい！」を大切に", desc: "目安の順番より、子どもがやりたいと思える教材を選ぶことが続けるための一番の近道" },
+          { icon: "✨", title: "「やってみたい！」を大切に", desc: "子どもが楽しそうと感じる教材を選ぶことが、続けるための一番の近道" },
         ].map((item) => (
           <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
             <div style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</div>
@@ -331,9 +759,9 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
       </div>
     </div>
 
-    {/* ブロック3：教材一覧へ誘導 */}
+    {/* ⑤ 教材一覧へ */}
     <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>まずは気になった教材を試してみましょう</div>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>まずは気になった教材を1つ試してみましょう</div>
       <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>各教材ページの「使い方」タブに、レベル別・場面別の活用例を載せています。参考にしながら、自由に使ってみてください。</div>
       <button onClick={onOpenModal} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
         教材一覧を見る →
@@ -342,53 +770,169 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
 
   </div>
 )}
-        {tab === "teach" && (
+{tab === "teach" && (
   <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
 
-    {/* ブロック1：授業の流れ */}
+    {/* 共感リード */}
+    <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "16px 20px" }}>
+      教え方に正解はありません。でも、こんなことを意識するだけで、子どもの反応がぐっと変わります。
+    </div>
+
+    {/* 心がけること */}
     <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>指導の流れ</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
-        {[
-          { icon: "🔄", title: "復習する", desc: "前回の内容を軽く確認。負担をかけず、さらっと" },
-          { icon: "💬", title: "コミュニケーションから入る", desc: "いきなり本題ではなく、会話から少しずつその話題へ" },
-          { icon: "🌱", title: "簡単なものから導入する", desc: "カタカナをやりたければ、まずひらがなから。小さな成功体験を積む" },
-          { icon: "🎉", title: "楽しい活動で学ぶ", desc: "ゲーム・かるた・うたなど、楽しみながら内容に触れる" },
-          { icon: "✏️", title: "反復練習する", desc: "ドリル・テストなどで定着を確認。楽しい活動の後に行うと効果的" },
-          { icon: "⭐", title: "「できた！」で終わる", desc: "最後はゲームや会話で同じ内容を。「できるようになったね」で締めくくる" },
-        ].map((step, i, arr) => (
-          <div key={step.title}>
-            <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
-              <div style={{ paddingTop: 4 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
-                <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
+      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>心がけること</div>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+
+        {/* 1 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎉</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>説明より先に「楽しい活動」から入る</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>説明から始めると子どもは構えてしまいます。まず活動に飛び込んで、やりながら自然に言葉に触れさせましょう。</div>
+              <div style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, marginBottom: 6 }}>例えば——</div>
+              <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8, background: "#f8f6ff", borderRadius: 8, padding: "10px 14px" }}>
+                「今日はかるたをやろう！」とカードを広げるだけでOK。ルールの説明は最小限に、まずやってみる。やっているうちに子どもが自然にルールを覚えていきます。
               </div>
             </div>
-            {i < arr.length - 1 && (
-              <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
-            )}
           </div>
-        ))}
+        </div>
+
+        {/* 2 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🌱</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>先生がさりげなく言葉を添える</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>「これは○○だよ」と教え込むのではなく、活動の中でさりげなく言葉を添えるだけで十分です。</div>
+              <div style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, marginBottom: 6 }}>声かけの例——</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6, background: "#f8f6ff", borderRadius: 8, padding: "10px 14px" }}>
+                {[
+                  "札を取った瞬間に「いちご！赤いね」とさりげなく言う",
+                  "子どもが指さしたら「そう、これはりんごだね」と繰り返す",
+                  "正解・不正解より「言葉を拾う」感覚で",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+                    <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 3 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>⭐</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>必ず「できた！」で終わる</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>最後は子どもが「できた！」と感じられる活動で締めくくりましょう。こんな工夫を取り入れてみてください。</div>
+              <div style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, marginBottom: 6 }}>工夫の例——</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6, background: "#f8f6ff", borderRadius: 8, padding: "10px 14px" }}>
+                {[
+                  "抜き打ちで「これ言える？」と聞いてみる → 自然に言えた！という達成感が生まれる",
+                  "できた札・カードを手元に集めておく → 「これだけ取れた！」と目で見てわかる",
+                  "前回できなかったことをもう一度やってみる → 「あ、今回はできた！」と成長を自分で感じられる",
+                  "できた言葉をノートや紙に書き留める → 積み重なっていく「できた！」が目に見える形になる",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+                    <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 4 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>👀</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>疲れたサインを見逃さない</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>集中できる時間は子どもによって違います。サインを感じたら「今日はここまで」と早めに切り上げてOKです。</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                <div style={{ background: "#fff0f0", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ fontSize: 12, color: "#c07070", fontWeight: 700, marginBottom: 6 }}>こんなサインに気をつけて——</div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 4 }}>
+                    {["視線がそれる・返事が遅くなる", "ぼーっとする・欠伸が出る", "関係ない話を始める・席を立とうとする"].map((item) => (
+                      <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                        <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#f4b9b9", flexShrink: 0, marginTop: 7 }} />
+                        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: "#f0fff4", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ fontSize: 12, color: "#2a6a44", fontWeight: 700, marginBottom: 6 }}>対処——</div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>「今日はここまでにしよう」と切り上げる・別の簡単な活動に切り替えてから終わる</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🤍</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>できなくても責めない</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>「怒られないようにやる」ではなく「やりたいからやる」を大切に。間違えても大丈夫、という空気が「できる」を引き出します。</div>
+              <div style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, marginBottom: 6 }}>こんな場面では——</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6, background: "#f8f6ff", borderRadius: 8, padding: "10px 14px" }}>
+                {[
+                  "かるたの札が取れなかった → 「惜しかった！次は取れるよ」と切り替える",
+                  "言葉が出てこなかった → 「そうそう、これは○○だよ」とさりげなくフォロー",
+                  "間違えた → 「あ、そう聞こえるよね」と否定せず自然に正しい言葉を繰り返す",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+                    <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 6 */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
+          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🌟</div>
+            <div style={{ paddingTop: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>できた部分を認めてほめる</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>できない部分には必ず原因があります。まずできていることを見つけて認めることが、子どもの自信につながります。</div>
+              <div style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, marginBottom: 6 }}>こんな伝え方で——</div>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: 6, background: "#f8f6ff", borderRadius: 8, padding: "10px 14px" }}>
+                {[
+                  "「全部はできなかったけど、この3枚は全部言えたね！」",
+                  "「先週より速く取れるようになったね」と変化を伝える",
+                  "できた札だけ集めて「これだけ取れた！」と一緒に数える",
+                ].map((item) => (
+                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
+                    <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    {/* ブロック2：心がけること */}
-    <div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>心がけること</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
-        {[
-          { icon: "👀", text: "疲れたサインを見逃さない" },
-          { icon: "🤍", text: "できなくても責めない。「怒られないようにやる」ではなく「やりたいからやる」を大切に" },
-          { icon: "🔍", text: "できなかったときは原因を観察する。わからなくてもいい、徐々に理解していく" },
-          { icon: "🌟", text: "できた部分を認めて、ほめる。できない部分には必ず原因がある" },
-        ].map((item) => (
-          <div key={item.text} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 16px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10 }}>
-            <div style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</div>
-            <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.text}</div>
-          </div>
-        ))}
-      </div>
+    {/* 教材一覧へ */}
+    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>まずは楽しい活動から始めてみましょう</div>
+      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>toolioの教材はすべて「まず楽しい活動ありき」で設計されています。説明は最小限。すぐに使えます。</div>
+      <button onClick={onOpenModal} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        教材一覧を見る →
+      </button>
     </div>
 
   </div>
@@ -718,13 +1262,15 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
     </div>
 
     {/* ブロック5：CTA */}
-    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>各教材ページに、場面別・Can-do別の活用例を載せています</div>
-      <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>「使い方」タブを参考に、今日のゴールを決めるヒントにしてみてください。</div>
-      <button onClick={onOpenModal} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
-        教材一覧を見る →
-      </button>
-    </div>
+<div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 12, padding: "20px 24px" }}>
+  <div style={{ fontSize: 14, fontWeight: 700, color: "#555", marginBottom: 8 }}>ゴールが決まったら、教材を選びましょう</div>
+  <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>
+    Can-doをもとに、そのゴールに向かって使える教材を選びましょう。各教材ページの「使い方」タブに、場面別・Can-do別の活用例を載せています。
+  </div>
+  <button onClick={() => setTab("material")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+    どの教材を使えばいい？ →
+  </button>
+</div>
 
   </div>
 )}
