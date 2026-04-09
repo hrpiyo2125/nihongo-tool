@@ -9,7 +9,7 @@ type Material = {
   id: string;
   title: string;
   description: string;
-  level: string;
+  level: string[];
   content: string[];
   method: string[];
   ageGroup: string;
@@ -20,6 +20,9 @@ type Material = {
   isRecommended: boolean;
   ranking: number | null;
   isNew: boolean;
+  usageBasic: string;
+  usageMiddle: string;
+  usageAdvanced: string;
 };
 
 // ── スタイルヘルパー ────────────────────────────────
@@ -193,24 +196,21 @@ function makeSidePanels(mat: Material) {
         </svg>
       ),
       content: (
-        <div style={{ padding: "20px 18px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>使い方ガイド</div>
-          {[
-            { step: "01", title: "ダウンロード", desc: "右上のボタンからPDFをダウンロードします" },
-            { step: "02", title: "印刷する", desc: "A4サイズで印刷。カラーでも白黒でもOK" },
-            { step: "03", title: "なぞり書き", desc: "まず薄い文字をなぞって形を覚えます" },
-            { step: "04", title: "自分で書く", desc: "空白のマスに自分で書いて練習します" },
-          ].map((item) => (
-            <div key={item.step} style={{ display: "flex", gap: 12, marginBottom: 16, alignItems: "flex-start" }}>
-              <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, color: "white", flexShrink: 0 }}>{item.step}</div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#444", marginBottom: 3 }}>{item.title}</div>
-                <div style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>{item.desc}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      ),
+  <div style={{ padding: "20px 18px" }}>
+    <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>使い方ガイド</div>
+    {/* レベルタブ */}
+    {(() => {
+      const tabs = [
+        { id: "basic",    label: "Basic",    text: mat.usageBasic },
+        { id: "middle",   label: "Middle",   text: mat.usageMiddle },
+        { id: "advanced", label: "Advanced", text: mat.usageAdvanced },
+      ].filter(t => t.text);
+      if (tabs.length === 0) return <div style={{ fontSize: 13, color: "#bbb" }}>使い方情報はまだありません。</div>;
+      if (tabs.length === 1) return <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{tabs[0].text}</div>;
+      return <LevelTabs tabs={tabs} />;
+    })()}
+  </div>
+),
     },
     {
       id: "related", label: "関連ツール",
@@ -234,6 +234,24 @@ function makeSidePanels(mat: Material) {
       ),
     },
   ];
+}
+function LevelTabs({ tabs }: { tabs: { id: string; label: string; text: string }[] }) {
+  const [active, setActive] = useState(tabs[0]?.id ?? "basic");
+  const current = tabs.find(t => t.id === active);
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={() => setActive(t.id)} style={{ fontSize: 12, fontWeight: t.id === active ? 700 : 500, padding: "5px 14px", borderRadius: 20, border: t.id === active ? "none" : "0.5px solid rgba(200,170,240,0.4)", background: t.id === active ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", color: t.id === active ? "white" : "#aaa", cursor: "pointer" }}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-wrap" }}>
+        {current?.text}
+      </div>
+    </div>
+  );
 }
 
 function TagBadge({ tag }: { tag: string }) {

@@ -73,7 +73,7 @@ export async function getMaterials() {
       id: page.id,
       title: props.name?.title[0]?.plain_text ?? '',
       description: props.description?.rich_text[0]?.plain_text ?? '',
-      level: props.level?.select?.name ?? '',
+      level:        (props.level?.multi_select ?? []).map((s: any) => s.name),
       // 日本語ラベル → IDに変換（マップにない値はそのまま通す）
       content: (props.content?.multi_select ?? []).map((s: any) => contentLabelToId[s.name] ?? s.name),
       method:  (props.method?.multi_select  ?? []).map((s: any) => methodLabelToId[s.name]  ?? s.name),
@@ -87,6 +87,9 @@ export async function getMaterials() {
       isRecommended: props.isRecommended?.checkbox ?? false,
       ranking:      props.ranking?.number        ?? null,
       isNew:        props.isNew?.checkbox        ?? false,
+      usageBasic:     props.usageBasic?.rich_text?.[0]?.plain_text ?? '',
+      usageMiddle:    props.usageMiddle?.rich_text?.[0]?.plain_text ?? '',
+      usageAdvanced:  props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
     }
   })
 }
@@ -100,7 +103,7 @@ export async function getMaterialById(id: string) {
       id: page.id,
       title:       props.name?.title[0]?.plain_text ?? '',
       description: props.description?.rich_text[0]?.plain_text ?? '',
-      level:       props.level?.select?.name ?? '',
+      level:        (props.level?.multi_select ?? []).map((s: any) => s.name),
       content:     (props.content?.multi_select ?? []).map((s: any) => contentLabelToId[s.name] ?? s.name),
       method:      (props.method?.multi_select  ?? []).map((s: any) => methodLabelToId[s.name]  ?? s.name),
       ageGroup:    props.ageGroup?.select?.name ?? '',

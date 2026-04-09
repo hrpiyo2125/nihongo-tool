@@ -31,7 +31,7 @@ type Material = {
   id: string;
   title: string;
   description: string;
-  level: string;
+  level: string[];
   content: string[];
   method: string[];
   ageGroup: string;
@@ -159,246 +159,200 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
 
     {/* リード文 */}
     <p style={{ fontSize: 14, color: "#555", lineHeight: 1.9, margin: 0 }}>
-      子供に日本語を教える時、どんなやり方が思いつきますか？
+      子どもに日本語を教える時、こんなこと、ありませんか？
     </p>
 
     {/* 実体験ブロック */}
     <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-      <p style={{ fontSize: 13, color: "#aaa", lineHeight: 1.8, marginBottom: 16 }}>
-        子供の日本語教師として日本語を教えている中で、こんな経験がよくありました。
-      </p>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 12 }}>
-        {[
-          { icon: "📝", title: "ひらがな50音表を書く", result: "子供が楽しんでやっているように見えない、なんだか緊張感がある…", highlight: false },
-          { icon: "📝", title: "語彙や文の練習問題を重ねる", result: "プリントを出すと嫌がる、意外とすぐに終わってしまうので時間が余る、だけど準備が意外と大変", highlight: false },
-          { icon: "📝", title: "大人向けの日本語教材を使う", result: "場面や文法が難しくて続かない", highlight: false },
-          { icon: "📺", title: "アニメ・漫画を見る", result: "話していることや書いてあることが難しくて、日本語の勉強になっているのか？と不安になることもある", highlight: false },
-          { icon: "📚", title: "子ども向けの教科書を使う", result: "教科書を出すと、途端に嫌がる", highlight: false },
-          { icon: "🃏", title: "かるたをやる", result: "毎回楽しそう！", highlight: true },
-        ].map((item, i) => (
-          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13 }}>
-            <span style={{ flexShrink: 0, marginTop: 2 }}>{item.icon}</span>
-            <div style={{ lineHeight: 1.75 }}>
-              <span style={{ fontWeight: 700, color: "#444" }}>{item.title}</span>
-              <span style={{ color: item.highlight ? "#e49bfd" : "#888", fontWeight: item.highlight ? 700 : 400 }}>
-                {" "}→ {item.result}
-              </span>
-            </div>
-          </div>
-        ))}
+      
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+  
+  {[
+    { icon: "📝", before: "ひらがな50音表を書く", after: "緊張感があって、楽しんでいるように見えない…" },
+    { icon: "📝", before: "語彙や文の練習問題を重ねる", after: "プリントを出すと嫌がる。準備も意外と大変。" },
+    { icon: "📚", before: "子ども向けの教科書を使う", after: "教科書を出すと、途端に嫌がる。" },
+
+  ].map((item, i) => (
+    <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+        <span style={{ fontSize: 13, color: "#555", fontWeight: 600 }}>{item.before}</span>
       </div>
+      <div style={{ fontSize: 18, color: "#ddd", flexShrink: 0 }}>→</div>
+      <div style={{ fontSize: 13, color: "#888", fontWeight: 400, lineHeight: 1.6 }}>{item.after}</div>
+    </div>
+  ))}
+</div>
     </div>
 
     {/* まとめ文 */}
-    <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
-      日本語を教えてきたみなさんも、こんな経験、あるのではないでしょうか。そして結局、毎回これでいいのか…またゲームで終わってしまった…となる。
-    </p>
+  
 
-    {/* でも強調ブロック */}
-    <div style={{ borderLeft: "3px solid #f4b9b9", background: "#fafafa", borderRadius: "0 12px 12px 0", padding: "16px 20px" }}>
-      <p style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>でも——</p>
-      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0 }}>
-        ゲームや楽しい活動を準備しようとすると、教材を作るのに時間がかかる。当日までに間に合わない。結局プリントや教科書に戻ってしまう…。
-      </p>
-    </div>
+<div style={{ borderLeft: "3px solid #e49bfd", background: "#fafafa", borderRadius: "0 12px 12px 0", padding: "16px 20px" }}>
+  <p style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>そして毎回、終わった後——</p>
+  <p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0 }}>
+    「これでよかったのかな」「もっと楽しくできたかも」　　　そんなふうに感じたこと、ありませんか。
+  </p>
+</div>
 
-    {/* ブリッジ文 */}
-    <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
-      でも、子供たちは、楽しんでいる時ほど、自然に言葉を覚えていました。かるたで遊びながら、気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。「勉強した」という感覚がないまま、できることが増えていく。そして楽しい活動の中で、ちゃんと日本語を吸収していました。それに気づいた時、toolioのアイデアが生まれました。
-    </p>
-
+    <div style={{ borderLeft: "3px solid #a3c0ff", background: "#fafafa", borderRadius: "0 12px 12px 0", padding: "16px 20px" }}>
+  <p style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>でも、子どもってかるた、大好きですよね。</p>
+  <p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0 }}>
+    毎回同じかるたでも、飽きずにやってくれる。そしてそのかるたの言葉は、気づいたらすんなり覚えてしまっている。
+  </p>
+</div>
+    
     {/* ループ図 */}
-    <div style={{ display: "flex", justifyContent: "center" }}>
-      <svg viewBox="0 0 580 540" style={{ width: "100%", maxWidth: 680 }} role="img" aria-label="toolioの学びのループ図">
-        <defs>
-          <marker id="arr-loop" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </marker>
-        </defs>
-        <rect x="80" y="20" width="360" height="72" rx="14" fill="#fce4f8" stroke="#e49bfd" strokeWidth="1" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="46" textAnchor="middle" dominantBaseline="central" fill="#7a2e7a">楽しい活動</text>
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="72" textAnchor="middle" dominantBaseline="central" fill="#9e4a9e">かるた・ゲーム・ロールプレイ</text>
-        <line x1="260" y1="93" x2="260" y2="124" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
-        <rect x="80" y="126" width="360" height="72" rx="14" fill="#ddeeff" stroke="#a3c0ff" strokeWidth="1" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="152" textAnchor="middle" dominantBaseline="central" fill="#1a4a8a">気づいたら日本語に触れてる</text>
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="178" textAnchor="middle" dominantBaseline="central" fill="#2a5aa0">先生がさりげなく言葉を添える</text>
-        <line x1="260" y1="199" x2="260" y2="230" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
-        <rect x="80" y="232" width="360" height="72" rx="14" fill="#ede8ff" stroke="#b89aff" strokeWidth="1" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="258" textAnchor="middle" dominantBaseline="central" fill="#3d1f8a">あれ、できた！</text>
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="284" textAnchor="middle" dominantBaseline="central" fill="#5530a0">小さな「できた！」を積み重ねる</text>
-        <line x1="260" y1="305" x2="260" y2="336" stroke="#a3c0ff" strokeWidth="1.5" markerEnd="url(#arr-loop)" />
-        <rect x="80" y="338" width="360" height="72" rx="14" fill="#d6f5ee" stroke="#6dcfb8" strokeWidth="1" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="18" fontWeight="500" x="260" y="364" textAnchor="middle" dominantBaseline="central" fill="#0d5c4a">またやりたい！</text>
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="390" textAnchor="middle" dominantBaseline="central" fill="#1a7a64">やらされ感ゼロ・自分から動く</text>
-        <path d="M440 374 Q520 374 520 215 Q520 56 440 56" fill="none" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="6 4" markerEnd="url(#arr-loop)" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="13" x="538" y="220" textAnchor="middle" fill="#c07070" transform="rotate(90,538,220)">くり返す</text>
-        <line x1="260" y1="411" x2="260" y2="450" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="5 3" markerEnd="url(#arr-loop)" />
-        <rect x="55" y="452" width="410" height="76" rx="16" fill="#fff7e6" stroke="#f4b9b9" strokeWidth="1.5" strokeDasharray="6 3" />
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="20" fontWeight="500" x="260" y="480" textAnchor="middle" dominantBaseline="central" fill="#8a4a20">気づいたらできてた！</text>
-        <text fontFamily="'Hiragino Kaku Gothic ProN','Hiragino Sans',sans-serif" fontSize="14" x="260" y="506" textAnchor="middle" dominantBaseline="central" fill="#a05a30">大きな「できた！」へ</text>
-      </svg>
+    <p style={{ fontSize: 18, fontWeight: 800, color: "#444", lineHeight: 1.9, margin: 40, textAlign: "center" as const }}>
+  日本語を話すために必要な内容すべてを、このように楽しくできれば——そう思って考えたのが、toolioの構成です。
+</p>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start"  }}>
+      <img
+  src="/tanoshii_dekita.png"
+  alt="たのしい→できた！の繰り返しで成長する階段図"
+  style={{ width: "100%", maxWidth: 680, display: "block", margin: "0 auto", borderRadius: 12 }}
+/>
+<div style={{ marginTop: 24, fontSize: 13, color: "#777", lineHeight: 1.9, textAlign: "left" as const }}>
+  このように、学習の中で「たのしい」→「できた！」をたくさん繰り返します。
+  同じ体験を繰り返しながら、少しずつステップアップさせていくと、最後には大きな「できた！」になります。
+  この大きな「できた！」は、私たちが目標とする、"日本語で話せるようになる”になります。
+</div>
+
+<div style={{ height: 24 }} />
+{/* レベルの説明 */}
+<p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, textAlign: "left" as const }}>
+  でも、毎回同じ内容で「たのしい→できた！」を繰り返しているだけでは、大きな「できた！」には辿り着けません。そのために必要なのが、<span style={{ fontWeight: 700, color: "#7a50b0" }}>レベルを少しずつ上げていくこと</span>です。
+</p>
+
+
+
+
+<img
+  src="/toollevel.png"
+  alt="Basic・Middle・Advancedの3段階レベル図"
+ style={{ width: "100%", maxWidth: 680, display: "block", margin: "0 auto", borderRadius: 12 }}
+/>
+<div style={{ height: 32 }} />
+<p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0, textAlign: "left" as const }}>
+  楽しい活動で子どものモチベーションを維持しながら、少しずつレベルを上げていく。これって、最高の流れだと思いませんか？
+</p>
+<div style={{ height: 32 }} />
     </div>
 
-    {/* toolioの核心ブロック */}
-    <div style={{ border: "0.5px solid rgba(228,155,253,0.5)", borderRadius: 14, padding: "24px 28px", background: "linear-gradient(135deg,rgba(252,228,248,0.3),rgba(221,238,255,0.3))" }}>
-      <p style={{ fontSize: 14, fontWeight: 700, color: "#444", lineHeight: 1.85, marginBottom: 14 }}>
-        toolioは、そのギャップを埋めたくて生まれました。
-      </p>
-      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 12 }}>
-        先生や保護者のみなさんが、教材づくりに追われることなく、子どもと向き合う時間を大切にできるように。ダウンロードしてすぐ使える教材を届けることで、準備の負担を少しでも減らしたい。
-      </p>
-      <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>
-        そして何より、子どもたちに「あれ、楽しい」と感じてほしい。気づいたら言葉が出てきた、気づいたら読めるようになっていた——そんな「気づいたらできてた」の積み重ねが、子どもの自信になると信じています。だから、toolioの教材はすべて、まず楽しい活動があります。説明は最小限。難しさは気づかないうちに少しずつ上がっていく。それがtoolioです。
-      </p>
+   {/* toolioの核心ブロック */}
+<div style={{ borderLeft: "3px solid #f4b9b9", background: "#fafafa", borderRadius: "0 12px 12px 0", padding: "16px 20px" }}>
+  <p style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 8 }}>でも——</p>
+  <p style={{ fontSize: 13, color: "#777", lineHeight: 1.85, margin: 0 }}>
+    このような「たのしい→できた！」を実現できる教材って、作ろうと思うと準備が大変ですよね。そんな時に生み出したのが、<span style={{ fontWeight: 700, color: "#7a50b0" }}>toolio</span>です。
+  </p>
+</div>
+
+<div style={{ height: 24 }} />
+
+<div style={{ border: "0.5px solid rgba(228,155,253,0.5)", borderRadius: 14, padding: "40px 30px", background: "linear-gradient(135deg,rgba(252,228,248,0.3),rgba(221,238,255,0.3))" }}>
+  <p style={{ fontSize: 14, fontWeight: 700, color: "#444", lineHeight: 1.85, textAlign: "center" as const }}>
+    toolioは、子どもに楽しく日本語を学習してもらいたい、そしてそれを支える先生や保護者の方々の力になりたい、と言う思いから生まれました。
+  </p>
+</div>
+
+<div style={{ height: 24}} />
+
+{/* 新ステップ構成 */}
+<div style={{ display: "flex", flexDirection: "column" as const, gap: 48 }}>
+
+  {/* 3ステップ概要 */}
+  <div style={{ display: "flex", gap: 0, alignItems: "center", justifyContent: "center" }}>
+    {[
+      { num: "01", label: "レベルを知る" },
+      { num: "02", label: "ゴールを設定する" },
+      { num: "03", label: "教材を使って教える" },
+    ].map((item, i, arr) => (
+      <div key={item.num} style={{ display: "flex", alignItems: "center", gap: 0 }}>
+        <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 6 }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white" }}>{item.num}</div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#555", whiteSpace: "nowrap" as const }}>{item.label}</div>
+        </div>
+        {i < arr.length - 1 && <div style={{ fontSize: 20, color: "#ddd", margin: "0 12px", paddingBottom: 20 }}>→</div>}
+      </div>
+    ))}
+  </div>
+  <div style={{ height: 8}} />
+  {/* STEP 1: レベルを知る */}
+  <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "24px 28px 36px", display: "flex", flexDirection: "column" as const, gap: 20 }}>
+    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>01</div>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#333" }}>レベルを知る</div>
+        <div style={{ fontSize: 12, color: "#b090c8", marginTop: 2 }}>初回だけでOK</div>
+      </div>
     </div>
-
-    {/* つなぎ文 */}
-    <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginTop: 8 }}>
-      では、実際にどうやるか、簡単なステップをご紹介します。
+    <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9 }}>
+      レベルを知ることで、正確なスタート地点を決めることができます。これがないと——
     </div>
-
-    {/* ステップ */}
-    <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
-
-      {/* STEP 1 */}
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>01</div>
-        <div style={{ flex: 1, paddingTop: 4 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>その子の今を知る</div>
-          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 12 }}>
-            難しすぎても簡単すぎても「楽しい」にはなりません。ざっくりでいいので、今どのくらいできるかを観察してみましょう。
-          </div>
-
-          {/* 難しすぎ・簡単すぎの例 */}
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 14 }}>
-            {[
-              { icon: "😣", label: "難しすぎ", desc: "ひらがなをまだ知らない子に漢字テストを渡す→わからなくてつまらない", color: "#ffe8f4", border: "rgba(244,185,185,0.5)" },
-              { icon: "😪", label: "簡単すぎ", desc: "ひらがなを全部読める子になぞり書きを渡す→簡単すぎてつまらない", color: "#e8efff", border: "rgba(163,192,255,0.5)" },
-              { icon: "😊", label: "ちょうどいい", desc: "少し頑張ればできる、くらいの教材が「楽しい！」につながる", color: "#edfff0", border: "rgba(109,207,184,0.5)" },
-            ].map((item) => (
-              <div key={item.label} style={{ display: "flex", gap: 10, alignItems: "flex-start", background: item.color, border: `0.5px solid ${item.border}`, borderRadius: 10, padding: "10px 14px" }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#999", marginBottom: 2 }}>{item.label}</div>
-                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
-            ひらがなは読める？日本語に反応する？好きなものは何？——そのくらいのざっくり観察でOKです。やりながら見えてくることもたくさんあります。
-          </div>
-
-          <button
-            onClick={() => setTab("level")}
-            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
-          >
-            詳しいチェックの仕方はこちら →
-          </button>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+        <img src="/toodifficult.png" alt="難しすぎる場合" style={{ width: "100%", borderRadius: 10, display: "block" }} />
+        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8, padding: "10px 14px", background: "#f0f0f0", borderRadius: 10, minHeight: 80, textAlign: "center" as const }}>
+          内容がむずかしすぎた場合、子どものレベルとかけ離れていて理解できない、やる気が出ないと言うことが起きます。
         </div>
       </div>
-
-      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
-
-      {/* STEP 2 */}
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>02</div>
-        <div style={{ flex: 1, paddingTop: 4 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>ゴールを決める</div>
-          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
-            「何ができるようになってほしいか」を決めておくと、教材選びがスムーズになります。大きな目標でなくてOK。「お菓子のパッケージが読める」「あいさつができる」くらいの小さなCan-doから始めましょう。
-          </div>
-          <button
-            onClick={() => setTab("goal")}
-            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
-          >
-            目標の決め方はこちら →
-          </button>
+      <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+        <img src="/tooeasy.png" alt="簡単すぎる場合" style={{ width: "100%", borderRadius: 10, display: "block" }} />
+        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8, padding: "10px 14px", background: "#f0f0f0", borderRadius: 10, minHeight: 80, textAlign: "center" as const }}>
+          内容が簡単すぎた場合、すでにわかっていることなのでつまらない、と言うことが起きてしまいます。
         </div>
       </div>
-
-      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
-
-      {/* STEP 3 */}
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>02</div>
-        <div style={{ flex: 1, paddingTop: 4 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>楽しい活動を選ぶ</div>
-          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
-            toolioの教材はBasic→Middle→Advancedと段階があります。まずは「なんか楽しそう！」で選んでOK。やりながら自然にステップアップしていきます。
-          </div>
-
-          {/* Basic→Middle→Advancedの例 */}
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 0, marginBottom: 14 }}>
-            {[
-              { level: "Basic", color: "#d6f5e5", textColor: "#2a6a44", example: "かるたで遊ぶ → 札が取れた！", icon: "🃏" },
-              { level: "Middle", color: "#e8efff", textColor: "#3a5a9a", example: "食べ物ゲームをする → 全部言えた！", icon: "🎮" },
-              { level: "Advanced", color: "#ffe8f4", textColor: "#a03070", example: "お買い物ロールプレイ → お店屋さんと話せた！", icon: "🎭" },
-            ].map((item, i, arr) => (
-              <div key={item.level}>
-                <div style={{ display: "flex", gap: 10, alignItems: "center", background: item.color, border: `0.5px solid rgba(200,170,240,0.2)`, borderRadius: 10, padding: "10px 14px" }}>
-                  <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: item.textColor, marginRight: 8 }}>{item.level}</span>
-                    <span style={{ fontSize: 13, color: "#555" }}>{item.example}</span>
-                  </div>
-                </div>
-                {i < arr.length - 1 && (
-                  <div style={{ display: "flex", justifyContent: "center", padding: "4px 0", fontSize: 14, color: "#ddd" }}>↓</div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {/* 横断学習 */}
-          <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 10, padding: "12px 16px", marginBottom: 14 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#9b6ed4", marginBottom: 8 }}>💡 一つの活動で複数のことが学べる（横断学習）</div>
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
-              {[
-                "食べ物かるた → 語彙＋「赤いいちご」で色にも自然に触れる",
-                "お買い物ロールプレイ → 語彙＋「3つください」で数＋会話表現",
-                "季節のぬりえ → 色の名前＋季節の語彙に同時に触れる",
-                "動物カード → 動物の名前＋耳・しっぽなど体の部位も自然に出てくる",
-              ].map((item) => (
-                <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
-                  <div style={{ fontSize: 12, color: "#666", lineHeight: 1.7 }}>{item}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={() => setTab("material")}
-            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.5)", background: "white", color: "#7a50b0", cursor: "pointer" }}
-          >
-            どんな教材を使えばいい？ →
-          </button>
-        </div>
-      </div>
-
-      <div style={{ display: "flex", justifyContent: "center", padding: "6px 0", fontSize: 16, color: "#ddd" }}>↓</div>
-
-      {/* STEP 4 */}
-      <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-        <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>03</div>
-        <div style={{ flex: 1, paddingTop: 4 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 6 }}>まず試してみる</div>
-          <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>
-            最初の「楽しい！」が、続けるための一番の近道です。
-          </div>
-          <button
-            onClick={onOpenModal}
-            style={{ fontSize: 12, fontWeight: 700, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
-          >
-            教材一覧を見る →
-          </button>
-        </div>
-      </div>
-
     </div>
+    <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
+      <button onClick={() => setTab("level")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        詳しいチェックの仕方はこちら →
+      </button>
+    </div>
+  </div>
 
+  <div style={{ display: "flex", justifyContent: "center", fontSize: 16, color: "#ddd" }}>↓</div>
+
+  {/* STEP 2: ゴールを設定する */}
+  <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "24px 28px 36px", display: "flex", flexDirection: "column" as const, gap: 20 }}>
+    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>02</div>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#333" }}>ゴールを設定する</div>
+        <div style={{ fontSize: 12, color: "#b090c8", marginTop: 2 }}>毎回の作業</div>
+      </div>
+    </div>
+    <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9 }}>
+      具体的に考えなくてOKです。子どもの日ごろの観察により、「どんなことをやったほうがいいか」を決めてみましょう。これをやることで、どんな内容をやるかを具体的に決められます。
+    </div>
+    <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
+      <button onClick={() => setTab("goal")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        目標の決め方はこちら →
+      </button>
+    </div>
+  </div>
+
+  <div style={{ display: "flex", justifyContent: "center", fontSize: 16, color: "#ddd" }}>↓</div>
+
+  {/* STEP 3: 教材を選んで実践 */}
+  <div style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "24px 28px 36px", display: "flex", flexDirection: "column" as const, gap: 20 }}>
+    <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+      <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "white", flexShrink: 0 }}>03</div>
+      <div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: "#333" }}>教材を選んで実践！</div>
+        <div style={{ fontSize: 12, color: "#b090c8", marginTop: 2 }}>レベルとゴールの間にある教材を選ぶ</div>
+      </div>
+    </div>
+    <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9 }}>
+      2つが決まったら、その間にある教材を選んで実践しましょう！
+    </div>
+    <img src="/choose.png" alt="教材を選ぶ" style={{ width: "100%", maxWidth: 680, display: "block", margin: "0 auto", borderRadius: 12, mixBlendMode: "multiply" as const }} />
+    <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
+      <button onClick={onOpenModal} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        教材一覧を見る →
+      </button>
+    </div>
+  </div>
+  </div>
     {/* 締めの言葉 */}
     <div style={{ textAlign: "center" as const, padding: "32px 24px", background: "linear-gradient(135deg,rgba(244,185,185,0.15),rgba(228,155,253,0.15),rgba(163,192,255,0.15))", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.25)" }}>
       <div style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.6, marginBottom: 8 }}>
@@ -1644,7 +1598,15 @@ type NavItem = {
 };
 
 
-type ItemType = { label: string; char: string; color: string; imageSrc?: string; isMore?: boolean; contentId?: string; methodId?: string; };
+type ItemType = { 
+  label: string; 
+  char: string; 
+  color: string; 
+  imageSrc?: string | null;  // nullを追加
+  isMore?: boolean; 
+  contentId?: string; 
+  methodId?: string; 
+};
 
 function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
   return (
@@ -1727,6 +1689,13 @@ function MaterialCard({
       <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       <div style={{ padding: "10px 12px 14px" }}>
         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
+        {(mat.level ?? []).length > 0 && (
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+              {(mat.level ?? []).map((lv: string) => (
+                <span key={lv} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+              ))}
+            </div>
+          )}
         <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
       </div>
     </div>
@@ -1737,7 +1706,14 @@ function MaterialCard({
 function MaterialsModal({
   initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale,
 }: {
-  initContent: string; initMethod: string; onClose: () => void; isLoggedIn: boolean; materials: Material[]; tmm: (key: string) => string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[]; methodTabs: {id: string; label: string; char: string}[];
+  initContent: string; 
+  initMethod: string; 
+  onClose: () => void; 
+  isLoggedIn: boolean; 
+  materials: Material[]; 
+  tmm: (key: string) => string; 
+  contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[]; 
+  methodTabs: {id: string; label: string; char: string; imageSrc: string | null}[];  // ← ここにimageSrcを追加
   locale: string;
 }) {
   const [activeContent, setActiveContent] = useState(initContent);
@@ -1828,14 +1804,17 @@ function MaterialsModal({
             <div style={{ padding: "16px 28px 0", background: "white", flexShrink: 0 }}>
               <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 6 }} onWheel={handleMethodTabWheel}>
                 {methodTabs.map((tab) => {
-                  const active = activeMethod === tab.id;
-                  return (
-                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", flexShrink: 0, background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)", border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)", borderRadius: 20, cursor: "pointer" }}>
-                      <span style={{ fontSize: 12 }}>{tab.char}</span>
-                      <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" }}>{tab.label}</span>
-                    </button>
-                  );
-                })}
+                 const active = activeMethod === tab.id;
+                 return (<button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "5px 12px 5px 5px", flexShrink: 0, background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)", border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)", borderRadius: 20, cursor: "pointer" }}>
+                 <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>
+                  {tab.imageSrc? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                   : <span>{tab.char}</span>
+                  }
+                 </div>
+                 <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" }}>{tab.label}</span>
+                 </button>
+                 );
+                 })}
               </div>
               <div style={{ padding: "10px 0 14px", fontSize: 12, color: "#bbb" }}>
                 {contentTabs.find(t => t.id === activeContent)?.label}
@@ -1885,6 +1864,13 @@ function MaterialsModal({
                         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
                         <div style={{ padding: "10px 12px 14px" }}>
                           <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
+                          {(mat.level ?? []).length > 0 && (
+                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+                              {(mat.level ?? []).map((lv: string) => (
+                                <span key={lv} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+                              ))}
+                            </div>
+                          )}
                           <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
                         </div>
                       </div>
@@ -1919,9 +1905,17 @@ function MaterialsModal({
 
               {/* 右：情報 */}
               <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+                 <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
                 </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                   {(teaserMat.level ?? []).map((lv: string) => (
+                   <span key={lv} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+                   ))}
+                </div>
+             </div>
+                
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{teaserMat.title}</div>
                 <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>
                   {teaserMat.description || `楽しく学べる${contentTabs.find(t => t.id === (teaserMat.content?.[0] ?? ""))?.label}の教材です。印刷してすぐに使えます。`}
@@ -1931,7 +1925,7 @@ function MaterialsModal({
                    { label: tmm("age"), value: teaserMat.ageGroup || "－" },
                    { label: tmm("content"), value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
                    { label: tmm("method"), value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-                   { label: tmm("level"), value: teaserMat.level || "－" },
+                  
                   ].map(({ label, value }) => (
                     <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -1939,7 +1933,7 @@ function MaterialsModal({
                     </div>
                   ))}
                 </div>
-                <div style={{ height: 1, background: "#f0f0f0" }} />
+                
 
                 {/* ✅ ティザーモーダルのお気に入りボタン：未ログイン時は鍵＋吹き出し、ログイン時はハート */}
                 <div style={{ position: "relative" }}>
@@ -2141,8 +2135,15 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
                 </div>
               </div>
               <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {(teaserMat.level ?? []).map((lv: string) => (
+                      <span key={lv} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+                    ))}
+                  </div>
                 </div>
                 <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{teaserMat.title}</div>
                 <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>
@@ -2153,7 +2154,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
                     { label: tmm("age"), value: teaserMat.ageGroup || "－" },
                     { label: tmm("content"), value: (teaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
                     { label: tmm("method"), value: (teaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-                    { label: tmm("level"), value: teaserMat.level || "－" },
+                    
                   ].map(({ label, value }) => (
                     <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -2161,6 +2162,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
                     </div>
                   ))}
                 </div>
+                
                 <div style={{ height: 1, background: "#f0f0f0" }} />
                 <div style={{ position: "relative" }}>
                   <button
@@ -2321,66 +2323,67 @@ const navItems: NavItem[] = [
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
 
   const contentTabs = [
-  { id: "all",      label: cl.all,      char: "✦", color: "#e8efff", imageSrc: null },
+  { id: "all",      label: cl.all,      char: "✦", color: "#e8efff", imageSrc: "/all.png" },
   { id: "hiragana", label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
   { id: "katakana", label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png" },
   { id: "kanji",    label: cl.kanji,    char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
-  { id: "vocab",    label: cl.vocab,    char: "語", color: "#fff8e0", imageSrc: null },
-  { id: "joshi",    label: cl.joshi,    char: "は", color: "#fff0ec", imageSrc: null },
-  { id: "bunkei",   label: cl.bunkei,   char: "文", color: "#f0ffe8", imageSrc: null },
-  { id: "aisatsu",  label: cl.aisatsu,  char: "👋", color: "#e8f8ff", imageSrc: null },
-  { id: "kaiwa",    label: cl.kaiwa,    char: "話", color: "#f8e8ff", imageSrc: null },
-  { id: "season",   label: cl.season,   char: "季", color: "#e8efff", imageSrc: null },
-  { id: "food",     label: cl.food,     char: "🍎", color: "#fff0e8", imageSrc: null },
-  { id: "animal",   label: cl.animal,   char: "🐾", color: "#e8f8ee", imageSrc: null },
-  { id: "body",     label: cl.body,     char: "💪", color: "#ffe8f4", imageSrc: null },
-  { id: "color",    label: cl.color,    char: "🔵", color: "#f0e8ff", imageSrc: null },
-  { id: "number",   label: cl.number,   char: "数", color: "#e8f8ff", imageSrc: null },
+  { id: "vocab",    label: cl.vocab,    char: "語", color: "#fff8e0", imageSrc: "/vocab.png" },
+  { id: "joshi",    label: cl.joshi,    char: "は", color: "#fff0ec", imageSrc: "/joshi.png" },
+  { id: "bunkei",   label: cl.bunkei,   char: "文", color: "#f0ffe8", imageSrc: "/bunkei.png" },
+  { id: "aisatsu",  label: cl.aisatsu,  char: "👋", color: "#e8f8ff", imageSrc: "/aisatsu.png" },
+  { id: "kaiwa",    label: cl.kaiwa,    char: "話", color: "#f8e8ff", imageSrc: "/kaiwa.png" },
+  { id: "season",   label: cl.season,   char: "季", color: "#e8efff", imageSrc: "/season.png" },
+  { id: "food",     label: cl.food,     char: "🍎", color: "#fff0e8", imageSrc: "/food.png" },
+  { id: "animal",   label: cl.animal,   char: "🐾", color: "#e8f8ee", imageSrc: "/animal.png" },
+  { id: "body",     label: cl.body,     char: "💪", color: "#ffe8f4", imageSrc: "/body.png" },
+  { id: "color",    label: cl.color,    char: "🔵", color: "#f0e8ff", imageSrc: "/color.png" },
+  { id: "number",   label: cl.number,   char: "数", color: "#e8f8ff", imageSrc: "/number.png" },
 ];
 
-const methodTabs = [
-  { id: "all",      label: ml.all,      char: "✦" },
-  { id: "drill",    label: ml.drill,    char: "✏" },
-  { id: "test",     label: ml.test,     char: "✓" },
-  { id: "card",     label: ml.card,     char: "🃏" },
-  { id: "karuta",   label: ml.karuta,   char: "札" },
-  { id: "game",     label: ml.game,     char: "▶" },
-  { id: "nurie",    label: ml.nurie,    char: "◎" },
-  { id: "reading",  label: ml.reading,  char: "本" },
-  { id: "music",    label: ml.music,    char: "♪" },
-  { id: "roleplay", label: ml.roleplay, char: "🎭" },
+const methodTabs: { id: string; label: string; char: string; imageSrc: string | null }[] = [
+  { id: "all",      label: ml.all,      char: "✦", imageSrc: "/all.png" },
+  { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method_drill.png" },
+  { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method_test.png" },
+  { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method_card.png" },
+  { id: "karuta",   label: ml.karuta,   char: "札", imageSrc: null },
+  { id: "game",     label: ml.game,     char: "▶", imageSrc: null },
+  { id: "nurie",    label: ml.nurie,    char: "◎", imageSrc: null },
+  { id: "reading",  label: ml.reading,  char: "本", imageSrc: "/method_reading.png" },
+  { id: "music",    label: ml.music,    char: "♪", imageSrc: null },
+  { id: "roleplay", label: ml.roleplay, char: "🎭", imageSrc: "/method_roleplay.png" },
 ];
 
   const contentItems = [
   { label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
   { label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png", contentId: "katakana" },
   { label: cl.kanji,    char: "字", color: "#ffe8f4", imageSrc: "/kanji.png",    contentId: "kanji" },
-  { label: cl.vocab,    char: "語", color: "#fff8e0", contentId: "vocab" },
-  { label: cl.joshi,    char: "は", color: "#fff0ec", contentId: "joshi" },
-  { label: cl.bunkei,   char: "文", color: "#f0ffe8", contentId: "bunkei" },
-  { label: cl.aisatsu,  char: "👋", color: "#e8f8ff", contentId: "aisatsu" },
-  { label: cl.kaiwa,    char: "話", color: "#f8e8ff", contentId: "kaiwa" },
-  { label: cl.season,   char: "季", color: "#e8efff", contentId: "season" },
-  { label: cl.food,     char: "🍎", color: "#fff0e8", contentId: "food" },
-  { label: cl.animal,   char: "🐾", color: "#e8f8ee", contentId: "animal" },
-  { label: cl.body,     char: "💪", color: "#ffe8f4", contentId: "body" },
-  { label: cl.color,    char: "🔵", color: "#f0e8ff", contentId: "color" },
-  { label: cl.number,   char: "数", color: "#e8f8ff", contentId: "number" },
+  { label: cl.vocab,    char: "語", color: "#fff8e0", imageSrc: "/vocab.png",    contentId: "vocab" },
+  { label: cl.joshi,    char: "は", color: "#fff0ec", imageSrc: "/joshi.png",    contentId: "joshi" },
+  { label: cl.bunkei,   char: "文", color: "#f0ffe8", imageSrc: "/bunkei.png",   contentId: "bunkei" },
+  { label: cl.aisatsu,  char: "👋", color: "#e8f8ff", imageSrc: "/aisatsu.png",  contentId: "aisatsu" },
+  { label: cl.kaiwa,    char: "話", color: "#f8e8ff", imageSrc: "/kaiwa.png",    contentId: "kaiwa" },
+  { label: cl.season,   char: "季", color: "#e8efff", imageSrc: "/season.png",   contentId: "season" },
+  { label: cl.food,     char: "🍎", color: "#fff0e8", imageSrc: "/food.png",     contentId: "food" },
+  { label: cl.animal,   char: "🐾", color: "#e8f8ee", imageSrc: "/animal.png",   contentId: "animal" },
+  { label: cl.body,     char: "💪", color: "#ffe8f4", imageSrc: "/body.png",     contentId: "body" },
+  { label: cl.color,    char: "🔵", color: "#f0e8ff", imageSrc: "/color.png",    contentId: "color" },
+  { label: cl.number,   char: "数", color: "#e8f8ff", imageSrc: "/number.png",   contentId: "number" },
   { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, contentId: "all" },
 ];
 
 const methodItems = [
-  { label: ml.drill,    char: "✏", color: "#e8efff", methodId: "drill" },
-  { label: ml.test,     char: "✓", color: "#f0e8ff", methodId: "test" },
-  { label: ml.card,     char: "🃏", color: "#ffe8f4", methodId: "card" },
-  { label: ml.karuta,   char: "札", color: "#fff8e0", methodId: "karuta" },
-  { label: ml.game,     char: "▶", color: "#e8f8ee", methodId: "game" },
-  { label: ml.nurie,    char: "◎", color: "#fff0ec", methodId: "nurie" },
-  { label: ml.reading,  char: "本", color: "#e8f8ff", methodId: "reading" },
-  { label: ml.music,    char: "♪", color: "#edfff0", methodId: "music" },
-  { label: ml.roleplay, char: "🎭", color: "#f8e8ff", methodId: "roleplay" },
+  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method_drill.png",   methodId: "drill" },
+  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method_test.png",    methodId: "test" },
+  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method_card.png",    methodId: "card" },
+  { label: ml.karuta,   char: "札", color: "#fff8e0", imageSrc: null,                  methodId: "karuta" },
+  { label: ml.game,     char: "▶", color: "#e8f8ee", imageSrc: null,                  methodId: "game" },
+  { label: ml.nurie,    char: "◎", color: "#fff0ec", imageSrc: null,                  methodId: "nurie" },
+  { label: ml.reading,  char: "本", color: "#e8f8ff", imageSrc: "/method_reading.png", methodId: "reading" },
+  { label: ml.music,    char: "♪", color: "#edfff0", imageSrc: null,                  methodId: "music" },
+  { label: ml.roleplay, char: "🎭", color: "#f8e8ff", imageSrc: "/method_roleplay.png",methodId: "roleplay" },
   { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
 ];
+
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [activeTab, setActiveTab] = useState("pickup");
@@ -2706,6 +2709,13 @@ const methodItems = [
 <div style={{ height: 180, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 48, color: charColor, fontWeight: 700 }}>{char}</div>
               <div style={{ padding: "16px 18px 22px" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 8, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 10 }}>{tag}</span>
+                {(mat.level ?? []).length > 0 && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+                    {(mat.level ?? []).map((lv: string) => (
+                      <span key={lv} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+                    ))}
+                  </div>
+                )}
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#333", lineHeight: 1.4, marginBottom: 8 }}>{mat.title}</div>
                 <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.7 }}>{mat.description}</div>
               </div>
@@ -3087,9 +3097,17 @@ const methodItems = [
           </div>
         </div>
         <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
-          <div style={{ display: "flex", gap: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <div style={{ display: "flex", gap: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {(topTeaserMat.level ?? []).map((lv: string) => (
+                <span key={lv} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+              ))}
+            </div>
           </div>
+          
           <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{topTeaserMat.title}</div>
           <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>{topTeaserMat.description}</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -3097,7 +3115,7 @@ const methodItems = [
               { label: tmm("age"), value: topTeaserMat.ageGroup || "－" },
               { label: tmm("content"), value: (topTeaserMat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
               { label: tmm("method"), value: (topTeaserMat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-              { label: tmm("level"), value: topTeaserMat.level || "－" },
+            
             ].map(({ label, value }) => (
               <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                 <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -3105,6 +3123,7 @@ const methodItems = [
               </div>
             ))}
           </div>
+            
           <div style={{ height: 1, background: "#f0f0f0" }} />
           <div style={{ position: "relative" }}>
             <button
