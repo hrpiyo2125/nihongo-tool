@@ -117,8 +117,12 @@ export async function getMaterialById(id: string) {
       isRecommended: props.isRecommended?.checkbox ?? false,
       ranking:     props.ranking?.number ?? null,
       isNew:       props.isNew?.checkbox ?? false,
+      usageBasic:    props.usageBasic?.rich_text?.[0]?.plain_text ?? '',
+      usageMiddle:   props.usageMiddle?.rich_text?.[0]?.plain_text ?? '',
+      usageAdvanced: props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
     }
   } catch (e) {
+    
     console.error('getMaterialById error:', e)
     throw e
   }
