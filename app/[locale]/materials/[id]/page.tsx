@@ -473,6 +473,7 @@ export default function MaterialDetailPage() {
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{teaserMat.description}</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {[
+                  { label: "対象年齢", value: teaserMat.ageGroup || "－" },
                   { label: "学習内容", value: (teaserMat.content ?? []).map((c: string) => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
                   { label: "学習方法", value: (teaserMat.method ?? []).map((me: string) => methodTabs.find(t => t.id === me)?.label).filter(Boolean).join("・") || "－" },
                 ].map(({ label, value }) => (

@@ -133,9 +133,25 @@ const troubleTabs = [
   { id: "bored",      label: "子どもが飽きてしまう" },
   { id: "improve",    label: "できるようにならない" },
 ];
+function TroubleNav({ onHome, onTop }: { onHome: () => void; onTop: () => void }) {
+  return (
+    <div style={{ display: "flex", gap: 10, paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)", marginTop: 8 }}>
+      <button onClick={onTop} style={{ fontSize: 12, padding: "8px 18px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>
+        ← 何から始める？に戻る
+      </button>
+      <button onClick={onHome} style={{ fontSize: 12, padding: "8px 18px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", color: "#aaa", cursor: "pointer", fontWeight: 600 }}>
+        🏠 ホームに戻る
+      </button>
+    </div>
+  );
+}
 
-function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
+function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHome: () => void }) {
   const [tab, setTab] = useState("start");
+  const scrollToTop = () => {
+    const container = document.getElementById("main-scroll");
+    if (container) container.scrollTo({ top: 0, behavior: "instant" });
+  };
   return (
     <div style={{ display: "flex", flexDirection: "column" as const }}>
       <div style={{ padding: "48px 48px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.4) 0%, rgba(228,155,253,0.4) 50%, rgba(163,192,255,0.4) 100%)", borderRadius: "16px 16px 0 0" }}>
@@ -146,7 +162,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
           {troubleTabs.map((t) => {
             const active = tab === t.id;
             return (
-              <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "12px 20px", border: "none", borderBottom: active ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#aaa", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+              <button key={t.id} onClick={() => { setTab(t.id); scrollToTop(); }} style={{ padding: "12px 20px", border: "none", borderBottom: active ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#aaa", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
                 {t.label}
               </button>
             );
@@ -304,7 +320,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
       </div>
     </div>
     <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
-      <button onClick={() => setTab("level")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+      <button  onClick={() => { setTab("level"); scrollToTop(); }}style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
         詳しいチェックの仕方はこちら →
       </button>
     </div>
@@ -325,7 +341,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
       具体的に考えなくてOKです。子どもの日ごろの観察により、「どんなことをやったほうがいいか」を決めてみましょう。これをやることで、どんな内容をやるかを具体的に決められます。
     </div>
     <div style={{ display: "flex", justifyContent: "center", paddingTop: 8 }}>
-      <button onClick={() => setTab("goal")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+      <button onClick={() => { setTab("goal"); scrollToTop(); }} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
         目標の決め方はこちら →
       </button>
     </div>
@@ -361,6 +377,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
       <div style={{ fontSize: 13, color: "#aaa", lineHeight: 1.8 }}>
         まずは気になった教材を1つ、試してみてください。
       </div>
+      <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
     </div>
 
   </div>
@@ -515,11 +532,11 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
       <div style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 16 }}>
         チェックが多くついた力が、今のお子さんの<span style={{ fontWeight: 700, color: "#7a50b0" }}>得意な入口</span>です。その力から使える教材を選ぶと、最初の一歩が踏み出しやすくなります。toolioの教材はレベルで縛っていません。同じ教材でも使い方次第でどのレベルにも使えます。
       </div>
-      <button onClick={() => setTab("material")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
-        どんな教材を使えばいい？ →
+      <button onClick={() => { setTab("material"); scrollToTop(); }} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+        どの教材を使えばいい？ →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
 {tab === "material" && (
@@ -721,7 +738,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         教材一覧を見る →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
 {tab === "teach" && (
@@ -888,10 +905,9 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         教材一覧を見る →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
-
 {tab === "motivation" && (
   <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
 
@@ -965,10 +981,9 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         教材一覧を見る →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
-
         {tab === "bored" && (
   <div style={{ display: "flex", flexDirection: "column" as const, gap: 32 }}>
 
@@ -1050,7 +1065,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         教材一覧を見る →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
 
@@ -1143,7 +1158,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
         教材一覧を見る →
       </button>
     </div>
-
+    <TroubleNav onHome={onHome} onTop={() => { setTab("start"); scrollToTop(); }} />
   </div>
 )}
         {tab === "goal" && (
@@ -1221,7 +1236,7 @@ function TroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
   <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>
     Can-doをもとに、そのゴールに向かって使える教材を選びましょう。各教材ページの「使い方」タブに、場面別・Can-do別の活用例を載せています。
   </div>
-  <button onClick={() => setTab("material")} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+  <button onClick={() => { setTab("material"); scrollToTop(); }} style={{ fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
     どの教材を使えばいい？ →
   </button>
 </div>
@@ -2844,7 +2859,10 @@ const methodItems = [
             <GuideSection />
 
             ) : activePage === "trouble" ? (
-    <TroubleSection onOpenModal={() => setModal({ content: "all", method: "all" })} />
+    <TroubleSection
+                    onOpenModal={() => setModal({ content: "all", method: "all" })}
+                    onHome={() => { setActivePage("home"); const c = document.getElementById("main-scroll"); if (c) c.scrollTo({ top: 0, behavior: "instant" }); }}
+                  />
 
   ) : activePage === "settings-profile" ? (
     <div>
