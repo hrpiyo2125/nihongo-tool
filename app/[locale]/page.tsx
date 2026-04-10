@@ -7,6 +7,14 @@ import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import ToolioConceptSection from "./ToolioConceptSection"
 
+const planRank: Record<string, number> = {
+  free: 0, light: 1, standard: 2, premium: 3,
+};
+
+function canDownload(userPlan: string, requiredPlan: string): boolean {
+  return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
+}
+
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
   .toolio-scroll-y::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 4px; }
@@ -1719,7 +1727,7 @@ function MaterialCard({
 
 // ===== 教材一覧モーダル =====
 function MaterialsModal({
-  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale,
+  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan,
 }: {
   initContent: string; 
   initMethod: string; 
@@ -1728,8 +1736,9 @@ function MaterialsModal({
   materials: Material[]; 
   tmm: (key: string) => string; 
   contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[]; 
-  methodTabs: {id: string; label: string; char: string; imageSrc: string | null}[];  // ← ここにimageSrcを追加
+  methodTabs: {id: string; label: string; char: string; imageSrc: string | null}[];
   locale: string;
+  userPlan: string;
 }) {
   const [activeContent, setActiveContent] = useState(initContent);
   const [activeMethod, setActiveMethod] = useState(initMethod);
@@ -2014,33 +2023,35 @@ function MaterialsModal({
                 <div style={{ position: "relative" }}>
                   <button
                     onClick={() => {
-                      if (teaserMat.requiredPlan === "free") {
+                      if (canDownload(userPlan, teaserMat.requiredPlan)) {
                         window.open(`/materials/${teaserMat.id}`, "_blank");
                         setTeaserMat(null);
                       }
                     }}
-                    style={{ width: "100%", padding: "13px", background: teaserMat.requiredPlan !== "free" ? "#f0eeff" : "#a3c0ff", color: teaserMat.requiredPlan !== "free" ? "#7F77DD" : "white", border: teaserMat.requiredPlan !== "free" ? "1px solid rgba(163,192,255,0.4)" : "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                    style={{ width: "100%", padding: "13px", background: canDownload(userPlan, teaserMat.requiredPlan) ? "#a3c0ff" : "#f0eeff", color: canDownload(userPlan, teaserMat.requiredPlan) ? "white" : "#7F77DD", border: canDownload(userPlan, teaserMat.requiredPlan) ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                   >
-                    {teaserMat.requiredPlan !== "free" && <span style={{ fontSize: 16 }}>🔒</span>}
-                    {teaserMat.requiredPlan !== "free" ? tmm("lock_download") : tmm("download")}
+                    {!canDownload(userPlan, teaserMat.requiredPlan) && <span style={{ fontSize: 16 }}>🔒</span>}
+                    {canDownload(userPlan, teaserMat.requiredPlan) ? tmm("download") : tmm("lock_download")}
                   </button>
-                  {teaserMat.requiredPlan !== "free" && (
+                  {!canDownload(userPlan, teaserMat.requiredPlan) && (
                     <div style={{ marginTop: 10, background: "linear-gradient(135deg, rgba(244,185,185,0.08), rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px", position: "relative" }}>
                       <div style={{ position: "absolute", top: -6, left: "50%", transform: "translateX(-50%)", width: 12, height: 6, overflow: "hidden" }}>
                         <div style={{ width: 8, height: 8, background: "white", border: "0.5px solid rgba(200,170,240,0.35)", transform: "rotate(45deg)", margin: "2px auto 0" }} />
                       </div>
-                      <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>サブスクプランで使い放題 ✨</div>
+                      <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
+                        {teaserMat.requiredPlan === "light" ? "ライトプラン" : teaserMat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
+                      </div>
                       {!isLoggedIn ? (
                         <>
                           <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>登録するとすべての教材がダウンロードし放題になります。</div>
                           <button onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/auth"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
-                          <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>
-                            すでにアカウントをお持ちの方は
-                            <span onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span>
-                          </div>
+                          <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
                         </>
                       ) : (
-                        <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7 }}>プランの詳細はこちらから確認できます。</div>
+                        <>
+                          <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
+                          <button onClick={(e) => { e.stopPropagation(); setTeaserMat(null); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                        </>
                       )}
                     </div>
                   )}
@@ -2054,9 +2065,11 @@ function MaterialsModal({
   );
 }
 
-function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, locale, tmm }: { allMaterials: Material[]; isLoggedIn: boolean; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string}[];
+
+function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, locale, tmm, userPlan }: { allMaterials: Material[]; isLoggedIn: boolean; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string}[];
   locale: string; 
-　tmm: (key: string) => string;}) {
+  tmm: (key: string) => string;
+  userPlan: string;}) {
   const [favMaterials, setFavMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -2210,11 +2223,26 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
                   </button>
                 </div>
                 <button
-                  onClick={() => { window.open(`/materials/${teaserMat.id}`, "_blank"); setTeaserMat(null); }}
-                  style={{ width: "100%", padding: "13px", background: "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                  onClick={() => {
+                    if (canDownload(userPlan, teaserMat.requiredPlan)) {
+                      window.open(`/materials/${teaserMat.id}`, "_blank");
+                      setTeaserMat(null);
+                    }
+                  }}
+                  style={{ width: "100%", padding: "13px", background: canDownload(userPlan, teaserMat.requiredPlan) ? "#a3c0ff" : "#f0eeff", color: canDownload(userPlan, teaserMat.requiredPlan) ? "white" : "#7F77DD", border: canDownload(userPlan, teaserMat.requiredPlan) ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
-                  この教材をダウンロードする
+                  {!canDownload(userPlan, teaserMat.requiredPlan) && <span style={{ fontSize: 16 }}>🔒</span>}
+                  {canDownload(userPlan, teaserMat.requiredPlan) ? "この教材をダウンロードする" : "サブスクプランで使えます"}
                 </button>
+                {!canDownload(userPlan, teaserMat.requiredPlan) && (
+                  <div style={{ marginTop: 10, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
+                      {teaserMat.requiredPlan === "light" ? "ライトプラン" : teaserMat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
+                    </div>
+                    <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
+                    <button onClick={() => { setTeaserMat(null); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -2224,7 +2252,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   );
 }
 
-function DownloadHistorySection({ allMaterials, locale, isLoggedIn }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean }) {
+function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string }) {
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -2352,11 +2380,26 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn }: { allMater
                   {isLoggedIn && favIds.includes(teaserMat.id) ? "保存済み" : "お気に入りに追加"}
                 </button>
                 <button
-                  onClick={() => { window.open(`/materials/${teaserMat.id}`, "_blank"); setTeaserMat(null); }}
-                  style={{ width: "100%", padding: "13px", background: "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                  onClick={() => {
+                    if (canDownload(userPlan, teaserMat.requiredPlan)) {
+                      window.open(`/materials/${teaserMat.id}`, "_blank");
+                      setTeaserMat(null);
+                    }
+                  }}
+                  style={{ width: "100%", padding: "13px", background: canDownload(userPlan, teaserMat.requiredPlan) ? "#a3c0ff" : "#f0eeff", color: canDownload(userPlan, teaserMat.requiredPlan) ? "white" : "#7F77DD", border: canDownload(userPlan, teaserMat.requiredPlan) ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
                 >
-                  この教材をダウンロードする
+                  {!canDownload(userPlan, teaserMat.requiredPlan) && <span style={{ fontSize: 16 }}>🔒</span>}
+                  {canDownload(userPlan, teaserMat.requiredPlan) ? "この教材をダウンロードする" : "サブスクプランで使えます"}
                 </button>
+                {!canDownload(userPlan, teaserMat.requiredPlan) && (
+                  <div style={{ marginTop: 10, background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
+                      {teaserMat.requiredPlan === "light" ? "ライトプラン" : teaserMat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
+                    </div>
+                    <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
+                    <button onClick={() => { setTeaserMat(null); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -3197,9 +3240,9 @@ const methodItems = [
                     </div>
                   </div>
                 ) : activePage === "fav" ? (
-                  <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} />
+                  <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} userPlan={profile.plan ?? "free"} />
                 ) : activePage === "dl" ? (
-                  <DownloadHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} />
+                  <DownloadHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} />
                 ) : (
                   <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
                 )}
@@ -3295,30 +3338,32 @@ const methodItems = [
           </div>
           <button
             onClick={() => {
-              if (topTeaserMat.requiredPlan === "free") {
+              if (canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan)) {
                 window.open(`/materials/${topTeaserMat.id}`, "_blank");
                 setTopTeaserMat(null);
               }
             }}
-            style={{ width: "100%", padding: "13px", background: topTeaserMat.requiredPlan !== "free" ? "#f0eeff" : "#a3c0ff", color: topTeaserMat.requiredPlan !== "free" ? "#7F77DD" : "white", border: topTeaserMat.requiredPlan !== "free" ? "1px solid rgba(163,192,255,0.4)" : "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+            style={{ width: "100%", padding: "13px", background: canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) ? "#a3c0ff" : "#f0eeff", color: canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) ? "white" : "#7F77DD", border: canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
           >
-            {topTeaserMat.requiredPlan !== "free" && <span style={{ fontSize: 16 }}>🔒</span>}
-            {topTeaserMat.requiredPlan !== "free" ? tmm("lock_download") : tmm("download")}
+            {!canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) && <span style={{ fontSize: 16 }}>🔒</span>}
+            {canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) ? tmm("download") : tmm("lock_download")}
           </button>
-          {topTeaserMat.requiredPlan !== "free" && (
+          {!canDownload(profile.plan ?? "free", topTeaserMat.requiredPlan) && (
             <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 12, padding: "14px 16px" }}>
-              <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>サブスクプランで使い放題 ✨</div>
+              <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
+                {topTeaserMat.requiredPlan === "light" ? "ライトプラン" : topTeaserMat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
+              </div>
               {!isLoggedIn ? (
                 <>
                   <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>登録するとすべての教材がダウンロードし放題になります。</div>
                   <button onClick={() => { setTopTeaserMat(null); window.location.href = "/auth"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
-                  <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>
-                    すでにアカウントをお持ちの方は
-                    <span onClick={() => { setTopTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span>
-                  </div>
+                  <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={() => { setTopTeaserMat(null); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
                 </>
               ) : (
-                <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7 }}>プランの詳細はこちらから確認できます。</div>
+                <>
+                  <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
+                  <button onClick={() => { setTopTeaserMat(null); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                </>
               )}
             </div>
           )}
@@ -3339,6 +3384,7 @@ const methodItems = [
           contentTabs={contentTabs}
           methodTabs={methodTabs}
           locale={locale}
+          userPlan={profile.plan ?? "free"}
         />
       )}
     </div>
