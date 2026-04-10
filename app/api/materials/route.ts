@@ -3,10 +3,11 @@ import { getMaterialById } from '@/lib/notion'
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const material = await getMaterialById(params.id)
+    const { id } = await params
+    const material = await getMaterialById(id)
     return NextResponse.json(material)
   } catch (error) {
     console.error(error)
