@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server'
-import { getMaterials } from '@/lib/notion'
+import { getMaterialById } from '@/lib/notion'
 
-export async function GET() {
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
   try {
-    const materials = await getMaterials()
-    return NextResponse.json(materials)
+    const material = await getMaterialById(params.id)
+    return NextResponse.json(material)
   } catch (error) {
     console.error(error)
-    return NextResponse.json({ error: 'Failed to fetch materials' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to fetch material' }, { status: 500 })
   }
 }

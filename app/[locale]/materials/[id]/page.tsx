@@ -23,6 +23,8 @@ type Material = {
   usageBasic: string;
   usageMiddle: string;
   usageAdvanced: string;
+  features: string;
+  howto: string;
 };
 
 // ── スタイルヘルパー ────────────────────────────────
@@ -176,12 +178,15 @@ function makeSidePanels(mat: Material) {
       content: (
         <div style={{ padding: "20px 18px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>この教材の特徴</div>
-          {["授業でそのまま使えるA4サイズ","なぞり書き＋自由練習の2ステップ構成","手描きイラストで温かみのあるデザイン","白黒印刷でもきれいに出る高コントラスト","ふりがな付きで自習にも使える"].map((text, i) => (
-            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, alignItems: "flex-start" }}>
-              <span style={{ color: "#e49bfd", fontSize: 12, flexShrink: 0, marginTop: 2 }}>✦</span>
-              <span style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>{text}</span>
-            </div>
-          ))}
+          {mat.features
+          ? renderNotionText(mat.features)
+          : ["授業でそのまま使えるA4サイズ","なぞり書き＋自由練習の2ステップ構成","手描きイラストで温かみのあるデザイン","白黒印刷でもきれいに出る高コントラスト","ふりがな付きで自習にも使える"].map((text, i) => (
+          <div key={i} style={{ display: "flex", gap: 10, marginBottom: 12, alignItems: "flex-start" }}>
+           <span style={{ color: "#e49bfd", fontSize: 12, flexShrink: 0, marginTop: 2 }}>✦</span>
+           <span style={{ fontSize: 13, color: "#666", lineHeight: 1.6 }}>{text}</span>
+          </div>
+          ))
+          }
         </div>
       ),
     },
@@ -197,21 +202,58 @@ function makeSidePanels(mat: Material) {
       ),
       content: (
   <div style={{ padding: "20px 18px" }}>
-    <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>使い方ガイド</div>
-    {/* レベルタブ */}
-    {(() => {
-      const tabs = [
-        { id: "basic",    label: "Basic",    text: mat.usageBasic },
-        { id: "middle",   label: "Middle",   text: mat.usageMiddle },
-        { id: "advanced", label: "Advanced", text: mat.usageAdvanced },
-      ].filter(t => t.text);
-      if (tabs.length === 0) return <div style={{ fontSize: 13, color: "#bbb" }}>使い方情報はまだありません。</div>;
-      if (tabs.length === 1) return <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{tabs[0].text}</div>;
-      return <LevelTabs tabs={tabs} />;
-    })()}
-  </div>
+  <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>使い方ガイド</div>
+  {mat.howto
+  ? renderNotionText(mat.howto)
+  : <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>この教材はPDFをダウンロードして印刷してご使用ください。</p>
+}
+</div>
 ),
     },
+    ...(mat.usageBasic ? [{
+      id: "basic", label: "Basic",
+      icon: (active: boolean) => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    {active && <defs><linearGradient id="gb" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f4b9b9"/><stop offset="50%" stopColor="#e49bfd"/><stop offset="100%" stopColor="#a3c0ff"/></linearGradient></defs>}
+    <circle cx="12" cy="12" r="10" stroke={active ? "url(#gb)" : "#555"} />
+    <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="800" fill={active ? "url(#gb)" : "#555"} stroke="none">B</text>
+  </svg>
+),
+      content: (
+        <div style={{ padding: "20px 18px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>Basic の使い方</div>
+          {renderNotionText(mat.usageBasic)}
+        </div>
+      ),
+    }] : []),
+    ...(mat.usageMiddle ? [{
+      id: "middle", label: "Middle",
+      icon: (active: boolean) => (
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    {active && <defs><linearGradient id="gm" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f4b9b9"/><stop offset="50%" stopColor="#e49bfd"/><stop offset="100%" stopColor="#a3c0ff"/></linearGradient></defs>}
+    <circle cx="12" cy="12" r="10" stroke={active ? "url(#gm)" : "#555"} />
+    <text x="12" y="16" textAnchor="middle" fontSize="10" fontWeight="800" fill={active ? "url(#gm)" : "#555"} stroke="none">M</text>
+  </svg>
+),
+      content: (
+        <div style={{ padding: "20px 18px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>Middle の使い方</div>
+          {renderNotionText(mat.usageMiddle)}
+        </div>
+      ),
+    }] : []),
+    ...(mat.usageAdvanced ? [{
+      id: "advanced", label: "Advanced",
+      icon: (active: boolean) => (
+        <div style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, color: active ? "#a03070" : "#aaa" }}>A</div>
+      ),
+      content: (
+        <div style={{ padding: "20px 18px" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>Advanced の使い方</div>
+          {renderNotionText(mat.usageAdvanced)}
+        </div>
+      ),
+    }] : []),
     {
       id: "related", label: "関連ツール",
       icon: (active: boolean) => (
@@ -234,6 +276,40 @@ function makeSidePanels(mat: Material) {
       ),
     },
   ];
+}
+function renderNotionText(text: string) {
+  if (!text) return null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+      {text.split("\n").map((line, i) => {
+        if (line.startsWith("## ")) {
+          return <div key={i} style={{ fontSize: 14, fontWeight: 800, color: "#333", marginTop: 6 }}>{line.replace("## ", "")}</div>;
+        }
+        if (line.startsWith("> ")) {
+          return <div key={i} style={{ fontSize: 13, color: "#9b6ed4", background: "rgba(228,155,253,0.08)", border: "0.5px solid rgba(228,155,253,0.3)", borderRadius: 8, padding: "8px 12px", lineHeight: 1.8 }}>{line.replace("> ", "")}</div>;
+        }
+        if (/^\d+\. /.test(line)) {
+         const num = line.match(/^(\d+)\. /)?.[1];
+         return (
+         <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <span style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{num}</span>
+          <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace(/^\d+\. /, "")}</span>
+         </div>
+         );
+        }
+        if (line.startsWith("✦ ") || line.startsWith("- ")) {
+          return (
+            <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span style={{ color: "#e49bfd", fontSize: 12, flexShrink: 0, marginTop: 3 }}>✦</span>
+              <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace("✦ ", "").replace("- ", "")}</span>
+            </div>
+          );
+        }
+        if (line === "") return <div key={i} style={{ height: 4 }} />;
+        return <p key={i} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>{line}</p>;
+      })}
+    </div>
+  );
 }
 function LevelTabs({ tabs }: { tabs: { id: string; label: string; text: string }[] }) {
   const [active, setActive] = useState(tabs[0]?.id ?? "basic");
@@ -425,6 +501,9 @@ export default function MaterialDetailPage() {
           </button>
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
           <TagBadge tag={tag} />
+          {(material.level ?? []).map((lv: string) => (
+          <span key={lv} style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070", whiteSpace: "nowrap", flexShrink: 0 }}>{lv}</span>
+          ))}
           <span style={{ fontSize: 15, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{material.title}</span>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>
             {(material.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・")}

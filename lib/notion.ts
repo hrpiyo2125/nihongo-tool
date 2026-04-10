@@ -90,6 +90,8 @@ export async function getMaterials() {
       usageBasic:     props.usageBasic?.rich_text?.[0]?.plain_text ?? '',
       usageMiddle:    props.usageMiddle?.rich_text?.[0]?.plain_text ?? '',
       usageAdvanced:  props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
+      features:    props.features?.rich_text?.[0]?.plain_text ?? '',
+      howto:       props.howto?.rich_text?.[0]?.plain_text ?? '',
     }
   })
 }
@@ -120,6 +122,8 @@ export async function getMaterialById(id: string) {
       usageBasic:    props.usageBasic?.rich_text?.[0]?.plain_text ?? '',
       usageMiddle:   props.usageMiddle?.rich_text?.[0]?.plain_text ?? '',
       usageAdvanced: props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
+      features:    props.features?.rich_text?.[0]?.plain_text ?? '',
+      howto:       props.howto?.rich_text?.[0]?.plain_text ?? '',
     }
   } catch (e) {
     
