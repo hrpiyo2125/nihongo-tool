@@ -2209,9 +2209,11 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   );
 }
 
-function DownloadHistorySection({ allMaterials, locale }: { allMaterials: Material[]; locale: string }) {
+function DownloadHistorySection({ allMaterials, locale, isLoggedIn }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean }) {
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
+  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+  const [favIds, setFavIds] = useState<string[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -2226,6 +2228,16 @@ function DownloadHistorySection({ allMaterials, locale }: { allMaterials: Materi
     });
   }, [allMaterials]);
 
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
+      if (data) setFavIds(data.map((d: { material_id: string }) => d.material_id));
+    });
+  }, [isLoggedIn]);
+
   if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
   if (historyMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
@@ -2233,10 +2245,109 @@ function DownloadHistorySection({ allMaterials, locale }: { allMaterials: Materi
       <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
     </div>
   );
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-      {historyMaterials.map((mat) => <MaterialCard key={mat.id} mat={mat}locale={locale} onClick={() => window.open(`/materials/${mat.id}`, "_blank")} />)}
-    </div>
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+        {historyMaterials.map((mat) => (
+          <MaterialCard
+            key={mat.id}
+            mat={mat}
+            locale={locale}
+            isLoggedIn={isLoggedIn}
+            favIds={favIds}
+            onClick={() => setTeaserMat(mat)}
+            onFavToggle={async (mat) => {
+              const supabase = createClient();
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) return;
+              if (favIds.includes(mat.id)) {
+                await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                setFavIds((prev) => prev.filter((id) => id !== mat.id));
+                window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+              } else {
+                await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                setFavIds((prev) => [...prev, mat.id]);
+                window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+              }
+            }}
+          />
+        ))}
+      </div>
+      {teaserMat && (() => {
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
+        return (
+          <div onClick={() => setTeaserMat(null)} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
+              <button onClick={() => setTeaserMat(null)} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
+              <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ width: "100%", aspectRatio: "3/4", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700 }}>{char}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[0, 1].map((i) => (
+                    <div key={i} style={{ aspectRatio: "1", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, opacity: 0.7 }}>{char}</div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ padding: "28px 24px", display: "flex", flexDirection: "column", gap: 14, overflowY: "auto" }}>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {(teaserMat.level ?? []).map((lv: string) => (
+                    <span key={lv} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
+                  ))}
+                </div>
+                
+                <div style={{ fontSize: 20, fontWeight: 700, color: "#333" }}>{teaserMat.title}</div>
+                <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7 }}>{teaserMat.description}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                  {[
+                    { label: "対象年齢", value: teaserMat.ageGroup || "－" },
+                    { label: "学習内容", value: (teaserMat.content ?? []).map((c: string) => ({ hiragana:"ひらがな", katakana:"カタカナ", kanji:"漢字", vocab:"語彙", joshi:"助詞", bunkei:"文型", aisatsu:"あいさつ", kaiwa:"場面会話", season:"季節・行事", food:"食べ物", animal:"動物", body:"体・健康", color:"色・形", number:"数・算数" } as Record<string,string>)[c]).filter(Boolean).join("・") || "－" },
+                    { label: "学習方法", value: (teaserMat.method ?? []).map((m: string) => ({ drill:"ドリル", test:"テスト", card:"カード", karuta:"かるた", game:"ゲーム", nurie:"ぬりえ", reading:"読み物", music:"うた", roleplay:"ロールプレイ" } as Record<string,string>)[m]).filter(Boolean).join("・") || "－" },
+                  ].map(({ label, value }) => (
+                    <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
+                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{value}</div>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!isLoggedIn) return;
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    if (favIds.includes(teaserMat.id)) {
+                      await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", teaserMat.id);
+                      setFavIds(prev => prev.filter(id => id !== teaserMat.id));
+                      window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: teaserMat.id, isFav: false } }));
+                    } else {
+                      await supabase.from("favorites").insert({ user_id: session.user.id, material_id: teaserMat.id });
+                      setFavIds(prev => [...prev, teaserMat.id]);
+                      window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: teaserMat.id, isFav: true } }));
+                    }
+                  }}
+                  style={{ width: "100%", padding: "11px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, fontWeight: 600, color: isLoggedIn && favIds.includes(teaserMat.id) ? "#c9a0f0" : "#999" }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill={isLoggedIn && favIds.includes(teaserMat.id) ? "#c9a0f0" : "none"} strokeWidth="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
+                  </svg>
+                  {isLoggedIn && favIds.includes(teaserMat.id) ? "保存済み" : "お気に入りに追加"}
+                </button>
+                <button
+                  onClick={() => { window.open(`/materials/${teaserMat.id}`, "_blank"); setTeaserMat(null); }}
+                  style={{ width: "100%", padding: "13px", background: "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer" }}
+                >
+                  この教材をダウンロードする
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+    </>
   );
 }
 function UserMenuPopup({
@@ -3070,7 +3181,7 @@ const methodItems = [
                 ) : activePage === "fav" ? (
                   <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} />
                 ) : activePage === "dl" ? (
-                  <DownloadHistorySection allMaterials={materials} locale={locale} />
+                  <DownloadHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} />
                 ) : (
                   <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
                 )}

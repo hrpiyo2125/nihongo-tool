@@ -3,6 +3,49 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
+import PdfViewer from "./PdfViewer";
+
+
+function PdfCanvas({ url }: { url: string }) {
+  const [pages, setPages] = useState<any[]>([]);
+  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+
+  useEffect(() => {
+    if (!url) return;
+    let cancelled = false;
+    (async () => {
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+      const doc = await pdfjsLib.getDocument({ url, withCredentials: false }).promise;
+      if (cancelled) return;
+      const pageList = [];
+      for (let i = 1; i <= doc.numPages; i++) {
+        pageList.push(await doc.getPage(i));
+      }
+      setPages(pageList);
+    })();
+    return () => { cancelled = true; };
+  }, [url]);
+
+  useEffect(() => {
+    pages.forEach(async (page, i) => {
+      const canvas = canvasRefs.current[i];
+      if (!canvas) return;
+      const viewport = page.getViewport({ scale: 2 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
+    });
+  }, [pages]);
+
+  return (
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", background: "white" }}>
+      {pages.map((_, i) => (
+        <canvas key={i} ref={el => { canvasRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+      ))}
+    </div>
+  );
+}
 
 type Material = {
   id: string;
@@ -24,6 +67,7 @@ type Material = {
   usageAdvanced: string;
   features: string;
   howto: string;
+  pdfFile: string;
 };
 
 const contentTabs = [
@@ -246,9 +290,34 @@ export default function MaterialDetailPage() {
     }
   };
 
-  const handleDownloadClick = () => {
+  const handleDownloadClick = async () => {
     if (!isLoggedIn) { setActiveTooltip(activeTooltip === "download" ? null : "download"); return; }
-    console.log("download", id);
+    if (!material?.pdfFile) return;
+    try {
+      const res = await fetch(material.pdfFile);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${material.title}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      window.open(material.pdfFile, "_blank");
+    }
+    // ダウンロード履歴をSupabaseに記録
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await supabase.from("download_history").insert({
+          user_id: session.user.id,
+          material_id: id,
+        });
+      }
+    } catch (e) {
+      console.error("履歴の記録に失敗しました", e);
+    }
   };
 
   useEffect(() => {
@@ -257,8 +326,20 @@ export default function MaterialDetailPage() {
     const onWheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) { e.preventDefault(); setScale(s => Math.min(4, Math.max(0.3, s - e.deltaY * 0.01))); }
     };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
+    const onGesture = (e: any) => {
+      e.preventDefault();
+      setScale(s => Math.min(4, Math.max(0.3, s * e.scale)));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false, capture: true });
+    el.addEventListener("gesturestart", onGesture, { passive: false, capture: true });
+    el.addEventListener("gesturechange", onGesture, { passive: false, capture: true });
+    el.addEventListener("gestureend", onGesture, { passive: false, capture: true });
+    return () => {
+      el.removeEventListener("wheel", onWheel, { capture: true });
+      el.removeEventListener("gesturestart", onGesture, { capture: true });
+      el.removeEventListener("gesturechange", onGesture, { capture: true });
+      el.removeEventListener("gestureend", onGesture, { capture: true });
+    };
   }, []);
 
   const handleMouseDown = (e: React.MouseEvent) => { setDragging(true); dragStart.current = { mx: e.clientX, my: e.clientY, ox: offset.x, oy: offset.y }; };
@@ -482,7 +563,7 @@ export default function MaterialDetailPage() {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f0f0f0", overflow: "hidden" }}>
       <header style={{ flexShrink: 0, background: "linear-gradient(135deg,#f4b9b9 0%,#e49bfd 45%,#a3c0ff 100%)", padding: "0 16px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
-          <button onClick={() => window.history.back()} onMouseEnter={() => setHomeHover(true)} onMouseLeave={() => setHomeHover(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 8, border: "none", background: homeHover ? "rgba(255,255,255,0.22)" : "transparent", cursor: "pointer", flexShrink: 0 }}>
+          <button onClick={() => window.location.href = "/"} onMouseEnter={() => setHomeHover(true)} onMouseLeave={() => setHomeHover(false)} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 8, border: "none", background: homeHover ? "rgba(255,255,255,0.22)" : "transparent", cursor: "pointer", flexShrink: 0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke="white" />
               <path d="M9 22V12h6v10" stroke="white" />
@@ -545,22 +626,26 @@ export default function MaterialDetailPage() {
           </div>
         </aside>
 
-        <main ref={containerRef} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp} style={{ flex: 1, overflow: "auto", background: "#f0f0f0", display: "flex", alignItems: "flex-start", justifyContent: "center", minWidth: 0, cursor: dragging ? "grabbing" : "grab", userSelect: "none", scrollbarWidth: "thin" as const }}>
-          <div style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: "top center", transition: dragging ? "none" : "transform 0.1s", display: "flex", flexDirection: "column", alignItems: "center", gap: 32, padding: "60px 40px 100px" }}>
-            <div style={{ width: 480, aspectRatio: "1 / 1.414", background: material.thumbnail ? "white" : bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-              {material.thumbnail ? (
-                <img src={material.thumbnail} alt={material.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              ) : (
-                <>
-                  <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.25)" }} />
-                  <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                    <div style={{ fontSize: 80, fontWeight: 700, color: charColor }}>{char}</div>
-                    <div style={{ fontSize: 14, color: "rgba(80,80,120,0.5)", marginTop: 8, letterSpacing: 2 }}>PREVIEW</div>
-                  </div>
-                </>
-              )}
+        <main style={{ flex: 1, overflow: "hidden", background: "#f0f0f0", position: "relative" }}>
+          {material.pdfFile ? (
+            <PdfViewer url={material.pdfFile} />
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 480, aspectRatio: "1 / 1.414", background: material.thumbnail ? "white" : bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+                {material.thumbnail ? (
+                  <img src={material.thumbnail} alt={material.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                ) : (
+                  <>
+                    <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.25)" }} />
+                    <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+                      <div style={{ fontSize: 80, fontWeight: 700, color: charColor }}>{char}</div>
+                      <div style={{ fontSize: 14, color: "rgba(80,80,120,0.5)", marginTop: 8, letterSpacing: 2 }}>PREVIEW</div>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </main>
       </div>
 
