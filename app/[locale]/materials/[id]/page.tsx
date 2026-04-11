@@ -7,48 +7,6 @@ import PdfViewer from "./PdfViewer";
 import MaterialCard from "../../MaterialCard";
 import TeaserModal from "../../TeaserModal";
 
-
-function PdfCanvas({ url }: { url: string }) {
-  const [pages, setPages] = useState<any[]>([]);
-  const canvasRefs = useRef<(HTMLCanvasElement | null)[]>([]);
-
-  useEffect(() => {
-    if (!url) return;
-    let cancelled = false;
-    (async () => {
-      const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-      const doc = await pdfjsLib.getDocument({ url, withCredentials: false }).promise;
-      if (cancelled) return;
-      const pageList = [];
-      for (let i = 1; i <= doc.numPages; i++) {
-        pageList.push(await doc.getPage(i));
-      }
-      setPages(pageList);
-    })();
-    return () => { cancelled = true; };
-  }, [url]);
-
-  useEffect(() => {
-    pages.forEach(async (page, i) => {
-      const canvas = canvasRefs.current[i];
-      if (!canvas) return;
-      const viewport = page.getViewport({ scale: 2 });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      await page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise;
-    });
-  }, [pages]);
-
-  return (
-    <div style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center", background: "white" }}>
-      {pages.map((_, i) => (
-        <canvas key={i} ref={el => { canvasRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
-      ))}
-    </div>
-  );
-}
-
 type Material = {
   id: string;
   title: string;
@@ -135,8 +93,11 @@ function getCardStyle(mat: Material) {
 function getTag(mat: Material) {
   if (mat.isPickup) return { tag: "PICK", tagBg: "#ecdeff", tagColor: "#7040b0" };
   if (mat.isNew) return { tag: "NEW", tagBg: "#ffd9ee", tagColor: "#a03070" };
-  if (mat.requiredPlan === "free") return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
-  return { tag: "サブスク", tagBg: "#ecdeff", tagColor: "#7040b0" };
+  if (mat.requiredPlan === "free" || mat.requiredPlan === "無料") return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
+  if (mat.requiredPlan === "light" || mat.requiredPlan === "ライト") return { tag: "ライト", tagBg: "#fff8e0", tagColor: "#a07800" };
+  if (mat.requiredPlan === "standard" || mat.requiredPlan === "スタンダード") return { tag: "スタンダード", tagBg: "#e8efff", tagColor: "#3a5a9a" };
+  if (mat.requiredPlan === "premium" || mat.requiredPlan === "プレミアム") return { tag: "プレミアム", tagBg: "#fce4f8", tagColor: "#8a2090" };
+  return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
 }
 
 type TooltipType = "favorite" | "download";
@@ -203,6 +164,86 @@ function TagBadge({ tag }: { tag: string }) {
   return <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: s.bg, color: s.color, whiteSpace: "nowrap", flexShrink: 0 }}>{tag}</span>;
 }
 
+// ===== 関連教材パネル（独立コンポーネント）=====
+function RelatedPanel({
+  relatedMaterials, isLoggedIn, userPlan, teaserFavIds, setTeaserFavIds,
+}: {
+  relatedMaterials: Material[];
+  isLoggedIn: boolean;
+  userPlan: string;
+  teaserFavIds: string[];
+  setTeaserFavIds: React.Dispatch<React.SetStateAction<string[]>>;
+}) {
+  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+
+  return (
+    <div style={{ padding: "20px 18px", position: "relative" as const, height: "100%" }}>
+      {teaserMat ? (() => {
+        const { bg, char, charColor } = getCardStyle(teaserMat);
+        const { tag, tagBg, tagColor } = getTag(teaserMat);
+        return (
+          <TeaserModal
+            mat={teaserMat as any}
+            bg={bg} char={char} charColor={charColor}
+            tag={tag} tagBg={tagBg} tagColor={tagColor}
+            isLoggedIn={isLoggedIn}
+            userPlan={userPlan}
+            favIds={teaserFavIds}
+            contentTabs={contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }))}
+            methodTabs={methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }))}
+            locale="ja"
+            tmm={(key) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key)}
+            onClose={() => setTeaserMat(null)}
+            onFavChange={(materialId, isFav) => {
+              if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
+              else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
+            }}
+          />
+        );
+      })() : (
+        <>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
+          {relatedMaterials.length === 0 ? (
+            <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.8 }}>関連する教材が見つかりませんでした。</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {relatedMaterials.map((m) => {
+                const { bg, char, charColor } = getCardStyle(m);
+                const { tag, tagBg, tagColor } = getTag(m);
+                return (
+                  <MaterialCard
+                    key={m.id}
+                    mat={m as any}
+                    onClick={() => setTeaserMat(m)}
+                    locale="ja"
+                    isLoggedIn={isLoggedIn}
+                    favIds={teaserFavIds}
+                    bg={bg} char={char} charColor={charColor}
+                    tag={tag} tagBg={tagBg} tagColor={tagColor}
+                    onFavToggle={async (mat) => {
+                      if (!isLoggedIn) return;
+                      const supabase = createClient();
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session) return;
+                      if (teaserFavIds.includes(mat.id)) {
+                        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                        setTeaserFavIds(prev => prev.filter(fid => fid !== mat.id));
+                      } else {
+                        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                        setTeaserFavIds(prev => [...prev, mat.id]);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function MaterialDetailPage() {
   const params = useParams();
   const rawId = params.id;
@@ -215,28 +256,13 @@ export default function MaterialDetailPage() {
   const [isFav, setIsFav] = useState(false);
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
-  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
-  const [teaserFavTooltip, setTeaserFavTooltip] = useState(false);
-  const [userPlan, setUserPlan] = useState("free");
+  const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const [dlHover, setDlHover] = useState(false);
   const [favHover, setFavHover] = useState(false);
   const [homeHover, setHomeHover] = useState(false);
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [dragging, setDragging] = useState(false);
   const dragStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!isLoggedIn) return;
-    const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) return;
-      const { data } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
-      if (data) setTeaserFavIds(data.map((d: { material_id: string }) => d.material_id));
-    });
-  }, [isLoggedIn]);
 
   useEffect(() => {
     if (!id) return;
@@ -260,26 +286,21 @@ export default function MaterialDetailPage() {
   }, [id]);
 
   useEffect(() => {
-    if (!id) return;
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-    setIsLoggedIn(!!session);
-      if (session) {
-        const { data } = await supabase.from("favorites").select("id").eq("user_id", session.user.id).eq("material_id", id).maybeSingle();
-        setIsFav(!!data);
-        const { data: profileData } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
-        if (profileData?.plan) setUserPlan(profileData.plan);
-      }
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, session) => {
       setIsLoggedIn(!!session);
       if (session) {
-        const { data: profileData } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
-        if (profileData?.plan) setUserPlan(profileData.plan);
+        const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
+        if (favData) setTeaserFavIds(favData.map((d: { material_id: string }) => d.material_id));
+        const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+        if (profileData) setProfile(profileData);
       }
     });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
     return () => subscription.unsubscribe();
-  }, [id]);
+  }, []);
 
   const dispatchFavChange = useCallback((materialId: string, newIsFav: boolean) => {
     window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId, isFav: newIsFav } }));
@@ -314,15 +335,11 @@ export default function MaterialDetailPage() {
     } catch {
       window.open(material.pdfFile, "_blank");
     }
-    // ダウンロード履歴をSupabaseに記録
     try {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        await supabase.from("download_history").insert({
-          user_id: session.user.id,
-          material_id: id,
-        });
+        await supabase.from("download_history").insert({ user_id: session.user.id, material_id: id });
       }
     } catch (e) {
       console.error("履歴の記録に失敗しました", e);
@@ -333,12 +350,9 @@ export default function MaterialDetailPage() {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) { e.preventDefault(); setScale(s => Math.min(4, Math.max(0.3, s - e.deltaY * 0.01))); }
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); }
     };
-    const onGesture = (e: any) => {
-      e.preventDefault();
-      setScale(s => Math.min(4, Math.max(0.3, s * e.scale)));
-    };
+    const onGesture = (e: any) => { e.preventDefault(); };
     el.addEventListener("wheel", onWheel, { passive: false, capture: true });
     el.addEventListener("gesturestart", onGesture, { passive: false, capture: true });
     el.addEventListener("gesturechange", onGesture, { passive: false, capture: true });
@@ -350,10 +364,6 @@ export default function MaterialDetailPage() {
       el.removeEventListener("gestureend", onGesture, { capture: true });
     };
   }, []);
-
-  const handleMouseDown = (e: React.MouseEvent) => { setDragging(true); dragStart.current = { mx: e.clientX, my: e.clientY, ox: offset.x, oy: offset.y }; };
-  const handleMouseMove = (e: React.MouseEvent) => { if (!dragging || !dragStart.current) return; setOffset({ x: dragStart.current.ox + e.clientX - dragStart.current.mx, y: dragStart.current.oy + e.clientY - dragStart.current.my }); };
-  const handleMouseUp = () => { setDragging(false); dragStart.current = null; };
 
   const SB_ICON_W = 64;
   const SB_PANEL_W = 393;
@@ -468,72 +478,7 @@ export default function MaterialDetailPage() {
           <path d="M8 11l8-4M8 13l8 4" stroke={active ? "url(#g4)" : "#555"} />
         </svg>
       ),
-      content: (
-        <div style={{ padding: "20px 18px", position: "relative" as const, height: "100%" }}>
-          {teaserMat ? (() => {
-            const { bg: tBg, char: tChar, charColor: tCharColor } = getCardStyle(teaserMat);
-            const { tag: tTag, tagBg: tTagBg, tagColor: tTagColor } = getTag(teaserMat);
-            return (
-              <TeaserModal
-                mat={teaserMat as any}
-                bg={tBg} char={tChar} charColor={tCharColor}
-                tag={tTag} tagBg={tTagBg} tagColor={tTagColor}
-                isLoggedIn={isLoggedIn}
-                userPlan={userPlan}
-                favIds={teaserFavIds}
-                contentTabs={contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }))}
-                methodTabs={methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }))}
-                locale="ja"
-                tmm={(key) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "サブスクプランで使えます", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key)}
-                onClose={() => setTeaserMat(null)}
-                onFavChange={(materialId, isFav) => {
-                  if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
-                  else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
-                }}
-              />
-            );
-          })() : (
-            <>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
-              {relatedMaterials.length === 0 ? (
-                <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.8 }}>関連する教材が見つかりませんでした。</div>
-              ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {relatedMaterials.map((m) => {
-                    const { bg: rBg, char: rChar, charColor: rCharColor } = getCardStyle(m);
-                    const { tag: rTag, tagBg: rTagBg, tagColor: rTagColor } = getTag(m);
-                    return (
-                      <MaterialCard
-                        key={m.id}
-                        mat={m as any}
-                        onClick={() => setTeaserMat(m)}
-                        locale="ja"
-                        isLoggedIn={isLoggedIn}
-                        favIds={teaserFavIds}
-                        bg={rBg} char={rChar} charColor={rCharColor}
-                        tag={rTag} tagBg={rTagBg} tagColor={rTagColor}
-                        onFavToggle={async (mat) => {
-                          if (!isLoggedIn) return;
-                          const supabase = createClient();
-                          const { data: { session } } = await supabase.auth.getSession();
-                          if (!session) return;
-                          if (teaserFavIds.includes(mat.id)) {
-                            await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                            setTeaserFavIds((prev) => prev.filter((fid) => fid !== mat.id));
-                          } else {
-                            await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                            setTeaserFavIds((prev) => [...prev, mat.id]);
-                          }
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      ),
+      content: null,
     },
   ];
 
@@ -599,12 +544,22 @@ export default function MaterialDetailPage() {
               <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(163,192,255,0.2)" }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#9b6ed4" }}>{sidePanels.find(p => p.id === activePanel)?.label}</span>
               </div>
-              {sidePanels.find(p => p.id === activePanel)?.content}
+              {activePanel === "related" ? (
+                <RelatedPanel
+                  relatedMaterials={relatedMaterials}
+                  isLoggedIn={isLoggedIn}
+                  userPlan={profile.plan ?? "free"}
+                  teaserFavIds={teaserFavIds}
+                  setTeaserFavIds={setTeaserFavIds}
+                />
+              ) : (
+                sidePanels.find(p => p.id === activePanel)?.content
+              )}
             </div>
           </div>
         </aside>
 
-        <main style={{ flex: 1, overflow: "hidden", background: "#f0f0f0", position: "relative" }}>
+        <main ref={containerRef} style={{ flex: 1, overflow: "hidden", background: "#f0f0f0", position: "relative" }}>
           {material.pdfFile ? (
             <PdfViewer url={material.pdfFile} />
           ) : (
@@ -626,8 +581,6 @@ export default function MaterialDetailPage() {
           )}
         </main>
       </div>
-
-      
     </div>
   );
 }
