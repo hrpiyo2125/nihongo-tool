@@ -4,6 +4,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 import PdfViewer from "./PdfViewer";
+import MaterialCard from "../../MaterialCard";
+import TeaserModal from "../../TeaserModal";
 
 
 function PdfCanvas({ url }: { url: string }) {
@@ -216,6 +218,7 @@ export default function MaterialDetailPage() {
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
   const [teaserFavTooltip, setTeaserFavTooltip] = useState(false);
+  const [userPlan, setUserPlan] = useState("free");
   const [dlHover, setDlHover] = useState(false);
   const [favHover, setFavHover] = useState(false);
   const [homeHover, setHomeHover] = useState(false);
@@ -260,14 +263,20 @@ export default function MaterialDetailPage() {
     if (!id) return;
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setIsLoggedIn(!!session);
+    setIsLoggedIn(!!session);
       if (session) {
         const { data } = await supabase.from("favorites").select("id").eq("user_id", session.user.id).eq("material_id", id).maybeSingle();
         setIsFav(!!data);
+        const { data: profileData } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
+        if (profileData?.plan) setUserPlan(profileData.plan);
       }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_e, session) => {
       setIsLoggedIn(!!session);
+      if (session) {
+        const { data: profileData } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
+        if (profileData?.plan) setUserPlan(profileData.plan);
+      }
     });
     return () => subscription.unsubscribe();
   }, [id]);
@@ -461,52 +470,29 @@ export default function MaterialDetailPage() {
       ),
       content: (
         <div style={{ padding: "20px 18px", position: "relative" as const, height: "100%" }}>
-          {teaserMat ? (
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: 14 }}>
-              <button onClick={() => setTeaserMat(null)} style={{ display: "flex", alignItems: "center", gap: 6, background: "none", border: "none", cursor: "pointer", fontSize: 12, color: "#aaa", padding: 0, marginBottom: 4 }}>← 戻る</button>
-              <div style={{ background: getCardStyle(teaserMat).bg, borderRadius: 12, height: 160, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56, color: getCardStyle(teaserMat).charColor, fontWeight: 700 }}>{getCardStyle(teaserMat).char}</div>
-              <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: getTag(teaserMat).tagBg, color: getTag(teaserMat).tagColor }}>{getTag(teaserMat).tag}</span>
-                {(teaserMat.level ?? []).map((lv: string) => <span key={lv} style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>)}
-              </div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{teaserMat.title}</div>
-              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{teaserMat.description}</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {[
-                  { label: "対象年齢", value: teaserMat.ageGroup || "－" },
-                  { label: "学習内容", value: (teaserMat.content ?? []).map((c: string) => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
-                  { label: "学習方法", value: (teaserMat.method ?? []).map((me: string) => methodTabs.find(t => t.id === me)?.label).filter(Boolean).join("・") || "－" },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: "#444" }}>{value}</div>
-                  </div>
-                ))}
-              </div>
-              <button
-                onClick={async () => {
-                  if (!isLoggedIn) return;
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  if (teaserFavIds.includes(teaserMat.id)) {
-                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", teaserMat.id);
-                    setTeaserFavIds((prev) => prev.filter((fid) => fid !== teaserMat.id));
-                  } else {
-                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: teaserMat.id });
-                    setTeaserFavIds((prev) => [...prev, teaserMat.id]);
-                  }
+          {teaserMat ? (() => {
+            const { bg: tBg, char: tChar, charColor: tCharColor } = getCardStyle(teaserMat);
+            const { tag: tTag, tagBg: tTagBg, tagColor: tTagColor } = getTag(teaserMat);
+            return (
+              <TeaserModal
+                mat={teaserMat as any}
+                bg={tBg} char={tChar} charColor={tCharColor}
+                tag={tTag} tagBg={tTagBg} tagColor={tTagColor}
+                isLoggedIn={isLoggedIn}
+                userPlan={userPlan}
+                favIds={teaserFavIds}
+                contentTabs={contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }))}
+                methodTabs={methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }))}
+                locale="ja"
+                tmm={(key) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "サブスクプランで使えます", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key)}
+                onClose={() => setTeaserMat(null)}
+                onFavChange={(materialId, isFav) => {
+                  if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
+                  else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
                 }}
-                style={{ width: "100%", padding: "10px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13, fontWeight: 600, color: teaserFavIds.includes(teaserMat.id) ? "#c9a0f0" : "#999" }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill={teaserFavIds.includes(teaserMat.id) ? "#c9a0f0" : "none"} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/></svg>
-                {teaserFavIds.includes(teaserMat.id) ? "保存済み" : "お気に入りに追加"}
-              </button>
-              <button onClick={() => { window.open(`/materials/${teaserMat.id}`, "_blank"); setTeaserMat(null); }} style={{ width: "100%", padding: "12px", background: "#a3c0ff", color: "white", border: "none", borderRadius: 10, fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                この教材を見る →
-              </button>
-            </div>
-          ) : (
+              />
+            );
+          })() : (
             <>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
               {relatedMaterials.length === 0 ? (
@@ -514,41 +500,32 @@ export default function MaterialDetailPage() {
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                   {relatedMaterials.map((m) => {
-                    const first = m.content?.[0] ?? "hiragana";
-                    const rBg = bgMap[first] ?? "linear-gradient(135deg,#e8efff,#d0dcff)";
-                    const rChar = charMap[first] ?? "✦";
-                    const rCharColor = charColorMap[first] ?? "#4a72c4";
+                    const { bg: rBg, char: rChar, charColor: rCharColor } = getCardStyle(m);
+                    const { tag: rTag, tagBg: rTagBg, tagColor: rTagColor } = getTag(m);
                     return (
-                      <div key={m.id} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" as const }}>
-                        <div onClick={() => setTeaserMat(m)} style={{ height: 100, background: rBg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, color: rCharColor, fontWeight: 700 }}>{rChar}</div>
-                        <div style={{ position: "absolute" as const, top: 6, right: 6, zIndex: 10 }}>
-                          <button
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              if (!isLoggedIn) return;
-                              const supabase = createClient();
-                              const { data: { session } } = await supabase.auth.getSession();
-                              if (!session) return;
-                              if (teaserFavIds.includes(m.id)) {
-                                await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", m.id);
-                                setTeaserFavIds((prev) => prev.filter((fid) => fid !== m.id));
-                              } else {
-                                await supabase.from("favorites").insert({ user_id: session.user.id, material_id: m.id });
-                                setTeaserFavIds((prev) => [...prev, m.id]);
-                              }
-                            }}
-                            style={{ width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                          >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill={teaserFavIds.includes(m.id) ? "#c9a0f0" : "none"} strokeWidth="2">
-                              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
-                            </svg>
-                          </button>
-                        </div>
-                        <div onClick={() => setTeaserMat(m)} style={{ padding: "8px 10px 12px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: "#333", lineHeight: 1.4, marginBottom: 2 }}>{m.title}</div>
-                          <div style={{ fontSize: 10, color: "#aaa" }}>{(m.content ?? []).map((c: string) => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・")}</div>
-                        </div>
-                      </div>
+                      <MaterialCard
+                        key={m.id}
+                        mat={m as any}
+                        onClick={() => setTeaserMat(m)}
+                        locale="ja"
+                        isLoggedIn={isLoggedIn}
+                        favIds={teaserFavIds}
+                        bg={rBg} char={rChar} charColor={rCharColor}
+                        tag={rTag} tagBg={rTagBg} tagColor={rTagColor}
+                        onFavToggle={async (mat) => {
+                          if (!isLoggedIn) return;
+                          const supabase = createClient();
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session) return;
+                          if (teaserFavIds.includes(mat.id)) {
+                            await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                            setTeaserFavIds((prev) => prev.filter((fid) => fid !== mat.id));
+                          } else {
+                            await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                            setTeaserFavIds((prev) => [...prev, mat.id]);
+                          }
+                        }}
+                      />
                     );
                   })}
                 </div>
