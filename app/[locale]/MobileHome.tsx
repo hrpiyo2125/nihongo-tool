@@ -8,7 +8,148 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import TeaserModal from "./TeaserModal";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
+import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 
+
+
+function MobileTroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
+  const [tab, setTab] = useState("start");
+  const troubleTabs = [
+    { id: "start",      label: "何から始める？" },
+    { id: "level",      label: "レベルがわからない" },
+    { id: "goal",       label: "何を目標にすればいい？" },
+    { id: "material",   label: "どの教材を使えばいい？" },
+    { id: "teach",      label: "どう教えればいい？" },
+    { id: "motivation", label: "やる気を出さない" },
+    { id: "bored",      label: "子どもが飽きてしまう" },
+    { id: "improve",    label: "できるようにならない" },
+  ];
+  return (
+    <div>
+      <div style={{ padding: "24px 20px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.4) 0%, rgba(228,155,253,0.4) 50%, rgba(163,192,255,0.4) 100%)" }}>
+        <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 6 }}>Trouble Shooting</p>
+        <h2 style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>お悩み解決</h2>
+        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, lineHeight: 1.8 }}>日本語指導でよくあるお悩みに、一緒に向き合います。</p>
+        <div style={{ display: "flex", overflowX: "auto" as const, gap: 0, borderBottom: "0.5px solid rgba(200,170,240,0.25)", scrollbarWidth: "none" as const }}>
+          {troubleTabs.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "10px 14px", border: "none", borderBottom: tab === t.id ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? "#7a50b0" : "#aaa", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding: "24px 20px 80px" }}>
+        <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9 }}>
+          {tab === "start" && "「授業をもっと楽しくしたい」「どこから始めればいいかわからない」——そんな悩みから一緒に考えましょう。toolioは「使いながら覚える・気づいたらできてた」をコンセプトに設計されています。"}
+          {tab === "level" && "テストしなくて大丈夫。日常の会話の中でざっくり観察するだけで十分です。「できること」を見つけることが大切です。聞く・話す・読む・書く、それぞれできることを観察してみましょう。"}
+          {tab === "goal" && "目標は「何を学ぶか」より「何ができるようになるか」で考えてみましょう。「ひらがなを練習する」より「お菓子のパッケージが読める」のような形にすると、子どもにも達成感が生まれます。"}
+          {tab === "material" && "得意な力から入るのが一番スムーズです。聞く・話すが得意ならかるた・カードから、読むに興味が出てきたなら文字系の教材から始めてみましょう。同じ教材でも使い方次第でどのレベルにも使えます。"}
+          {tab === "teach" && "説明より先に「楽しい活動」から入りましょう。まず活動に飛び込んで、やりながら自然に言葉に触れさせます。最後は必ず「できた！」で締めくくることが大切です。"}
+          {tab === "motivation" && "やる気は「待つ」ものではなく「動いてから生まれる」ものです。まず小さな「できた！」を作ることが一番の近道。ゲームや遊びから気分を上げて、短い時間から始めましょう。"}
+          {tab === "bored" && "飽きには必ず理由があります。難しすぎ・簡単すぎ・疲れ・興味がない——パターンを見極めて対処しましょう。授業は15〜20分を目安に、必ず「できたね」で終わるのがコツです。"}
+          {tab === "improve" && "「できるようにならない」には必ず理由があります。インプット不足・定着前に次へ進む・使う場面がない——まずは「知る→慣れる→使う」の流れを意識してみましょう。"}
+        </p>
+        <button onClick={onOpenModal} style={{ marginTop: 24, fontSize: 13, fontWeight: 700, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>
+          教材一覧を見る →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MobileGuideSection() {
+  const [tab, setTab] = useState("start");
+  const guideTabs = [
+    { id: "start",  label: "はじめての方へ", emoji: "✦" },
+    { id: "find",   label: "教材の探し方",   emoji: "🔍" },
+    { id: "more",   label: "もっと活用",     emoji: "★" },
+    { id: "help",   label: "わからないとき", emoji: "❓" },
+  ];
+  return (
+    <div>
+      <div style={{ padding: "24px 20px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.4) 0%, rgba(228,155,253,0.4) 50%, rgba(163,192,255,0.4) 100%)" }}>
+        <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 6 }}>Guide</p>
+        <h2 style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>使い方ガイド</h2>
+        <p style={{ fontSize: 12, color: "#aaa", marginBottom: 16, lineHeight: 1.8 }}>toolioの使い方をご案内します。</p>
+        <div style={{ display: "flex", overflowX: "auto" as const, gap: 0, borderBottom: "0.5px solid rgba(200,170,240,0.25)", scrollbarWidth: "none" as const }}>
+          {guideTabs.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ padding: "10px 14px", border: "none", borderBottom: tab === t.id ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 12, fontWeight: tab === t.id ? 700 : 500, color: tab === t.id ? "#7a50b0" : "#aaa", whiteSpace: "nowrap" as const, flexShrink: 0 }}>
+              {t.emoji} {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div style={{ padding: "24px 20px 80px", display: "flex", flexDirection: "column" as const, gap: 16 }}>
+        {tab === "start" && (<>
+          {[
+            { num: "01", title: "まず無料教材を試す", desc: "アカウント不要・登録なしで今すぐダウンロードできます。まずは気になった教材を1つ試してみてください。" },
+            { num: "02", title: "気に入ったら無料登録する", desc: "登録するとお気に入り保存・ダウンロード履歴などが使えるようになります。" },
+            { num: "03", title: "サブスクプランに登録する", desc: "プランに応じて使える教材が増えます。Light ¥980 / Standard ¥1,980 / Premium ¥3,980。" },
+          ].map((step) => (
+            <div key={step.num} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "16px 18px", display: "flex", gap: 14 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{step.num}</div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 4 }}>{step.title}</div>
+                <div style={{ fontSize: 12, color: "#777", lineHeight: 1.8 }}>{step.desc}</div>
+              </div>
+            </div>
+          ))}
+        </>)}
+        {tab === "find" && (<>
+          {[
+            { icon: "🔵", title: "学習内容のアイコンから探す", desc: "ひらがな・カタカナ・語彙など、学びたい内容のアイコンをタップ" },
+            { icon: "▶️", title: "学習方法のアイコンから探す", desc: "ドリル・カード・ゲームなど、使いたい方法のアイコンをタップ" },
+            { icon: "✦", title: "「教材一覧を見る」から探す", desc: "内容と方法を組み合わせて絞り込みができます" },
+            { icon: "🔍", title: "キーワードで検索する", desc: "教材一覧上部の検索バーにキーワードを入力" },
+          ].map((item) => (
+            <div key={item.title} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 16px", display: "flex", gap: 12 }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 3 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </>)}
+        {tab === "more" && (<>
+          {[
+            { icon: "📂", title: "ダウンロード履歴を活用する", desc: "過去にダウンロードした教材はダウンロード履歴からすぐ再ダウンロードできます。" },
+            { icon: "❤️", title: "お気に入りリストを整理する", desc: "ハートボタンで保存した教材はお気に入りから確認できます。" },
+            { icon: "🔖", title: "サブスク教材を確認する", desc: "教材一覧では、使えるプランがタグで色分けして表示されています。" },
+            { icon: "✨", title: "トップページのタブを活用する", desc: "ピックアップ・おすすめ・ランキング・新着の4つのタブから教材を探せます。" },
+          ].map((item) => (
+            <div key={item.title} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 16px", display: "flex", gap: 12 }}>
+              <span style={{ fontSize: 20, flexShrink: 0 }}>{item.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 3 }}>{item.title}</div>
+                <div style={{ fontSize: 12, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
+              </div>
+            </div>
+          ))}
+        </>)}
+        {tab === "help" && (<>
+          {[
+            { q: "ダウンロードボタンが押せない", a: "サブスク教材の場合、対応するプランへの登録が必要です。教材のタグを確認してください。" },
+            { q: "ログインできない", a: "パスワードをお忘れの場合はログイン画面の「パスワードを忘れた方」から再設定できます。" },
+            { q: "お気に入りが保存されない", a: "お気に入り機能はログインが必要です。ログインしてください。" },
+            { q: "PDFが開けない・印刷できない", a: "PDFビューワー（Adobe Acrobatなど）をインストールしてお試しください。" },
+          ].map((item) => (
+            <div key={item.q} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ padding: "12px 16px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", display: "flex", gap: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#e49bfd", flexShrink: 0 }}>Q</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#333" }}>{item.q}</span>
+              </div>
+              <div style={{ padding: "12px 16px", background: "#fafafa", display: "flex", gap: 8 }}>
+                <span style={{ fontSize: 12, fontWeight: 800, color: "#a3c0ff", flexShrink: 0 }}>A</span>
+                <span style={{ fontSize: 12, color: "#666", lineHeight: 1.8 }}>{item.a}</span>
+              </div>
+            </div>
+          ))}
+        </>)}
+      </div>
+    </div>
+  );
+}
 type Material = {
   id: string;
   title: string;
@@ -47,6 +188,7 @@ export default function MobileHome() {
   const [activeContentFilter, setActiveContentFilter] = useState("all");
   const [activeMethodFilter, setActiveMethodFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [morePage, setMorePage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -361,9 +503,9 @@ export default function MobileHome() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "↓", label: "ダウンロード履歴", action: () => {} },
-              { icon: "💬", label: "お悩み解決", action: () => {} },
-              { icon: "❓", label: "使い方ガイド", action: () => {} },
+              { icon: "↓", label: "ダウンロード履歴", action: () => setMorePage("dl") },
+              { icon: "💬", label: "お悩み解決", action: () => setMorePage("trouble") },
+              { icon: "❓", label: "使い方ガイド", action: () => setMorePage("guide") },
               { icon: "📋", label: "プラン", action: () => router.push("/plan") },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
@@ -374,6 +516,56 @@ export default function MobileHome() {
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
               </div>
             ))}
+
+            {/* ダウンロード履歴サブページ */}
+            {morePage === "dl" && (
+              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
+                </header>
+                <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
+                  {!isLoggedIn ? (
+                    <div style={{ textAlign: "center", padding: "60px 0" }}>
+                      <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+                      <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
+                      <button onClick={() => router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
+                      <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+                      <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* お悩み解決サブページ */}
+            {morePage === "trouble" && (
+              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>お悩み解決</span>
+                </header>
+                <div style={{ flex: 1, overflowY: "auto" }}>
+                 <TroubleSection onOpenModal={() => setMaterialsModalOpen(true)} onHome={() => setMorePage(null)} />
+                </div>
+              </div>
+            )}
+
+            {/* 使い方ガイドサブページ */}
+            {morePage === "guide" && (
+              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>使い方ガイド</span>
+                </header>
+                <div style={{ flex: 1, overflowY: "auto" }}>
+                  <GuideSection />
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
