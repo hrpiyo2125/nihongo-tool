@@ -6,6 +6,8 @@ import { createClient } from "../../../../lib/supabase";
 import PdfViewer from "./PdfViewer";
 import MaterialCard from "../../MaterialCard";
 import TeaserModal from "../../TeaserModal";
+import { getCardStyle, getTag } from "../../../../lib/materialUtils";
+import { contentTabsJa as contentTabs, methodTabsJa as methodTabs } from "../../../../lib/tabs";
 
 type Material = {
   id: string;
@@ -30,75 +32,10 @@ type Material = {
   pdfFile: string;
 };
 
-const contentTabs = [
-  { id: "hiragana", label: "ひらがな" },
-  { id: "katakana", label: "カタカナ" },
-  { id: "kanji",    label: "漢字" },
-  { id: "math",     label: "算数" },
-  { id: "vocab",    label: "語彙" },
-  { id: "grammar",  label: "文法" },
-  { id: "picture",  label: "絵本" },
-  { id: "song",     label: "うた" },
-  { id: "daily",    label: "日常" },
-  { id: "season",   label: "季節" },
-  { id: "number",   label: "数字" },
-];
-const methodTabs = [
-  { id: "test",     label: "テスト" },
-  { id: "karuta",   label: "かるた" },
-  { id: "practice", label: "練習" },
-  { id: "game",     label: "ゲーム" },
-  { id: "nurie",    label: "ぬりえ" },
-  { id: "reading",  label: "読み物" },
-  { id: "craft",    label: "工作" },
-  { id: "music",    label: "うた" },
-  { id: "talk",     label: "会話" },
-  { id: "nazori",   label: "なぞり書き" },
-  { id: "puzzle",   label: "パズル" },
-];
 
-const bgMap: Record<string, string> = {
-  hiragana: "linear-gradient(135deg,#dbe8ff,#c8d8ff)",
-  katakana: "linear-gradient(135deg,#ecdeff,#ddc8ff)",
-  kanji:    "linear-gradient(135deg,#ffd9ee,#ffc8e4)",
-  math:     "linear-gradient(135deg,#d6f5e5,#c0ecd4)",
-  vocab:    "linear-gradient(135deg,#fff8e0,#ffedb0)",
-  grammar:  "linear-gradient(135deg,#fff0ec,#ffd8d0)",
-  picture:  "linear-gradient(135deg,#e8f8ff,#c8eeff)",
-  song:     "linear-gradient(135deg,#edfff0,#c8f0d0)",
-  daily:    "linear-gradient(135deg,#f8e8ff,#ecd0ff)",
-  season:   "linear-gradient(135deg,#e8efff,#d0dcff)",
-  number:   "linear-gradient(135deg,#f0e8ff,#d8c8ff)",
-};
-const charMap: Record<string, string> = {
-  hiragana: "あ", katakana: "ア", kanji: "字", math: "＋",
-  vocab: "語", grammar: "文", picture: "絵", song: "♪",
-  daily: "日", season: "季", number: "数",
-};
-const charColorMap: Record<string, string> = {
-  hiragana: "#4a72c4", katakana: "#8a5cc4", kanji: "#c44a88", math: "#3a8a5a",
-  vocab: "#b08020", grammar: "#c05040", picture: "#4090c0", song: "#3a8a5a",
-  daily: "#9040c0", season: "#4a72c4", number: "#7040c0",
-};
 
-function getCardStyle(mat: Material) {
-  const first = mat.content?.[0] ?? "hiragana";
-  return {
-    bg: bgMap[first] ?? "linear-gradient(135deg,#e8efff,#d0dcff)",
-    char: charMap[first] ?? "✦",
-    charColor: charColorMap[first] ?? "#4a72c4",
-  };
-}
 
-function getTag(mat: Material) {
-  if (mat.isPickup) return { tag: "PICK", tagBg: "#ecdeff", tagColor: "#7040b0" };
-  if (mat.isNew) return { tag: "NEW", tagBg: "#ffd9ee", tagColor: "#a03070" };
-  if (mat.requiredPlan === "free" || mat.requiredPlan === "無料") return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
-  if (mat.requiredPlan === "light" || mat.requiredPlan === "ライト") return { tag: "ライト", tagBg: "#fff8e0", tagColor: "#a07800" };
-  if (mat.requiredPlan === "standard" || mat.requiredPlan === "スタンダード") return { tag: "スタンダード", tagBg: "#e8efff", tagColor: "#3a5a9a" };
-  if (mat.requiredPlan === "premium" || mat.requiredPlan === "プレミアム") return { tag: "プレミアム", tagBg: "#fce4f8", tagColor: "#8a2090" };
-  return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
-}
+
 
 type TooltipType = "favorite" | "download";
 

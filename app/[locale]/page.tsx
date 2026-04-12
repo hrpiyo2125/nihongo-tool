@@ -8,15 +8,13 @@ import { useTranslations } from 'next-intl';
 import ToolioConceptSection from "./ToolioConceptSection"
 import TeaserModal from "./TeaserModal"
 import MaterialCard from "./MaterialCard"
+import { contentTabLabels, methodTabLabels, getContentTabs, getMethodTabs } from "../../lib/tabs";
+import { getCardStyle, planRank, canDownload } from "../../lib/materialUtils";
+import { useIsMobile } from "./useIsMobile";
+import MobileHome from "./MobileHome";
 
-const planRank: Record<string, number> = {
-  free: 0, light: 1, standard: 2, premium: 3,
-  "無料": 0, "ライト": 1, "スタンダード": 2, "プレミアム": 3,
-};
 
-function canDownload(userPlan: string, requiredPlan: string): boolean {
-  return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
-}
+
 
 const scrollbarStyle = `
   .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
@@ -28,15 +26,7 @@ const scrollbarStyle = `
   .toolio-scroll-x::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
   .toolio-scroll-x::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
 `;
-const contentTabLabels: Record<string, Record<string, string>> = {
-  ja: { all: "すべて", hiragana: "ひらがな", katakana: "カタカナ", kanji: "漢字", vocab: "語彙", joshi: "助詞", bunkei: "文型", aisatsu: "あいさつ", kaiwa: "場面会話", season: "季節・行事", food: "食べ物", animal: "動物", body: "体・健康", color: "色・形", number: "数・算数" },
-  en: { all: "All", hiragana: "Hiragana", katakana: "Katakana", kanji: "Kanji", vocab: "Vocabulary", joshi: "Particles", bunkei: "Sentence Patterns", aisatsu: "Greetings", kaiwa: "Conversations", season: "Seasons & Events", food: "Food", animal: "Animals", body: "Body & Health", color: "Colors & Shapes", number: "Numbers" },
-};
 
-const methodTabLabels: Record<string, Record<string, string>> = {
-  ja: { all: "すべて", drill: "ドリル", test: "テスト", card: "カード", karuta: "かるた", game: "ゲーム", nurie: "ぬりえ", reading: "読み物", music: "うた", roleplay: "ロールプレイ" },
-  en: { all: "All", drill: "Drill", test: "Test", card: "Cards", karuta: "Karuta", game: "Game", nurie: "Coloring", reading: "Reading", music: "Song", roleplay: "Role Play" },
-};
 
 type Material = {
   id: string;
@@ -1645,56 +1635,7 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
   );
 }
 
-function getCardStyle(mat: Material, locale: string = "ja") {
-  const bgMap: Record<string, string> = {
-    hiragana: "linear-gradient(135deg,#dbe8ff,#c8d8ff)",
-    katakana: "linear-gradient(135deg,#ecdeff,#ddc8ff)",
-    kanji:    "linear-gradient(135deg,#ffd9ee,#ffc8e4)",
-    math:     "linear-gradient(135deg,#d6f5e5,#c0ecd4)",
-    vocab:    "linear-gradient(135deg,#fff8e0,#ffedb0)",
-    grammar:  "linear-gradient(135deg,#fff0ec,#ffd8d0)",
-    picture:  "linear-gradient(135deg,#e8f8ff,#c8eeff)",
-    song:     "linear-gradient(135deg,#edfff0,#c8f0d0)",
-    daily:    "linear-gradient(135deg,#f8e8ff,#ecd0ff)",
-    season:   "linear-gradient(135deg,#e8efff,#d0dcff)",
-    number:   "linear-gradient(135deg,#f0e8ff,#d8c8ff)",
-  };
-  const charMap: Record<string, string> = {
-    hiragana: "あ", katakana: "ア", kanji: "字", math: "＋",
-    vocab: "語", grammar: "文", picture: "絵", song: "♪",
-    daily: "日", season: "季", number: "数",
-  };
-  const charColorMap: Record<string, string> = {
-    hiragana: "#4a72c4", katakana: "#8a5cc4", kanji: "#c44a88", math: "#3a8a5a",
-    vocab: "#b08020", grammar: "#c05040", picture: "#4090c0", song: "#3a8a5a",
-    daily: "#9040c0", season: "#4a72c4", number: "#7040c0",
-  };
-  const firstContent = mat.content?.[0] ?? "hiragana";
-  const bg = mat.bg ?? bgMap[firstContent] ?? "linear-gradient(135deg,#e8efff,#d0dcff)";
-  const char = mat.char ?? charMap[firstContent] ?? "✦";
-  const charColor = mat.charColor ?? charColorMap[firstContent] ?? "#4a72c4";
 
-  let tag = mat.tag ?? "無料";
-  let tagBg = mat.tagBg ?? "#d6f5e5";
-  let tagColor = mat.tagColor ?? "#2a6a44";
-  if (!mat.tag) {
-    if (mat.requiredPlan === "free" || mat.requiredPlan === "無料") {
-      tag = locale === "ja" ? "無料" : "Free"; tagBg = "#d6f5e5"; tagColor = "#2a6a44";
-    }
-    else if (mat.requiredPlan === "light" || mat.requiredPlan === "ライト") {
-      tag = locale === "ja" ? "ライト" : "Light"; tagBg = "#fff8e0"; tagColor = "#a07800";
-    }
-    else if (mat.requiredPlan === "standard" || mat.requiredPlan === "スタンダード") {
-      tag = locale === "ja" ? "スタンダード" : "Standard"; tagBg = "#e8efff"; tagColor = "#3a5a9a";
-    }
-    else if (mat.requiredPlan === "premium" || mat.requiredPlan === "プレミアム") {
-      tag = locale === "ja" ? "プレミアム" : "Premium"; tagBg = "#fce4f8"; tagColor = "#8a2090";
-    }
-    else { tag = locale === "ja" ? "無料" : "Free"; tagBg = "#d6f5e5"; tagColor = "#2a6a44"; }
-  }
-
-  return { bg, char, charColor, tag, tagBg, tagColor };
-}
 
 
 
@@ -2275,6 +2216,8 @@ const methodItems = [
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
   const userIconRef = useRef<HTMLDivElement | null>(null);
+  const isMobile = useIsMobile();
+
 
   useEffect(() => {
     fetch("/api/materials")
@@ -2351,7 +2294,7 @@ const methodItems = [
   { section: t("mypage"), items: navItems.slice(2, 4) },
   { section: t("service"), items: navItems.slice(4) },
 ];
-
+if (isMobile) return <MobileHome />;
   return (
     <div style={{ display: "flex", height: "100vh", background: "#f8f4f4", overflow: "hidden", position: "relative" }}>
       <aside style={{ width: sbOpen ? SB_OPEN : SB_CLOSED, transition: "width 0.22s ease", background: "transparent", display: "flex", flexDirection: "column", flexShrink: 0, overflow: "visible", zIndex: 10 }}>
