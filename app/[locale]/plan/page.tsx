@@ -30,7 +30,7 @@ const plans = [
   {
     key: "light",
     name: "ライト",
-    price: 980,
+    price: 500,
     priceId: "price_1TLfBqK9q7r7RVzW9QYJ19j3",
     color: "#7a50b0",
     bg: "#fdf8ff",
@@ -49,7 +49,7 @@ const plans = [
   {
     key: "standard",
     name: "スタンダード",
-    price: 1980,
+    price: 980,
     priceId: "price_1TLfBqK9q7r7RVzWhhI4oEzI",
     color: "#7a50b0",
     bg: "#fdf8ff",
@@ -68,7 +68,7 @@ const plans = [
   {
     key: "premium",
     name: "プレミアム",
-    price: 3980,
+    price: 1480,
     priceId: "price_1TLfBoK9q7r7RVzWOWGR9pUL",
     color: "#c44a88",
     bg: "#fff8fd",

@@ -29,6 +29,7 @@ type Props = {
   locale: string;
   isLoggedIn?: boolean;
   favIds?: string[];
+  purchasedIds?: string[];
   onFavToggle?: (mat: Material) => void;
   bg: string;
   char: string;
@@ -39,11 +40,18 @@ type Props = {
 };
 
 export default function MaterialCard({
-  mat, onClick, isLoggedIn, favIds, onFavToggle,
+  mat, onClick, isLoggedIn, favIds, purchasedIds = [], onFavToggle,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
+  const isPurchased = purchasedIds.includes(mat.id);
+
   return (
     <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
+      {isPurchased && (
+        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>
+          購入済み
+        </div>
+      )}
       {isLoggedIn && onFavToggle && (
         <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
           <button

@@ -4,7 +4,13 @@ export const planRank: Record<string, number> = {
   "無料": 0, "ライト": 1, "スタンダード": 2, "プレミアム": 3,
 };
 
-export function canDownload(userPlan: string, requiredPlan: string): boolean {
+export function canDownload(
+  userPlan: string,
+  requiredPlan: string,
+  purchasedIds: string[] = [],
+  materialId: string = ""
+): boolean {
+  if (purchasedIds.includes(materialId)) return true;
   return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
 }
 

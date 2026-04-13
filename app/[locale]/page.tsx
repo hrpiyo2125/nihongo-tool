@@ -492,7 +492,103 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
     </>
   );
 }
-  
+function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
+  const [purchasedMaterials, setPurchasedMaterials] = useState<Material[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+  const [favIds, setFavIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { setLoading(false); return; }
+      const { data } = await supabase
+        .from("purchases")
+        .select("material_id")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
+      if (data) {
+        const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
+        setPurchasedMaterials(allMaterials.filter((m) => ids.includes(m.id)));
+      }
+      setLoading(false);
+    });
+  }, [allMaterials]);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const supabase = createClient();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return;
+      const { data } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
+      if (data) setFavIds(data.map((d: { material_id: string }) => d.material_id));
+    });
+  }, [isLoggedIn]);
+
+  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (purchasedMaterials.length === 0) return (
+    <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
+      <div style={{ fontSize: 32, marginBottom: 12 }}>🛒</div>
+      <div style={{ fontSize: 14 }}>購入済みの教材はまだありません</div>
+      <div style={{ fontSize: 12, marginTop: 6 }}>単品購入した教材はここから再ダウンロードできます</div>
+    </div>
+  );
+
+  return (
+    <>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+        {purchasedMaterials.map((mat) => (
+          <MaterialCard
+            key={mat.id}
+            mat={mat}
+            locale={locale}
+            isLoggedIn={isLoggedIn}
+            favIds={favIds}
+            onClick={() => setTeaserMat(mat)}
+            {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
+            onFavToggle={async (mat) => {
+              const supabase = createClient();
+              const { data: { session } } = await supabase.auth.getSession();
+              if (!session) return;
+              if (favIds.includes(mat.id)) {
+                await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                setFavIds((prev) => prev.filter((id) => id !== mat.id));
+                window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+              } else {
+                await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                setFavIds((prev) => [...prev, mat.id]);
+                window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+              }
+            }}
+          />
+        ))}
+      </div>
+      {teaserMat && (() => {
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
+        return (
+          <TeaserModal
+            mat={teaserMat}
+            bg={bg} char={char} charColor={charColor}
+            tag={tag} tagBg={tagBg} tagColor={tagColor}
+            isLoggedIn={isLoggedIn}
+            userPlan={userPlan}
+            favIds={favIds}
+            contentTabs={contentTabs}
+            methodTabs={methodTabs}
+            locale={locale}
+            tmm={tmm}
+            onClose={() => setTeaserMat(null)}
+            onFavChange={(materialId, isFav) => {
+              if (isFav) setFavIds(prev => [...prev, materialId]);
+              else setFavIds(prev => prev.filter(id => id !== materialId));
+            }}
+          />
+        );
+      })()}
+    </>
+  );
+}
+
 function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
@@ -662,6 +758,7 @@ const navItems: NavItem[] = [
   { id: "home", label: t("home"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9 22V12h6v10" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "materials", label: t("materials"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /><rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "dl", label: t("dl"), badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+  { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M2 10h20" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M6 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M14 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "trouble", label: t("trouble"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
@@ -745,6 +842,7 @@ const methodItems = [
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
+  const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
@@ -772,6 +870,10 @@ const methodItems = [
       if (session) {
       const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
       if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+      }
+      if (session) {
+      const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+      if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
       }
       if (session?.user?.email) {
         setUserInitial(session.user.email[0].toUpperCase());
@@ -824,8 +926,8 @@ const methodItems = [
   const SB_OPEN = 300;
   const navSections = [
   { section: t("main"),   items: navItems.slice(0, 2) },
-  { section: t("mypage"), items: navItems.slice(2, 4) },
-  { section: t("service"), items: navItems.slice(4) },
+  { section: t("mypage"), items: navItems.slice(2, 5) },
+  { section: t("service"), items: navItems.slice(5) },
 ];
 if (isMobile) return <MobileHome />;
   return (
@@ -843,7 +945,7 @@ if (isMobile) return <MobileHome />;
             </button>
           )}
         </div>
-        <div style={{ flex: 1, padding: "8px 0", overflow: "hidden" }}>
+        <div className="toolio-scroll-y" style={{ flex: 1, padding: "8px 0", overflowY: "auto" }}>
           {navSections.map(({ section, items }) => (
             <div key={section}>
               {sbOpen && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#c0a0a0", padding: "8px 18px 3px", whiteSpace: "nowrap" }}>{section}</div>}
@@ -1035,6 +1137,7 @@ if (isMobile) return <MobileHome />;
               locale={locale}
               isLoggedIn={isLoggedIn}
               favIds={topFavIds}
+              purchasedIds={purchasedIds}
               bg={bg} char={char} charColor={charColor}
               tag={tag} tagBg={tagBg} tagColor={tagColor}
               onFavToggle={async (mat) => {
@@ -1406,6 +1509,8 @@ if (isMobile) return <MobileHome />;
                   <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} userPlan={profile.plan ?? "free"} />
                 ) : activePage === "dl" ? (
                   <DownloadHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} contentTabs={contentTabs} methodTabs={methodTabs} tmm={tmm} />
+                  ) : activePage === "purchases" ? (
+  <PurchaseHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} contentTabs={contentTabs} methodTabs={methodTabs} tmm={tmm} />
                 ) : (
                   <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
                 )}
@@ -1425,6 +1530,7 @@ if (isMobile) return <MobileHome />;
       isLoggedIn={isLoggedIn}
       userPlan={profile.plan ?? "free"}
       favIds={topFavIds}
+      purchasedIds={purchasedIds}
       contentTabs={contentTabs}
       methodTabs={methodTabs}
       locale={locale}

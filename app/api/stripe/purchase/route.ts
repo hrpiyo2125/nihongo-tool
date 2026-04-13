@@ -10,25 +10,13 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   try {
-    const { materialId, materialTitle } = await req.json();
-
-    // ユーザー認証確認
-    const authHeader = req.headers.get("authorization");
-    const token = authHeader?.replace("Bearer ", "");
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { materialId, userId, email } = await req.json();
 
     // すでに購入済みか確認
     const { data: existing } = await supabase
       .from("purchases")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .eq("material_id", materialId)
       .single();
 
@@ -36,20 +24,57 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "ALREADY_PURCHASED" }, { status: 400 });
     }
 
-    // Stripe PaymentIntent作成
+    // StripeのCustomerを取得または作成
+    let customerId: string;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id")
+      .eq("id", userId)
+      .single();
+
+    if (profile?.stripe_customer_id) {
+      customerId = profile.stripe_customer_id;
+    } else {
+      const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
+      customerId = customer.id;
+      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
+    }
+
+    // 支払い方法を確認
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: "card",
+    });
+
+    if (paymentMethods.data.length === 0) {
+      return NextResponse.json({ requiresPaymentMethod: true });
+    }
+
+    // 支払い方法があれば即決済
+    const paymentMethod = paymentMethods.data[0];
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 350,
       currency: "jpy",
-      metadata: {
-        user_id: user.id,
-        material_id: materialId,
-      },
-      description: `toolio 教材単品購入: ${materialTitle}`,
+      customer: customerId,
+      payment_method: paymentMethod.id,
+      confirm: true,
+      off_session: true,
+      metadata: { user_id: userId, material_id: materialId },
     });
 
-    return NextResponse.json({
-      clientSecret: paymentIntent.client_secret,
-    });
+    if (paymentIntent.status === "succeeded") {
+      // purchasesテーブルに記録
+      await supabase.from("purchases").insert({
+        user_id: userId,
+        material_id: materialId,
+        stripe_payment_intent_id: paymentIntent.id,
+        amount: 350,
+      });
+      return NextResponse.json({ success: true });
+    }
+
+    return NextResponse.json({ error: "決済に失敗しました" }, { status: 400 });
+
   } catch (error) {
     console.error("Purchase error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

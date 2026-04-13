@@ -2,14 +2,8 @@
 import { useState } from "react";
 import { createClient } from "../../lib/supabase";
 
-const planRank: Record<string, number> = {
-  free: 0, light: 1, standard: 2, premium: 3,
-  "無料": 0, "ライト": 1, "スタンダード": 2, "プレミアム": 3,
-};
-
-function canDownload(userPlan: string, requiredPlan: string): boolean {
-  return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
-}
+import { canDownload } from "../../lib/materialUtils";
+import PurchaseConfirmModal from "./PurchaseConfirmModal";
 
 type Material = {
   id: string;
@@ -46,6 +40,7 @@ type Props = {
   tagColor: string;
   isLoggedIn: boolean;
   userPlan: string;
+  purchasedIds?: string[];
   favIds: string[];
   contentTabs: ContentTab[];
   methodTabs: MethodTab[];
@@ -57,16 +52,19 @@ type Props = {
 
 export default function TeaserModal({
   mat, bg, char, charColor, tag, tagBg, tagColor,
-  isLoggedIn, userPlan, favIds: initialFavIds,
+  isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
   contentTabs, methodTabs, locale, tmm,
   onClose, onFavChange,
 }: Props) {
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
+  const [purchaseStep, setPurchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
+  
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
 
   const isFav = favIds.includes(mat.id);
-  const canDl = canDownload(userPlan, mat.requiredPlan);
+  const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -86,6 +84,8 @@ export default function TeaserModal({
       window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
     }
   };
+
+  
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
@@ -175,7 +175,7 @@ export default function TeaserModal({
             {downTooltip && !canDl && (
               <>
                 <div onClick={() => setDownTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
-                <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "16px 18px", width: 260, border: "0.5px solid rgba(200,170,240,0.35)" }}>
+                <div style={{ position: "fixed", top: "50%", left: "calc(50% + 80px)", transform: "translateY(-50%)", zIndex: 300, background: "white", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 32px", width: 380, border: "0.5px solid rgba(200,170,240,0.35)" }}>
                   <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
                     {mat.requiredPlan === "light" ? "ライトプラン" : mat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
                   </div>
@@ -187,8 +187,20 @@ export default function TeaserModal({
                     </>
                   ) : (
                     <>
-                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
-                      <button onClick={() => { onClose(); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするか、この教材を単品購入できます。</div>
+                      <button onClick={() => { onClose(); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
+                     {purchaseStep === "idle" && (
+                      <button onClick={() => setShowPurchaseConfirm(true)} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>
+                       ¥350 この教材を単品購入する
+                      </button>
+                     )}
+                      
+                      {purchaseStep === "done" && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                          <div style={{ fontSize: 11, color: "#3a8a5a", fontWeight: 700, textAlign: "center" }}>✓ 購入完了！</div>
+                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -197,6 +209,16 @@ export default function TeaserModal({
           </div>
         </div>
       </div>
+    {showPurchaseConfirm && (
+        <PurchaseConfirmModal
+          mat={mat}
+          onSuccess={() => {
+            setShowPurchaseConfirm(false);
+            setPurchaseStep("done");
+          }}
+          onClose={() => setShowPurchaseConfirm(false)}
+        />
+      )}
     </div>
   );
 }
