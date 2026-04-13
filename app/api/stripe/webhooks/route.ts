@@ -26,45 +26,29 @@ export async function POST(req: NextRequest) {
   }
 
   switch (event.type) {
-    case 'checkout.session.completed': {
-      const session = event.data.object as Stripe.Checkout.Session
-      const userId = session.metadata?.user_id ?? session.metadata?.userId
-      const type = session.metadata?.type
+    case 'payment_intent.succeeded': {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent
+      const { user_id, material_id } = paymentIntent.metadata
 
-      // 追加購入（addon）の場合のみここで処理
-      if (type === 'addon' && userId) {
-        const quantity = parseInt(session.metadata?.quantity ?? '5')
-        const now = new Date()
-        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-
-        const { data: existing } = await supabase
-          .from('download_counts')
-          .select('count')
-          .eq('user_id', userId)
-          .eq('year_month', yearMonth)
-          .single()
-
-        const currentCount = existing?.count ?? 0
-
-        await supabase
-          .from('download_counts')
-          .upsert({
-            user_id: userId,
-            year_month: yearMonth,
-            count: Math.max(0, currentCount - quantity),
-            updated_at: new Date().toISOString(),
-          }, {
-            onConflict: 'user_id,year_month'
-          })
+      if (user_id && material_id) {
+        const { error } = await supabase.from('purchases').insert({
+          user_id,
+          material_id,
+          stripe_payment_intent_id: paymentIntent.id,
+        })
+        if (error) {
+          console.error('purchases insert error:', error)
+          return NextResponse.json({ error: 'DB error' }, { status: 500 })
+        }
       }
       break
     }
 
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice & {
-  subscription: string;
-}
-const subscriptionId = invoice.subscription
+        subscription: string
+      }
+      const subscriptionId = invoice.subscription
       if (!subscriptionId) break
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId)
