@@ -15,24 +15,27 @@ export async function GET() {
     let updated = 0
 
     for (const mat of materials) {
-      // すでに登録済みならスキップ
-      const { data: existing } = await supabase
-        .from('materials')
-        .select('id')
-        .eq('id', mat.id)
-        .single()
+      // title + description + usageBasic + usageMiddle + usageAdvanced + features をベクトル化
+      const text = [
+        mat.title,
+        mat.description,
+        mat.usageBasic,
+        mat.usageMiddle,
+        mat.usageAdvanced,
+        mat.features,
+      ].filter(Boolean).join(' ')
 
-      if (existing) continue
-
-      // タイトル＋説明をベクトル化
-      const text = `${mat.title} ${mat.description}`
       const embeddingRes = await openai.embeddings.create({
         model: 'text-embedding-3-small',
         input: text,
       })
       const embedding = embeddingRes.data[0].embedding
 
-      await supabase.from('materials').insert({ id: mat.id, embedding })
+      // upsert（既存レコードも上書き）
+      await supabase.from('materials').upsert(
+  { id: mat.id, embedding, content: text },
+  { onConflict: 'id' }
+)
       updated++
     }
 
