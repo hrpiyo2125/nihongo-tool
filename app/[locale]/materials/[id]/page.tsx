@@ -195,8 +195,7 @@ export default function MaterialDetailPage() {
   const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
-  const [downloadCount, setDownloadCount] = useState<number>(0);
-const [downloadLimit, setDownloadLimit] = useState<number>(3);
+  
   const [dlHover, setDlHover] = useState(false);
   const [favHover, setFavHover] = useState(false);
   const [homeHover, setHomeHover] = useState(false);
@@ -233,14 +232,7 @@ const [downloadLimit, setDownloadLimit] = useState<number>(3);
         if (favData) setTeaserFavIds(favData.map((d: { material_id: string }) => d.material_id));
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) setProfile(profileData);
-        // ダウンロードカウント取得
-    const countRes = await fetch('/api/downloads');
-       if (countRes.ok) {
-       const countData = await countRes.json();
-       setDownloadCount(countData.count ?? 0);
-       const limits: Record<string, number> = { free: 3, light: 10, standard: 20, premium: Infinity };
-       setDownloadLimit(limits[profileData.plan ?? 'free'] ?? 3);
-       }
+        
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -271,21 +263,7 @@ const [downloadLimit, setDownloadLimit] = useState<number>(3);
   if (!isLoggedIn) { setActiveTooltip(activeTooltip === "download" ? null : "download"); return; }
   if (!material?.pdfFile) return;
 
-  // ダウンロードカウントAPIを呼ぶ
-  try {
-    const countRes = await fetch('/api/downloads', { method: 'POST' });
-    if (countRes.status === 403) {
-      const data = await countRes.json();
-      if (data.error === 'LIMIT_EXCEEDED') {
-        alert(`今月のダウンロード上限（${data.limit}枚）に達しました。プランをアップグレードするか、来月をお待ちください。`);
-        return;
-      }
-    }
-    if (!countRes.ok) throw new Error('カウント失敗');
-  } catch (e) {
-    console.error('ダウンロードカウントエラー', e);
-    // カウント失敗してもダウンロードは続行
-  }
+  
 
   // PDFダウンロード
   try {
@@ -485,42 +463,11 @@ const [downloadLimit, setDownloadLimit] = useState<number>(3);
             <button onClick={handleDownloadClick} onMouseEnter={() => setDlHover(true)} onMouseLeave={() => setDlHover(false)} style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 16px", borderRadius: 8, border: "none", background: dlHover ? "rgba(255,255,255,0.85)" : "white", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeWidth="2"><path d="M12 3v13M7 11l5 5 5-5" stroke="#333" /><path d="M4 20h16" stroke="#333" /></svg>
               <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
-              {isLoggedIn && downloadLimit !== Infinity && (
-              <span style={{ fontSize: 10, color: "#999", whiteSpace: "nowrap" }}>
-              残り{downloadLimit - downloadCount}枚
-              </span>
-              )}
+              
             </button>
             <LockTooltip type="download" visible={activeTooltip === "download"} onClose={() => setActiveTooltip(null)} />
-              {isLoggedIn && profile.plan !== 'free' && downloadLimit !== Infinity && (
-  <button
-    onClick={async () => {
-      const res = await fetch('/api/stripe/addon', { method: 'POST' })
-      const data = await res.json()
-      if (data.url) window.location.href = data.url
-    }}
-    style={{
-      position: 'absolute',
-      top: 'calc(100% + 6px)',
-      right: 0,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 4,
-      padding: '6px 12px',
-      borderRadius: 10,
-      border: 'none',
-      background: 'white',
-      boxShadow: '0 4px 16px rgba(0,0,0,0.12)',
-      cursor: 'pointer',
-      whiteSpace: 'nowrap',
-      zIndex: 50,
-    }}
-  >
-    <span style={{ fontSize: 11, fontWeight: 700, color: '#e49bfd' }}>＋5枚</span>
-    <span style={{ fontSize: 11, fontWeight: 600, color: '#888' }}>¥480で追加</span>
-  </button>
-)}
+              
+  
           </div>
         </div>
       </header>
