@@ -28,22 +28,65 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
-      const userId = session.metadata?.userId
-      const priceId = session.metadata?.priceId
+      const userId = session.metadata?.user_id ?? session.metadata?.userId
+      const type = session.metadata?.type
+
+      // 追加購入（addon）の場合のみここで処理
+      if (type === 'addon' && userId) {
+        const quantity = parseInt(session.metadata?.quantity ?? '5')
+        const now = new Date()
+        const yearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+
+        const { data: existing } = await supabase
+          .from('download_counts')
+          .select('count')
+          .eq('user_id', userId)
+          .eq('year_month', yearMonth)
+          .single()
+
+        const currentCount = existing?.count ?? 0
+
+        await supabase
+          .from('download_counts')
+          .upsert({
+            user_id: userId,
+            year_month: yearMonth,
+            count: Math.max(0, currentCount - quantity),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id,year_month'
+          })
+      }
+      break
+    }
+
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object as Stripe.Invoice & {
+  subscription: string;
+}
+const subscriptionId = invoice.subscription
+      if (!subscriptionId) break
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId)
+      const userId = subscription.metadata?.userId
+      const priceId = subscription.items.data[0]?.price.id
 
       if (userId && priceId) {
         await supabase
           .from('subscriptions')
           .upsert({
             user_id: userId,
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: session.subscription as string,
+            stripe_customer_id: subscription.customer as string,
+            stripe_subscription_id: subscription.id,
             price_id: priceId,
             status: 'active',
+          }, {
+            onConflict: 'user_id'
           })
       }
       break
     }
+
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
       await supabase

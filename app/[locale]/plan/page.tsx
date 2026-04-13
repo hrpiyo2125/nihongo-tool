@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../../lib/supabase";
+import dynamic from "next/dynamic";
+
+const CheckoutModal = dynamic(() => import("../../../components/CheckoutModal"), { ssr: false });
 
 const plans = [
   {
@@ -28,7 +31,7 @@ const plans = [
     key: "light",
     name: "ライト",
     price: 980,
-    priceId: "price_1THEnBGhqjyGHGfCXxb9uRNa",
+    priceId: "price_1TLfBqK9q7r7RVzW9QYJ19j3",
     color: "#7a50b0",
     bg: "#fdf8ff",
     border: "#ddc8ff",
@@ -47,7 +50,7 @@ const plans = [
     key: "standard",
     name: "スタンダード",
     price: 1980,
-    priceId: "price_1THEo4GhqjyGHGfCt2x1xP3t",
+    priceId: "price_1TLfBqK9q7r7RVzWhhI4oEzI",
     color: "#7a50b0",
     bg: "#fdf8ff",
     border: "#c9a0f0",
@@ -66,7 +69,7 @@ const plans = [
     key: "premium",
     name: "プレミアム",
     price: 3980,
-    priceId: "price_1THEofGhqjyGHGfC6yPrXrrr",
+    priceId: "price_1TLfBoK9q7r7RVzWOWGR9pUL",
     color: "#c44a88",
     bg: "#fff8fd",
     border: "#f4b9b9",
@@ -87,6 +90,10 @@ export default function PlanPage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<string>("free");
+  const [checkoutModal, setCheckoutModal] = useState<{
+  planName: string;
+  clientSecret: string;
+} | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -113,7 +120,7 @@ export default function PlanPage() {
       return;
     }
 
-    const res = await fetch("/api/stripe/checkout", {
+    const res = await fetch("/api/stripe/create-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -124,8 +131,8 @@ export default function PlanPage() {
     });
 
     const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
+    if (data.clientSecret) {
+      setCheckoutModal({ planName: plan.name, clientSecret: data.clientSecret });
     } else {
       alert("決済の開始に失敗しました。もう一度お試しください。");
     }
@@ -133,12 +140,24 @@ export default function PlanPage() {
   };
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif",
-      background: "linear-gradient(160deg, #fce8f8 0%, #ede8ff 50%, #e8f0ff 100%)",
-      padding: "48px 16px 80px",
-    }}>
+      <>
+        {checkoutModal && (
+          <CheckoutModal
+            planName={checkoutModal.planName}
+            clientSecret={checkoutModal.clientSecret}
+            onSuccess={() => {
+              setCheckoutModal(null);
+              router.push("/?success=true");
+            }}
+            onClose={() => setCheckoutModal(null)}
+          />
+        )}
+        <div style={{
+          minHeight: "100vh",
+          fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif",
+          background: "linear-gradient(160deg, #fce8f8 0%, #ede8ff 50%, #e8f0ff 100%)",
+          padding: "48px 16px 80px",
+        }}>
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <button onClick={() => router.back()} style={{
           border: "none", background: "transparent", cursor: "pointer",
@@ -294,5 +313,6 @@ export default function PlanPage() {
         クレジットカードで安全に決済。いつでもキャンセル可能です。
       </div>
     </div>
+    </>
   );
 }
