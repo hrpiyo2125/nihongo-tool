@@ -27,26 +27,16 @@ export async function POST(req: NextRequest) {
       await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
     }
 
-    const subscription = await stripe.subscriptions.create({
+    // SetupIntentでカード登録→サブスク作成
+    const setupIntent = await stripe.setupIntents.create({
       customer: customerId,
-      items: [{ price: priceId }],
-      payment_behavior: "default_incomplete",
-      payment_settings: { save_default_payment_method: "on_subscription" },
-      expand: ["latest_invoice.payment_intent"],
-      metadata: { user_id: userId },
+      payment_method_types: ["card"],
+      metadata: { user_id: userId, price_id: priceId },
     });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent;
-    const clientSecret = paymentIntent?.client_secret;
-
-    if (!clientSecret) {
-      return NextResponse.json({ error: "clientSecret取得失敗" }, { status: 500 });
-    }
-
     return NextResponse.json({
-      subscriptionId: subscription.id,
-      clientSecret,
+      clientSecret: setupIntent.client_secret,
+      setupIntentId: setupIntent.id,
     });
 
   } catch (error) {

@@ -8,10 +8,12 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 function CheckoutForm({
   planName,
+  setupIntentId,
   onSuccess,
   onClose,
 }: {
   planName: string;
+  setupIntentId?: string;
   onSuccess: () => void;
   onClose: () => void;
 }) {
@@ -25,7 +27,7 @@ function CheckoutForm({
     setLoading(true);
     setError(null);
 
-    const { error } = await stripe.confirmPayment({
+    const { error, setupIntent } = await stripe.confirmSetup({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/?success=true`,
@@ -36,9 +38,31 @@ function CheckoutForm({
     if (error) {
       setError(error.message ?? "決済に失敗しました");
       setLoading(false);
-    } else {
-      onSuccess();
+      return;
     }
+
+    if (setupIntent && setupIntentId) {
+      const supabase = (await import("../lib/supabase")).createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const res = await fetch("/api/stripe/create-subscription-after-setup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: session.user.id,
+            setupIntentId,
+          }),
+        });
+        const data = await res.json();
+        if (!data.success) {
+          setError("サブスク登録に失敗しました。");
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
+    onSuccess();
   };
 
   return (
@@ -102,11 +126,13 @@ function CheckoutForm({
 export default function CheckoutModal({
   planName,
   clientSecret,
+  setupIntentId,
   onSuccess,
   onClose,
 }: {
   planName: string;
   clientSecret: string;
+  setupIntentId?: string;
   onSuccess: () => void;
   onClose: () => void;
 }) {
@@ -169,6 +195,7 @@ export default function CheckoutModal({
         >
           <CheckoutForm
             planName={planName}
+            setupIntentId={setupIntentId}
             onSuccess={onSuccess}
             onClose={onClose}
           />
