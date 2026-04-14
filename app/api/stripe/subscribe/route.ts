@@ -27,24 +27,38 @@ export async function POST(req: NextRequest) {
       await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
     }
 
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: customerId,
+      type: "card",
+    });
+
+    if (paymentMethods.data.length === 0) {
+      return NextResponse.json({ requiresPaymentMethod: true });
+    }
+
+    const paymentMethodId = paymentMethods.data[0].id;
+
+    const existingSubscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+    });
+
+    if (existingSubscriptions.data.length > 0) {
+      return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 400 });
+    }
+
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
-      payment_behavior: "default_incomplete",
-      payment_settings: { save_default_payment_method: "on_subscription" },
-      expand: ["latest_invoice.payment_intent"],
+      default_payment_method: paymentMethodId,
       metadata: { user_id: userId },
     });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice & {
-      payment_intent: Stripe.PaymentIntent;
-    };
-    const clientSecret = invoice.payment_intent.client_secret;
+    if (subscription.status === "active") {
+      return NextResponse.json({ success: true });
+    }
 
-    return NextResponse.json({
-      subscriptionId: subscription.id,
-      clientSecret,
-    });
+    return NextResponse.json({ error: "登録に失敗しました" }, { status: 400 });
 
   } catch (error) {
     console.error("Subscription error:", error);

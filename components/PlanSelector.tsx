@@ -4,7 +4,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
 import dynamic from "next/dynamic";
 
+
 const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
+const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: false });
 
 const UNIT_PRICE = 350;
 
@@ -79,6 +81,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const [loading, setLoading] = useState<string | null>(null);
   const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const [confirmPlan, setConfirmPlan] = useState<"light" | "standard" | "premium" | null>(null);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -121,21 +124,36 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
     setLoading(plan.key);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth?mode=login&reason=plan"); return; }
-    const res = await fetch("/api/stripe/create-subscription", {
+    if (!user) { router.push("/auth?mode=login&reason=plan"); setLoading(null); return; }
+
+    const res = await fetch("/api/stripe/payment-method", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ priceId: plan.priceId, userId: user.id, email: user.email }),
+      body: JSON.stringify({ userId: user.id }),
     });
-    const data = await res.json();
-    if (data.clientSecret) {
-      setCheckoutModal({ planName: plan.name, clientSecret: data.clientSecret });
-    } else {
-      alert("決済の開始に失敗しました。もう一度お試しください。");
-    }
+    const cardData = res.ok ? await res.json() : {};
     setLoading(null);
-  };
 
+    if (cardData.brand && cardData.last4) {
+      setConfirmPlan(plan.key as "light" | "standard" | "premium");
+    } else {
+      setLoading(plan.key);
+      const subRes = await fetch("/api/stripe/create-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ priceId: plan.priceId, userId: user.id, email: user.email }),
+      });
+      const subData = await subRes.json();
+      if (subData.clientSecret) {
+        setCheckoutModal({ planName: plan.name, clientSecret: subData.clientSecret });
+      } else if (subData.requiresPaymentMethod) {
+        alert("カードを登録してください。");
+      } else {
+        alert("決済の開始に失敗しました。もう一度お試しください。");
+      }
+      setLoading(null);
+    }
+  };
   return (
     <>
       {checkoutModal && (
@@ -146,6 +164,14 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
           onClose={() => setCheckoutModal(null)}
         />
       )}
+      {confirmPlan && (
+        <PlanConfirmModal
+          plan={confirmPlan}
+          onSuccess={() => { setConfirmPlan(null); onSubscribed?.(); }}
+          onClose={() => setConfirmPlan(null)}
+        />
+      )}
+      
 
       <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif" }}>
 
