@@ -79,7 +79,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const router = useRouter();
   const [monthlyCount, setMonthlyCount] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null);
-  const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string } | null>(null);
+  const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<"light" | "standard" | "premium" | null>(null);
 
@@ -145,7 +145,8 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
       });
       const subData = await subRes.json();
       if (subData.clientSecret) {
-        setCheckoutModal({ planName: plan.name, clientSecret: subData.clientSecret });
+        setLoading(null);
+        setCheckoutModal({ planName: plan.name, clientSecret: subData.clientSecret, setupIntentId: subData.setupIntentId });
       } else if (subData.requiresPaymentMethod) {
         alert("カードを登録してください。");
       } else {
@@ -160,6 +161,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
         <CheckoutModal
           planName={checkoutModal.planName}
           clientSecret={checkoutModal.clientSecret}
+          setupIntentId={checkoutModal.setupIntentId}
           onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); }}
           onClose={() => setCheckoutModal(null)}
         />
