@@ -4,6 +4,7 @@ import { createClient } from "../../lib/supabase";
 
 import { canDownload } from "../../lib/materialUtils";
 import PurchaseConfirmModal from "./PurchaseConfirmModal";
+import PlanModal from "../../components/PlanModal";
 
 type Material = {
   id: string;
@@ -62,7 +63,7 @@ export default function TeaserModal({
   const [purchaseStep, setPurchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
   
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
-
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const isFav = favIds.includes(mat.id);
   const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
 
@@ -188,7 +189,7 @@ export default function TeaserModal({
                   ) : (
                     <>
                       <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするか、この教材を単品購入できます。</div>
-                      <button onClick={() => { onClose(); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
+                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
                      {purchaseStep === "idle" && (
                       <button onClick={() => setShowPurchaseConfirm(true)} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>
                        ¥350 この教材を単品購入する
@@ -219,6 +220,18 @@ export default function TeaserModal({
           onClose={() => setShowPurchaseConfirm(false)}
         />
       )}
+
+      {showPlanModal && (
+        <PlanModal
+          currentPlan={userPlan}
+          onSubscribed={() => {
+            setShowPlanModal(false);
+            setDownTooltip(false);
+          }}
+          onClose={() => setShowPlanModal(false)}
+        />
+      )}
+      
     </div>
   );
 }

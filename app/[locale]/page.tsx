@@ -13,7 +13,7 @@ import { getCardStyle, planRank, canDownload } from "../../lib/materialUtils";
 import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
 import { TroubleSection, GuideSection } from "./TroubleGuide";
-
+import PlanSelector from "../../components/PlanSelector";
 
 
 
@@ -1489,13 +1489,12 @@ if (isMobile) return <MobileHome />;
               </div>
               <div style={{ padding: "32px 48px 56px" }}>
                 {activePage === "plan" ? (
-                  <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>もっとわくわくする教材を使いませんか</div>
-                    <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>サブスクプランに登録すると<br />全教材・体系的カリキュラムが使い放題になります</div>
-                    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                      <button onClick={() => router.push("/plan")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>プランを見る →</button>
-                    </div>
-                  </div>
+                  <PlanSelector
+                    currentPlan={profile?.plan ?? "free"}
+                    onSubscribed={() => {
+                      setActivePage("home");
+                    }}
+                  />
                 ) : !isLoggedIn ? (
                   <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
                     <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>この機能を使うには登録が必要です</div>
