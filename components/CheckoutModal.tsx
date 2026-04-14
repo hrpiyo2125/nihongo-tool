@@ -20,6 +20,7 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
@@ -67,54 +68,43 @@ function CheckoutForm({
 
   return (
     <div>
-      <div style={{ marginBottom: 24 }}>
-        <PaymentElement />
+      {!ready && (
+        <div style={{ textAlign: "center", padding: "24px 0", color: "#bbb", fontSize: 13 }}>
+          読み込み中...
+        </div>
+      )}
+      <div style={{ marginBottom: 24, display: ready ? "block" : "none" }}>
+        <PaymentElement onReady={() => setReady(true)} />
       </div>
 
       {error && (
-        <div style={{
-          color: "#e44",
-          fontSize: 12,
-          marginBottom: 12,
-          padding: "8px 12px",
-          background: "#fff0f0",
-          borderRadius: 8,
-        }}>
+        <div style={{ color: "#e44", fontSize: 12, marginBottom: 12, padding: "8px 12px", background: "#fff0f0", borderRadius: 8 }}>
           {error}
         </div>
       )}
 
-      <button
-        onClick={handleSubmit}
-        disabled={!stripe || loading}
-        style={{
-          width: "100%",
-          height: 44,
-          borderRadius: 22,
-          border: "none",
-          background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
-          color: "white",
-          fontSize: 14,
-          fontWeight: 700,
-          cursor: loading ? "not-allowed" : "pointer",
-          opacity: loading ? 0.7 : 1,
-        }}
-      >
-        {loading ? "処理中..." : `${planName}プランを始める`}
-      </button>
+      {ready && (
+        <button
+          onClick={handleSubmit}
+          disabled={!stripe || loading}
+          style={{
+            width: "100%", height: 44, borderRadius: 22, border: "none",
+            background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+            color: "white", fontSize: 14, fontWeight: 700,
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
+          }}
+        >
+          {loading ? "処理中..." : `${planName}プランを始める`}
+        </button>
+      )}
 
       <button
         onClick={onClose}
         style={{
-          width: "100%",
-          height: 36,
-          marginTop: 8,
-          borderRadius: 18,
-          border: "none",
-          background: "transparent",
-          color: "#bbb",
-          fontSize: 12,
-          cursor: "pointer",
+          width: "100%", height: 36, marginTop: 8, borderRadius: 18,
+          border: "none", background: "transparent", color: "#bbb",
+          fontSize: 12, cursor: "pointer",
         }}
       >
         キャンセル
@@ -140,42 +130,24 @@ export default function CheckoutModal({
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,0.4)",
-        zIndex: 1000,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
+        position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
+        zIndex: 1000, display: "flex", alignItems: "center",
+        justifyContent: "center", padding: 16,
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "white",
-          borderRadius: 24,
-          padding: "32px 24px",
-          width: "100%",
-          maxWidth: 420,
+          background: "white", borderRadius: 24, padding: "32px 24px",
+          width: "100%", maxWidth: 420,
           boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+          maxHeight: "90vh", overflowY: "auto",
         }}
       >
-        <div style={{
-          fontSize: 18,
-          fontWeight: 800,
-          color: "#333",
-          marginBottom: 4,
-          textAlign: "center",
-        }}>
+        <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 4, textAlign: "center" }}>
           {planName}プランへ登録
         </div>
-        <div style={{
-          fontSize: 12,
-          color: "#bbb",
-          textAlign: "center",
-          marginBottom: 24,
-        }}>
+        <div style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 24 }}>
           いつでもキャンセル可能です
         </div>
 
@@ -183,6 +155,7 @@ export default function CheckoutModal({
           stripe={stripePromise}
           options={{
             clientSecret,
+            paymentMethodCreation: "manual",
             appearance: {
               theme: "stripe",
               variables: {

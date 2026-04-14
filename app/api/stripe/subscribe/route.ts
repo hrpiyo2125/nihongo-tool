@@ -44,7 +44,22 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingSubscriptions.data.length > 0) {
-      return NextResponse.json({ error: "ALREADY_SUBSCRIBED" }, { status: 400 });
+      const existingSub = existingSubscriptions.data[0];
+      const updatedSub = await stripe.subscriptions.update(existingSub.id, {
+        items: [{ id: existingSub.items.data[0].id, price: priceId }],
+        proration_behavior: "always_invoice",
+      });
+      const planMap: Record<string, string> = {
+        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
+        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
+        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+      };
+      const newPlan = planMap[priceId] ?? "light";
+      await supabase.from("profiles").update({
+        plan: newPlan,
+        stripe_subscription_id: updatedSub.id,
+      }).eq("id", userId);
+      return NextResponse.json({ success: true });
     }
 
     const subscription = await stripe.subscriptions.create({
@@ -55,6 +70,19 @@ export async function POST(req: NextRequest) {
     });
 
     if (subscription.status === "active") {
+      const planMap: Record<string, string> = {
+        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
+        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
+        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+      };
+      const newPlan = planMap[priceId] ?? "light";
+      await supabase
+        .from("profiles")
+        .update({
+          plan: newPlan,
+          stripe_subscription_id: subscription.id,
+        })
+        .eq("id", userId);
       return NextResponse.json({ success: true });
     }
 

@@ -15,9 +15,9 @@ const PLAN_PRICES: Record<string, number> = {
 };
 
 const PRICE_IDS: Record<string, string> = {
-  light: "price_1TLfBqK9q7r7RVzW9QYJ19j3",
-  standard: "price_1TLfBqK9q7r7RVzWhhI4oEzI",
-  premium: "price_1TLfBoK9q7r7RVzWOWGR9pUL",
+  light: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!,
+  standard: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!,
+  premium: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!,
 };
 
 type Props = {
@@ -30,7 +30,8 @@ export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [success, setSuccess] = useState(false);
+ 
   useEffect(() => {
     const fetchCard = async () => {
       const supabase = createClient();
@@ -54,7 +55,7 @@ export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const res = await fetch("/api/stripe/create-subscription-with-saved-card", {
+      const res = await fetch("/api/stripe/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -65,7 +66,7 @@ export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
       });
       const data = await res.json();
       if (data.success) {
-        onSuccess();
+        setSuccess(true);
       } else {
         setError(data.error ?? "登録に失敗しました。");
       }
@@ -75,6 +76,31 @@ export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "48px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
+            登録が完了しました！
+          </div>
+          <div style={{ fontSize: 13, color: "#999", marginBottom: 8, lineHeight: 1.8 }}>
+            {PLAN_LABELS[plan]}プランへようこそ。<br />今すぐすべての教材が使えます。
+          </div>
+          <div style={{ fontSize: 12, color: "#bbb", marginBottom: 32 }}>
+            本日より有効です。
+          </div>
+          <button
+            onClick={onSuccess}
+            style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+          >
+            教材を見る →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>

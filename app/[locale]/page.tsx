@@ -683,12 +683,13 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
       
  
 function UserMenuPopup({
-  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, tm,
+  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, userPlan, tm,
 }: {
   userIconRef: React.RefObject<HTMLDivElement | null>;
   sbOpen: boolean;
   userInitial: string;
   userName: string;
+  userPlan: string;
   onClose: () => void;
   onNavigate: (page: string) => void;
   onRouterPush: (href: string) => void;
@@ -716,7 +717,7 @@ function UserMenuPopup({
         <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
-          <div style={{ fontSize: 11, color: "#aaa" }}>{tm("free_plan")}</div>
+          <div style={{ fontSize: 11, color: "#aaa" }}>{userPlan === "light" ? "ライトプラン" : userPlan === "standard" ? "スタンダードプラン" : userPlan === "premium" ? "プレミアムプラン" : tm("free_plan")}</div>
         </div>
       </div>
       {[
@@ -984,13 +985,14 @@ if (isMobile) return <MobileHome />;
         router.refresh();
       }}
       sbOpen={sbOpen}
+      userPlan={profile.plan ?? "free"}
       tm={tm} 
     />
   </>
 )}
   <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { router.push("/auth?mode=login"); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
     <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
-    {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? "Freeプラン" : "未登録"}</div></div>}
+    {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? (profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "Freeプラン") : "未登録"}</div></div>}
     {sbOpen && isLoggedIn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>}
   </div>
   <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>

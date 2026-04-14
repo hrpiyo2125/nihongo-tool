@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 
 const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
 const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: false });
+const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
 
 const UNIT_PRICE = 350;
 
@@ -25,7 +26,7 @@ const plans = [
     key: "light",
     name: "ライト",
     price: 500,
-    priceId: "price_1TLfBqK9q7r7RVzW9QYJ19j3",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID ?? null,
     color: "#7a50b0",
     border: "#ddc8ff",
     bg: "#fdf8ff",
@@ -35,7 +36,7 @@ const plans = [
     key: "standard",
     name: "スタンダード",
     price: 980,
-    priceId: "price_1TLfBqK9q7r7RVzWhhI4oEzI",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID ?? null,
     color: "#7a50b0",
     border: "#c9a0f0",
     bg: "#fdf8ff",
@@ -45,7 +46,7 @@ const plans = [
     key: "premium",
     name: "プレミアム",
     price: 1480,
-    priceId: "price_1TLfBoK9q7r7RVzWOWGR9pUL",
+    priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID ?? null,
     color: "#c44a88",
     border: "#f4b9b9",
     bg: "#fff8fd",
@@ -82,6 +83,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<"light" | "standard" | "premium" | null>(null);
+  const [startPlan, setStartPlan] = useState<{ key: "light" | "standard" | "premium"; name: string; price: number } | null>(null);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -135,7 +137,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
     setLoading(null);
 
     if (cardData.brand && cardData.last4) {
-      setConfirmPlan(plan.key as "light" | "standard" | "premium");
+      setStartPlan({ key: plan.key as "light" | "standard" | "premium", name: plan.name, price: plan.price! });
     } else {
       setLoading(plan.key);
       const subRes = await fetch("/api/stripe/create-subscription", {
@@ -164,6 +166,14 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
           setupIntentId={checkoutModal.setupIntentId}
           onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); }}
           onClose={() => setCheckoutModal(null)}
+        />
+      )}
+      {startPlan && (
+        <PlanStartModal
+          planName={startPlan.name}
+          price={startPlan.price}
+          onConfirm={() => { setStartPlan(null); setConfirmPlan(startPlan.key); }}
+          onClose={() => setStartPlan(null)}
         />
       )}
       {confirmPlan && (

@@ -13,11 +13,21 @@ export async function POST(req: NextRequest) {
     const { userId, setupIntentId } = await req.json();
 
     // SetupIntentからpriceIdとpaymentMethodを取得
-    const setupIntent = await stripe.setupIntents.retrieve(setupIntentId);
+    const setupIntent = await stripe.setupIntents.retrieve(setupIntentId, {
+      expand: ["payment_method"],
+    });
     const priceId = setupIntent.metadata?.price_id;
-    const paymentMethodId = setupIntent.payment_method as string;
+    const paymentMethodId =
+      typeof setupIntent.payment_method === "string"
+        ? setupIntent.payment_method
+        : setupIntent.payment_method?.id;
+
+    console.log("setupIntent.status:", setupIntent.status);
+    console.log("setupIntent.payment_method:", setupIntent.payment_method);
+    console.log("priceId:", priceId);
 
     if (!priceId || !paymentMethodId) {
+      console.error("Missing priceId or paymentMethodId", { priceId, paymentMethodId });
       return NextResponse.json({ error: "Invalid setup intent" }, { status: 400 });
     }
 
@@ -45,6 +55,19 @@ export async function POST(req: NextRequest) {
     });
 
     if (subscription.status === "active") {
+      const planMap: Record<string, string> = {
+        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
+        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
+        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+      };
+      const newPlan = planMap[priceId] ?? "light";
+      await supabase
+        .from("profiles")
+        .update({
+          plan: newPlan,
+          stripe_subscription_id: subscription.id,
+        })
+        .eq("id", userId);
       return NextResponse.json({ success: true });
     }
 
