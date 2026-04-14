@@ -36,10 +36,13 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: userId },
     });
 
-    const invoice = subscription.latest_invoice as Stripe.Invoice & {
-      payment_intent: Stripe.PaymentIntent;
-    };
-    const clientSecret = invoice.payment_intent.client_secret;
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent;
+    const clientSecret = paymentIntent?.client_secret;
+
+    if (!clientSecret) {
+      return NextResponse.json({ error: "clientSecret取得失敗" }, { status: 500 });
+    }
 
     return NextResponse.json({
       subscriptionId: subscription.id,
