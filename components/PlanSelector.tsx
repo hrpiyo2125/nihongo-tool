@@ -8,7 +8,6 @@ import dynamic from "next/dynamic";
 const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
 const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: false });
 const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
-const [subscriptionResetModal, setSubscriptionResetModal] = useState(false)
 
 const UNIT_PRICE = 350;
 
@@ -85,6 +84,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<"light" | "standard" | "premium" | null>(null);
   const [startPlan, setStartPlan] = useState<{ key: "light" | "standard" | "premium"; name: string; price: number } | null>(null);
+  const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
