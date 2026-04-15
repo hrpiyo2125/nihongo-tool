@@ -23,11 +23,12 @@ const PRICE_IDS: Record<string, string> = {
 
 type Props = {
   plan: string;
+  mode?: "subscribe" | "change";
   onSuccess: () => void;
   onClose: () => void;
 };
 
-export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
+export default function PlanConfirmModal({ plan, mode = "subscribe", onSuccess, onClose }: Props) {
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,20 +57,35 @@ export default function PlanConfirmModal({ plan, onSuccess, onClose }: Props) {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const res = await fetch("/api/stripe/subscribe", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: session.user.id,
-          email: session.user.email,
-          priceId: PRICE_IDS[plan],
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSuccess(true);
+
+      if (mode === "change") {
+        const res = await fetch("/api/stripe/change-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: session.user.id, newPlan: plan }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setSuccess(true);
+        } else {
+          setError(data.error ?? "プラン変更に失敗しました。");
+        }
       } else {
-        setError(data.error ?? "登録に失敗しました。");
+        const res = await fetch("/api/stripe/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: session.user.id,
+            email: session.user.email,
+            priceId: PRICE_IDS[plan],
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          setSuccess(true);
+        } else {
+          setError(data.error ?? "登録に失敗しました。");
+        }
       }
     } catch {
       setError("エラーが発生しました。");

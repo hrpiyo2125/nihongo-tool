@@ -1,4 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
+import { createClient } from "../lib/supabase";
 
 type Props = {
   planName: string;
@@ -11,6 +13,26 @@ type Props = {
 
 export default function PlanStartModal({ planName, price, mode, currentPeriodEnd, onConfirm, onClose }: Props) {
   const isCancel = mode === "cancel";
+  const showCard = mode === "change" || mode === "subscribe";
+
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+
+  useEffect(() => {
+    if (!showCard) return;
+    const fetchCard = async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const res = await fetch("/api/stripe/payment-method", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
+      const data = res.ok ? await res.json() : {};
+      if (data.brand && data.last4) setCardInfo({ brand: data.brand, last4: data.last4 });
+    };
+    fetchCard();
+  }, [showCard]);
 
   const periodEndText = currentPeriodEnd
     ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })
@@ -23,11 +45,25 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
           {isCancel ? "無料プランに戻しますか？" : `${planName}プランを始めますか？`}
         </div>
-        <div style={{ fontSize: 13, color: "#999", marginBottom: 32, lineHeight: 1.8 }}>
+        <div style={{ fontSize: 13, color: "#999", marginBottom: showCard ? 16 : 32, lineHeight: 1.8 }}>
           {isCancel
-            ? `現在の${planName}プランは${periodEndText ?? "現在の期間終了日"}まで引き続きご利用いただけます。期間終了後、自動的に無料プランへ移行します。再登録はいつでも可能です。`
+            ? `現在のプランは${periodEndText ?? "現在の期間終了日"}まで引き続きご利用いただけます。期間終了後、自動的に無料プランへ移行します。`
             : `月額 ¥${price.toLocaleString()} で、いつでもキャンセルできます。`}
         </div>
+
+        {showCard && (
+          <div style={{ background: "#f8f6ff", borderRadius: 12, padding: "12px 16px", marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 12, color: "#aaa" }}>お支払いカード</div>
+            {cardInfo ? (
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#555" }}>
+                {cardInfo.brand.toUpperCase()} •••• {cardInfo.last4}
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: "#bbb" }}>読み込み中...</div>
+            )}
+          </div>
+        )}
+
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button
             onClick={onConfirm}

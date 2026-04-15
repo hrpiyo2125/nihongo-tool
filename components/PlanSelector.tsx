@@ -86,6 +86,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const [startPlan, setStartPlan] = useState<{ key: string; name: string; price: number; mode: "subscribe" | "change" | "new-card" | "cancel" } | null>(null);
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
   const [successPlan, setSuccessPlan] = useState<{ name: string; mode: "change" | "cancel"; currentPeriodEnd?: string | null } | null>(null);
+  const [confirmMode, setConfirmMode] = useState<"subscribe" | "change">("subscribe");
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -229,8 +230,11 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
           onConfirm={async () => {
             const plan = startPlan;
             setStartPlan(null);
-            if (plan.mode === "change" || plan.mode === "cancel") {
-              handleChangePlan(plan.key);
+            if (plan.mode === "cancel") {
+              handleChangePlan("free");
+            } else if (plan.mode === "change") {
+              setConfirmMode("change");
+              setConfirmPlan(plan.key);
             } else if (plan.mode === "new-card") {
               setLoading(plan.key);
               const supabase = createClient();
@@ -250,6 +254,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
               }
               setLoading(null);
             } else {
+              setConfirmMode("subscribe");
               setConfirmPlan(plan.key);
             }
           }}
@@ -259,6 +264,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
       {confirmPlan && (
         <PlanConfirmModal
           plan={confirmPlan}
+          mode={confirmMode}
           onSuccess={() => { setConfirmPlan(null); onSubscribed?.(); }}
           onClose={() => setConfirmPlan(null)}
         />
