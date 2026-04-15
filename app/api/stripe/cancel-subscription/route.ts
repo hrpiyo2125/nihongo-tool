@@ -35,10 +35,28 @@ export async function POST(req: NextRequest) {
     }
 
     // Stripeでキャンセル予約（期間終了まで使える）
-    const subscription = await stripe.subscriptions.update(
-      profile.stripe_subscription_id,
-      { cancel_at_period_end: true }
-    )
+    let subscription: Stripe.Subscription
+    try {
+      subscription = await stripe.subscriptions.update(
+        profile.stripe_subscription_id,
+        { cancel_at_period_end: true }
+      )
+    } catch (stripeError: any) {
+      if (stripeError?.code === 'resource_missing' || ['incomplete_expired', 'canceled'].includes(stripeError?.message ?? '')) {
+        await supabase
+          .from('profiles')
+          .update({
+            stripe_subscription_id: null,
+            plan: 'free',
+            plan_status: 'active',
+            cancel_at_period_end: false,
+            current_period_end: null,
+          })
+          .eq('id', userId)
+        return NextResponse.json({ error: 'subscription_reset' }, { status: 400 })
+      }
+      throw stripeError
+    }
 
     // Supabaseを更新
     await supabase
