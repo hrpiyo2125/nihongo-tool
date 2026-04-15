@@ -31,6 +31,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId and newPlan are required' }, { status: 400 })
     }
 
+    // freeへの変更 = 解約予約（期間終了後にfree降格）
+    if (newPlan === 'free') {
+      const { data: freeProfile, error: freeProfileError } = await supabase
+        .from('profiles')
+        .select('stripe_subscription_id')
+        .eq('id', userId)
+        .single()
+
+      if (freeProfileError || !freeProfile?.stripe_subscription_id) {
+        return NextResponse.json({ error: 'No active subscription' }, { status: 400 })
+      }
+
+      await stripe.subscriptions.update(freeProfile.stripe_subscription_id, {
+        cancel_at_period_end: true,
+      })
+
+      const updatedSub = await stripe.subscriptions.retrieve(freeProfile.stripe_subscription_id)
+
+      const periodEnd = (updatedSub as any).current_period_end
+        ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
+        : null
+
+      await supabase
+        .from('profiles')
+        .update({
+          cancel_at_period_end: true,
+          current_period_end: periodEnd,
+        })
+        .eq('id', userId)
+
+      return NextResponse.json({
+        success: true,
+        isUpgrade: false,
+        newPlan: 'free',
+        currentPeriodEnd: periodEnd,
+      })
+    }
+
     if (!PLAN_TO_PRICE[newPlan]) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }

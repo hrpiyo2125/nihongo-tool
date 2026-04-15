@@ -80,11 +80,12 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const router = useRouter();
   const [monthlyCount, setMonthlyCount] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null);
-  const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
+  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [confirmPlan, setConfirmPlan] = useState<"light" | "standard" | "premium" | null>(null);
-  const [startPlan, setStartPlan] = useState<{ key: "light" | "standard" | "premium"; name: string; price: number } | null>(null);
+  const [confirmPlan, setConfirmPlan] = useState<string | null>(null);
+  const [startPlan, setStartPlan] = useState<{ key: string; name: string; price: number; mode: "subscribe" | "change" | "new-card" | "cancel" } | null>(null);
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
+  const [successPlan, setSuccessPlan] = useState<{ name: string; mode: "change" | "cancel"; currentPeriodEnd?: string | null } | null>(null);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -134,7 +135,9 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
       })
       const data = await res.json()
       if (data.success) {
-        onSubscribed?.()
+        const planName = plans.find(p => p.key === newPlanKey)?.name ?? "無料"
+        const mode = newPlanKey === "free" ? "cancel" : "change"
+        setSuccessPlan({ name: planName, mode, currentPeriodEnd: data.currentPeriodEnd })
       } else if (data.error === 'subscription_reset') {
         setSubscriptionResetModal(true)
       } else {
@@ -163,28 +166,35 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
     setLoading(null);
 
     if (cardData.brand && cardData.last4) {
-      setStartPlan({ key: plan.key as "light" | "standard" | "premium", name: plan.name, price: plan.price! });
+      setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "subscribe" });
     } else {
-      setLoading(plan.key);
-      const subRes = await fetch("/api/stripe/create-subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ priceId: plan.priceId, userId: user.id, email: user.email }),
-      });
-      const subData = await subRes.json();
-      if (subData.clientSecret) {
-        setLoading(null);
-        setCheckoutModal({ planName: plan.name, clientSecret: subData.clientSecret, setupIntentId: subData.setupIntentId });
-      } else if (subData.requiresPaymentMethod) {
-        alert("カードを登録してください。");
-      } else {
-        alert("決済の開始に失敗しました。もう一度お試しください。");
-      }
-      setLoading(null);
+      setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "new-card" });
     }
   };
   return (
     <>
+
+      {successPlan && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "48px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>{successPlan.mode === "cancel" ? "👋" : "🎉"}</div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
+              {successPlan.mode === "cancel" ? "解約を受け付けました" : "プランを変更しました！"}
+            </div>
+            <div style={{ fontSize: 13, color: "#999", marginBottom: 32, lineHeight: 1.8 }}>
+              {successPlan.mode === "cancel"
+                ? `${successPlan.currentPeriodEnd ? new Date(successPlan.currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}まで現在のプランをご利用いただけます。期間終了後は自動的に無料プランへ移行します。引き続きtoolioをお楽しみください。`
+                : `${successPlan.name}プランへ変更しました。引き続きtoolioをお楽しみください。`}
+            </div>
+            <button
+              onClick={() => { setSuccessPlan(null); onSubscribed?.(); }}
+              style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+            >
+              確認する →
+            </button>
+          </div>
+        </div>
+      )}
 
       {subscriptionResetModal && (
   <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -207,7 +217,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
           planName={checkoutModal.planName}
           clientSecret={checkoutModal.clientSecret}
           setupIntentId={checkoutModal.setupIntentId}
-          onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); }}
+          onSuccess={() => { setCheckoutModal(null); setSuccessPlan({ name: checkoutModal.planName, mode: "change" }); }}
           onClose={() => setCheckoutModal(null)}
         />
       )}
@@ -215,7 +225,34 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
         <PlanStartModal
           planName={startPlan.name}
           price={startPlan.price}
-          onConfirm={() => { setStartPlan(null); setConfirmPlan(startPlan.key); }}
+          mode={startPlan.mode === "cancel" ? "cancel" : startPlan.mode === "new-card" ? "new-card" : "subscribe"}
+          onConfirm={async () => {
+            const plan = startPlan;
+            setStartPlan(null);
+            if (plan.mode === "change" || plan.mode === "cancel") {
+              handleChangePlan(plan.key);
+            } else if (plan.mode === "new-card") {
+              setLoading(plan.key);
+              const supabase = createClient();
+              const { data: { user } } = await supabase.auth.getUser();
+              if (!user) return;
+              const subRes = await fetch("/api/stripe/create-subscription", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ priceId: plans.find(p => p.key === plan.key)?.priceId, userId: user.id, email: user.email }),
+              });
+              const subData = await subRes.json();
+              if (subData.clientSecret) {
+                setLoading(null);
+                setCheckoutModal({ planKey: plan.key, planName: plan.name, clientSecret: subData.clientSecret, setupIntentId: subData.setupIntentId });
+              } else {
+                alert("決済の開始に失敗しました。もう一度お試しください。");
+              }
+              setLoading(null);
+            } else {
+              setConfirmPlan(plan.key);
+            }
+          }}
           onClose={() => setStartPlan(null)}
         />
       )}
@@ -414,35 +451,43 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
                           background: "white", color: plan.color,
                           fontSize: 10, fontWeight: 700, cursor: "pointer", opacity: 0.8,
                         }}>このまま使う →</button>
+                      ) : plan.key === "free" && isPaid ? (
+                        <button
+                          onClick={(() => setStartPlan({ key: "free", name: "無料", price: 0, mode: "cancel" }))}
+                          style={{
+                            width: "100%", height: 40, borderRadius: 20, border: "none",
+                            background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
+                            color: "white", fontSize: 10, fontWeight: 700,
+                            cursor: "pointer",
+                          }}
+                        >
+                          始める →
+                        </button>
                       ) : plan.key === "free" ? (
                         <div style={{ fontSize: 10, color: "#ccc", padding: "8px 0" }}>－</div>
                       ) : isPaid && isUpgrade ? (
                         <button
-                          onClick={() => handleChangePlan(plan.key)}
-                          disabled={loading === plan.key}
+                          onClick={() => setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" })}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: loading === plan.key ? "not-allowed" : "pointer",
-                            opacity: loading === plan.key ? 0.7 : 1,
+                            cursor: "pointer",
                           }}
                         >
-                          {loading === plan.key ? "処理中..." : "アップグレード →"}
+                          始める →
                         </button>
                       ) : isPaid && isDowngrade ? (
                         <button
-                          onClick={() => handleChangePlan(plan.key)}
-                          disabled={loading === plan.key}
+                          onClick={() => setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" })}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: loading === plan.key ? "not-allowed" : "pointer",
-                            opacity: loading === plan.key ? 0.7 : 1,
+                            cursor: "pointer",
                           }}
                         >
-                          {loading === plan.key ? "処理中..." : "ダウングレード →"}
+                          始める →
                         </button>
                       ) : (
                         <button

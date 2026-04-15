@@ -9,6 +9,7 @@ const PLAN_LABELS: Record<string, string> = {
 };
 
 const PLAN_PRICES: Record<string, number> = {
+  free: 0,
   light: 500,
   standard: 980,
   premium: 1480,
@@ -21,7 +22,7 @@ const PRICE_IDS: Record<string, string> = {
 };
 
 type Props = {
-  plan: "light" | "standard" | "premium";
+  plan: string;
   onSuccess: () => void;
   onClose: () => void;
 };

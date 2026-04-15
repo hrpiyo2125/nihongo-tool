@@ -74,7 +74,7 @@ function CheckoutForm({
         </div>
       )}
       <div style={{ marginBottom: 24, display: ready ? "block" : "none" }}>
-        <PaymentElement onReady={() => setReady(true)} />
+        <PaymentElement onReady={() => setReady(true)} options={{ wallets: { link: "never" } }} />
       </div>
 
       {error && (
@@ -164,6 +164,7 @@ export default function CheckoutModal({
                 fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif",
               },
             },
+            
           }}
         >
           <CheckoutForm
