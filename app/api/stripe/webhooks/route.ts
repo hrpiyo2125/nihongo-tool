@@ -98,36 +98,45 @@ export async function POST(req: NextRequest) {
 
       const priceId = subscription.items.data[0]?.price.id
       const plan = PRICE_TO_PLAN[priceId] ?? 'free'
-
-      const status = subscription.status // active / trialing / past_due / canceled
+      const status = subscription.status
       const cancelAtPeriodEnd = subscription.cancel_at_period_end
 
-      await supabase
-        .from('profiles')
-        .update({
-          plan,
-          plan_status: status,
-          cancel_at_period_end: cancelAtPeriodEnd,
-          current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
-
       if (cancelAtPeriodEnd) {
+        // 解約予約：planは変えない、cancel_at_period_endとperiod_endだけ更新
+        await supabase
+          .from('profiles')
+          .update({
+            cancel_at_period_end: true,
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+
+        const customerData = await stripe.customers.retrieve(subscription.customer as string)
+        const email = (customerData as any).email
         const { data: profile } = await supabase
           .from('profiles')
           .select('current_period_end')
           .eq('id', userId)
           .single()
-        const { data: { user } } = await stripe.customers.retrieve(subscription.customer as string) as any
-        const customerData = await stripe.customers.retrieve(subscription.customer as string)
-        const email = (customerData as any).email
         if (email) {
           await sendCancelEmail({
             to: email,
             currentPeriodEnd: profile?.current_period_end ?? null,
           })
         }
+      } else {
+        // プラン変更：planも更新
+        await supabase
+          .from('profiles')
+          .update({
+            plan,
+            plan_status: status,
+            cancel_at_period_end: false,
+            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
       }
 
       break

@@ -108,7 +108,10 @@ export default function BillingSection({
       });
       const data = await res.json();
       if (data.success) {
-        onProfileUpdate({ cancel_at_period_end: true });
+        onProfileUpdate({
+          cancel_at_period_end: true,
+          current_period_end: data.currentPeriodEnd ?? null,
+        });
         setConfirmCancel(false);
       } else if (data.error === 'subscription_reset') {
         setConfirmCancel(false);
