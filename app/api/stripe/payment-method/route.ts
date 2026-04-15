@@ -22,6 +22,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No customer" }, { status: 404 });
     }
 
+    // StripeにCustomerが存在するか確認
+    try {
+      await stripe.customers.retrieve(profile.stripe_customer_id);
+    } catch (e: any) {
+      if (e?.code === "resource_missing") {
+        // Supabaseをリセットして「カードなし」として返す
+        await supabase.from("profiles").update({ stripe_customer_id: null }).eq("id", userId);
+        return NextResponse.json({ error: "No customer" }, { status: 404 });
+      } else {
+        throw e;
+      }
+    }
+
     const paymentMethods = await stripe.paymentMethods.list({
       customer: profile.stripe_customer_id,
       type: "card",
