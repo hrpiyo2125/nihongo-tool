@@ -120,6 +120,29 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
     if (monthlyCount === 0) return false;
     return monthlyCost - price > 0;
   };
+  const handleChangePlan = async (newPlanKey: string) => {
+    setLoading(newPlanKey)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/auth?mode=login'); setLoading(null); return }
+    try {
+      const res = await fetch('/api/stripe/change-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, newPlan: newPlanKey }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        onSubscribed?.()
+      } else {
+        alert('プラン変更に失敗しました。もう一度お試しください。')
+      }
+    } catch {
+      alert('エラーが発生しました。')
+    } finally {
+      setLoading(null)
+    }
+  }
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
     if (!plan.priceId) return;
@@ -350,6 +373,12 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
                 <td />
                 {plans.map((plan) => {
                   const isCurrent = plan.key === currentPlan;
+                  const currentRank = planOrder.indexOf(currentPlan);
+                  const planRank = planOrder.indexOf(plan.key);
+                  const isUpgrade = planRank > currentRank;
+                  const isDowngrade = planRank < currentRank && plan.key !== "free";
+                  const isPaid = currentPlan !== "free";
+
                   return (
                     <td key={plan.key} style={{
                       padding: "12px 6px",
@@ -367,6 +396,34 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
                         }}>このまま使う →</button>
                       ) : plan.key === "free" ? (
                         <div style={{ fontSize: 10, color: "#ccc", padding: "8px 0" }}>－</div>
+                      ) : isPaid && isUpgrade ? (
+                        <button
+                          onClick={() => handleChangePlan(plan.key)}
+                          disabled={loading === plan.key}
+                          style={{
+                            width: "100%", height: 40, borderRadius: 20, border: "none",
+                            background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                            color: "white", fontSize: 10, fontWeight: 700,
+                            cursor: loading === plan.key ? "not-allowed" : "pointer",
+                            opacity: loading === plan.key ? 0.7 : 1,
+                          }}
+                        >
+                          {loading === plan.key ? "処理中..." : "アップグレード →"}
+                        </button>
+                      ) : isPaid && isDowngrade ? (
+                        <button
+                          onClick={() => handleChangePlan(plan.key)}
+                          disabled={loading === plan.key}
+                          style={{
+                            width: "100%", height: 40, borderRadius: 20, border: "none",
+                            background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
+                            color: "white", fontSize: 10, fontWeight: 700,
+                            cursor: loading === plan.key ? "not-allowed" : "pointer",
+                            opacity: loading === plan.key ? 0.7 : 1,
+                          }}
+                        >
+                          {loading === plan.key ? "処理中..." : "ダウングレード →"}
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleSubscribe(plan)}

@@ -14,6 +14,7 @@ import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
 import { TroubleSection, GuideSection } from "./TroubleGuide";
 import PlanSelector from "../../components/PlanSelector";
+import BillingSection from "./BillingSection";
 
 
 
@@ -899,6 +900,10 @@ const methodItems = [
             notif_billing: profileData.notif_billing ?? true,
             notif_announcement: profileData.notif_announcement ?? false,
             plan: profileData.plan || "free",
+            plan_status: profileData.plan_status || "active",
+            cancel_at_period_end: profileData.cancel_at_period_end ?? false,
+            current_period_end: profileData.current_period_end || null,
+            trial_end: profileData.trial_end || null,
           });
           if (profileData.full_name) setUserName(profileData.full_name);
         }
@@ -1381,37 +1386,11 @@ if (isMobile) return <MobileHome />;
     </div>
 
   ) : activePage === "settings-billing" ? (
-    <div>
-      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Billing</p>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>支払い履歴</h2>
-      </div>
-      <div style={{ padding: "32px 48px 56px", maxWidth: 640 }}>
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
-          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "1.5fr 2fr 1fr 1fr", fontSize: 11, color: "#bbb", fontWeight: 700 }}>
-            <span>日付</span><span>内容</span><span>金額</span><span>ステータス</span>
-          </div>
-          <div style={{ padding: "56px 0", textAlign: "center" as const, color: "#bbb", fontSize: 14 }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🧾</div>
-            支払い履歴はまだありません
-          </div>
-        </div>
-        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 6 }}>現在のプラン</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#7a50b0" }}>
-                {profile.plan === "light" ? "Lightプラン" : profile.plan === "standard" ? "Standardプラン" : profile.plan === "premium" ? "Premiumプラン" : "Freeプラン"}
-              </div>
-              <div style={{ fontSize: 12, color: "#aaa", marginTop: 2 }}>
-                {profile.plan === "light" ? "¥980 / 月" : profile.plan === "standard" ? "¥1,980 / 月" : profile.plan === "premium" ? "¥3,980 / 月" : "無料"}
-              </div>
-            </div>
-            <button onClick={() => setActivePage("plan")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>プランを変更する →</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <BillingSection
+      profile={profile as any}
+      onChangePlan={() => setActivePage("plan")}
+      onProfileUpdate={(updates) => setProfile((prev: any) => ({ ...prev, ...updates }))}
+    />
 
   ) : activePage === "settings-notifications" ? (
     <div>
