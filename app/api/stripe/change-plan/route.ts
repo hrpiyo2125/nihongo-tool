@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId and newPlan are required' }, { status: 400 })
     }
 
-    // freeへの変更 = 解約予約（期間終了後にfree降格）
+    // freeへの変更 = 解約予約
     if (newPlan === 'free') {
       const { data: freeProfile, error: freeProfileError } = await supabase
         .from('profiles')
@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
-    // Supabaseから現在のプランを取得
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_subscription_id, plan')
@@ -95,12 +94,9 @@ export async function POST(req: NextRequest) {
     const isUpgrade = PLAN_RANK[newPlan] > PLAN_RANK[profile.plan]
     const newPriceId = PLAN_TO_PRICE[newPlan]
 
-    // 現在のサブスクを取得・ステータス確認
     let subscription: Stripe.Subscription
     try {
-      subscription = await stripe.subscriptions.retrieve(
-        profile.stripe_subscription_id
-      )
+      subscription = await stripe.subscriptions.retrieve(profile.stripe_subscription_id)
     } catch (stripeError: any) {
       if (stripeError?.code === 'resource_missing') {
         await supabase
@@ -119,7 +115,6 @@ export async function POST(req: NextRequest) {
       throw stripeError
     }
 
-    // incomplete_expired など無効なサブスクの場合はリセット
     if (['incomplete_expired', 'canceled', 'unpaid'].includes(subscription.status)) {
       await supabase
         .from('profiles')
@@ -131,44 +126,55 @@ export async function POST(req: NextRequest) {
           current_period_end: null,
         })
         .eq('id', userId)
-      await sendAdminAlertEmail({ userId, event: 'change-plan: incomplete_expired' })
+      await sendAdminAlertEmail({ userId, event: 'change-plan: invalid_status' })
       return NextResponse.json({ error: 'subscription_reset', message: 'サブスクリプションをリセットしました。再度登録をお願いします。' }, { status: 400 })
     }
 
     const subscriptionItemId = subscription.items.data[0].id
+    const periodEnd = (subscription as any).current_period_end
+      ? new Date((subscription as any).current_period_end * 1000).toISOString()
+      : null
 
     if (isUpgrade) {
-      // アップグレード：即時変更・proration あり
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'create_prorations',
       })
 
-      const upgradeCustomer = await stripe.customers.retrieve(subscription.customer as string)
-      const upgradeEmail = (upgradeCustomer as any).email
-      if (upgradeEmail) {
+      await supabase
+        .from('profiles')
+        .update({ plan: newPlan, plan_status: 'active', cancel_at_period_end: false })
+        .eq('id', userId)
+
+      const customer = await stripe.customers.retrieve(subscription.customer as string)
+      const email = (customer as any).email
+      if (email) {
         await sendUpgradeEmail({
-          to: upgradeEmail,
+          to: email,
           planLabel: newPlan === 'light' ? 'Lightプラン' : newPlan === 'standard' ? 'Standardプラン' : 'Premiumプラン',
-          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+          currentPeriodEnd: periodEnd,
         })
       }
 
     } else {
-      // ダウングレード：期間終了後に変更
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'none',
         billing_cycle_anchor: 'unchanged' as any,
       })
 
-      const downgradeCustomer = await stripe.customers.retrieve(subscription.customer as string)
-      const downgradeEmail = (downgradeCustomer as any).email
-      if (downgradeEmail) {
+      await supabase
+        .from('profiles')
+        .update({ plan: newPlan, plan_status: 'active' })
+        .eq('id', userId)
+
+      const customer = await stripe.customers.retrieve(subscription.customer as string)
+      const email = (customer as any).email
+      if (email) {
         await sendDowngradeEmail({
-          to: downgradeEmail,
+          to: email,
           newPlanLabel: newPlan === 'light' ? 'Lightプラン' : newPlan === 'standard' ? 'Standardプラン' : 'Premiumプラン',
-          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+          currentPeriodEnd: periodEnd,
         })
       }
     }
@@ -177,10 +183,11 @@ export async function POST(req: NextRequest) {
       success: true,
       isUpgrade,
       newPlan,
-      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+      currentPeriodEnd: periodEnd,
     })
 
   } catch (error: any) {
     console.error('change-plan error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-  }}
+  }
+}
