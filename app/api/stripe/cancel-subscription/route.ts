@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { sendCancelEmail } from '@/lib/email'
+import { sendCancelEmail, sendAdminAlertEmail } from '@/lib/email'
 
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
             current_period_end: null,
           })
           .eq('id', userId)
+        await sendAdminAlertEmail({ userId, event: 'cancel-subscription: resource_missing' })
         return NextResponse.json({ error: 'subscription_reset' }, { status: 400 })
       }
       throw stripeError

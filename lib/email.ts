@@ -165,3 +165,26 @@ export async function sendDowngradedToFreeEmail({
     `,
   })
 }
+// ─── 管理者への異常通知 ───────────────────────────────────
+export async function sendAdminAlertEmail({
+  userId,
+  event,
+}: {
+  userId: string
+  event: string
+}) {
+  await resend.emails.send({
+    from: FROM,
+    to: 'support@nihongo-tool.com',
+    subject: `【toolio管理】サブスクリプション異常検知`,
+    html: `
+      <p>以下のユーザーでサブスクリプション情報の自動リセットが発生しました。</p>
+      <p><strong>ユーザーID：</strong>${userId}</p>
+      <p><strong>発生箇所：</strong>${event}</p>
+      <p>Stripeダッシュボードで差額の確認・クレジット付与が必要な場合があります。</p>
+      <p>該当ユーザーへの個別連絡もご確認ください。</p>
+      <br />
+      <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
+    `,
+  })
+}

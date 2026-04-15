@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
 const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: false });
 const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
+const [subscriptionResetModal, setSubscriptionResetModal] = useState(false)
 
 const UNIT_PRICE = 350;
 
@@ -135,8 +136,7 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
       if (data.success) {
         onSubscribed?.()
       } else if (data.error === 'subscription_reset') {
-        alert('サブスクリプション情報をリセットしました。ページを更新して再度お試しください。')
-        window.location.reload()
+        setSubscriptionResetModal(true)
       } else {
         alert('プラン変更に失敗しました。もう一度お試しください。')
       }
@@ -185,6 +185,23 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   };
   return (
     <>
+
+      {subscriptionResetModal && (
+  <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
+      <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
+        お支払い情報に問題が発生したため、現在のプランがFreeプランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+      </div>
+      <button
+        onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}
+        style={{ width: "100%", padding: "12px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+      >
+        プランを確認する →
+      </button>
+    </div>
+  </div>
+)}
       {checkoutModal && (
         <CheckoutModal
           planName={checkoutModal.planName}
