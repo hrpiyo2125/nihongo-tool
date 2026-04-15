@@ -57,10 +57,26 @@ export async function POST(req: NextRequest) {
     const isUpgrade = PLAN_RANK[newPlan] > PLAN_RANK[profile.plan]
     const newPriceId = PLAN_TO_PRICE[newPlan]
 
-    // 現在のサブスクを取得
+    // 現在のサブスクを取得・ステータス確認
     const subscription = await stripe.subscriptions.retrieve(
       profile.stripe_subscription_id
     )
+
+    // incomplete_expired など無効なサブスクの場合はリセット
+    if (['incomplete_expired', 'canceled', 'unpaid'].includes(subscription.status)) {
+      await supabase
+        .from('profiles')
+        .update({
+          stripe_subscription_id: null,
+          plan: 'free',
+          plan_status: 'active',
+          cancel_at_period_end: false,
+          current_period_end: null,
+        })
+        .eq('id', userId)
+      return NextResponse.json({ error: 'Subscription is no longer active. Please subscribe again.' }, { status: 400 })
+    }
+
     const subscriptionItemId = subscription.items.data[0].id
 
     if (isUpgrade) {
