@@ -134,6 +134,9 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
       const data = await res.json()
       if (data.success) {
         onSubscribed?.()
+      } else if (data.error === 'subscription_reset') {
+        alert('サブスクリプション情報をリセットしました。ページを更新して再度お試しください。')
+        window.location.reload()
       } else {
         alert('プラン変更に失敗しました。もう一度お試しください。')
       }
