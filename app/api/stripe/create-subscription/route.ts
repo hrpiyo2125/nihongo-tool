@@ -20,13 +20,15 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (profile?.stripe_customer_id) {
-      // 既存のCustomerIDが有効か確認
       try {
-        await stripe.customers.retrieve(profile.stripe_customer_id);
+        const existing = await stripe.customers.retrieve(profile.stripe_customer_id);
+        // 削除済み顧客の場合もリセット
+        if (existing.deleted) {
+          throw { code: "resource_missing" };
+        }
         customerId = profile.stripe_customer_id;
       } catch (e: any) {
         if (e?.code === "resource_missing") {
-          // StripeにCustomerが存在しない → Supabaseをリセットして新規作成
           await supabase.from("profiles").update({ stripe_customer_id: null }).eq("id", userId);
           const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
           customerId = customer.id;
