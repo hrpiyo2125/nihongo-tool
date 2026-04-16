@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
 import dynamic from "next/dynamic";
+import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
 
 
 const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
@@ -179,21 +180,25 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
   return (
     <>
 
+      {loading && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, boxShadow: "0 16px 64px rgba(0,0,0,0.2)", overflow: "hidden" }}>
+            <ProcessingOverlay messages={["処理中...", "もう少しで完了します", "データを更新しています"]} />
+          </div>
+        </div>
+      )}
+
       {successPlan && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "48px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>{successPlan.mode === "cancel" ? "👋" : "🎉"}</div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
-              {successPlan.mode === "cancel" ? "解約を受け付けました" : "プランを変更しました！"}
-            </div>
-            <div style={{ fontSize: 13, color: "#999", marginBottom: 32, lineHeight: 1.8 }}>
-              {successPlan.mode === "cancel"
-                ? `${successPlan.currentPeriodEnd ? new Date(successPlan.currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}まで現在のプランをご利用いただけます。期間終了後は自動的に無料プランへ移行します。引き続きtoolioをお楽しみください。`
-                : `${successPlan.name}プランへ変更しました。引き続きtoolioをお楽しみください。`}
-            </div>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "48px 32px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+            <SuccessOverlay
+              label={successPlan.mode === "cancel"
+                ? `${successPlan.currentPeriodEnd ? new Date(successPlan.currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}まで\n現在のプランをご利用いただけます。`
+                : `${successPlan.name}プランへ変更しました。`}
+            />
             <button
               onClick={() => { setSuccessPlan(null); onSubscribed?.(); }}
-              style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+              style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
             >
               確認する →
             </button>
