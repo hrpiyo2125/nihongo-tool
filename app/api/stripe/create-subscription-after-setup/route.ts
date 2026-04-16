@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
       customer: profile.stripe_customer_id,
       items: [{ price: priceId }],
       default_payment_method: paymentMethodId,
-      metadata: { user_id: userId },
+      metadata: { userId: userId },
     });
 
     if (subscription.status === "active") {

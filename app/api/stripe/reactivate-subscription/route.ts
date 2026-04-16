@@ -77,11 +77,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       cancelAtPeriodEnd: false,
-      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+      currentPeriodEnd: (subscription as any).current_period_end
+        ? new Date((subscription as any).current_period_end * 1000).toISOString()
+        : null,
     })
 
   } catch (error) {
     console.error('reactivate-subscription error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
+
 }
