@@ -24,11 +24,12 @@ const PRICE_IDS: Record<string, string> = {
 type Props = {
   plan: string;
   mode?: "subscribe" | "change";
+  keepCancellation?: boolean | null;
   onSuccess: () => void;
   onClose: () => void;
 };
 
-export default function PlanConfirmModal({ plan, mode = "subscribe", onSuccess, onClose }: Props) {
+export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, onSuccess, onClose }: Props) {
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +63,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", onSuccess, 
         const res = await fetch("/api/stripe/change-plan", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: session.user.id, newPlan: plan }),
+          body: JSON.stringify({ userId: session.user.id, newPlan: plan, ...(keepCancellation !== null ? { keepCancellation } : {}) }),
         });
         const data = await res.json();
         if (data.success) {

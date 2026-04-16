@@ -73,10 +73,12 @@ function isFeatureAvailable(featureFrom: string, planKey: string) {
 
 type Props = {
   currentPlan?: string;
+  cancelAtPeriodEnd?: boolean;
+  currentPeriodEnd?: string | null;
   onSubscribed?: () => void;
 };
 
-export default function PlanSelector({ currentPlan = "free", onSubscribed }: Props) {
+export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed }: Props) {
   const router = useRouter();
   const [monthlyCount, setMonthlyCount] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null);
@@ -87,6 +89,8 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
   const [successPlan, setSuccessPlan] = useState<{ name: string; mode: "change" | "cancel"; currentPeriodEnd?: string | null } | null>(null);
   const [confirmMode, setConfirmMode] = useState<"subscribe" | "change">("subscribe");
+  const [cancellationChoiceForPlan, setCancellationChoiceForPlan] = useState<{ key: string; name: string; price: number } | null>(null);
+  const [keepCancellation, setKeepCancellation] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -265,9 +269,50 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
         <PlanConfirmModal
           plan={confirmPlan}
           mode={confirmMode}
-          onSuccess={() => { setConfirmPlan(null); onSubscribed?.(); }}
-          onClose={() => setConfirmPlan(null)}
+          keepCancellation={keepCancellation}
+          onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); onSubscribed?.(); }}
+          onClose={() => { setConfirmPlan(null); setKeepCancellation(null); }}
         />
+      )}
+
+      {cancellationChoiceForPlan && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 440, padding: "36px 32px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>解約予約について</div>
+            <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 24 }}>
+              現在、<strong>{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong>に解約予約が設定されています。<br />
+              <strong>{cancellationChoiceForPlan.name}プラン</strong>に変更する場合、解約予約はどうしますか？
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => {
+                  setKeepCancellation(false);
+                  setStartPlan({ key: cancellationChoiceForPlan.key, name: cancellationChoiceForPlan.name, price: cancellationChoiceForPlan.price, mode: "change" });
+                  setCancellationChoiceForPlan(null);
+                }}
+                style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+              >
+                解約予約を取り消してプランを変更する
+              </button>
+              <button
+                onClick={() => {
+                  setKeepCancellation(true);
+                  setStartPlan({ key: cancellationChoiceForPlan.key, name: cancellationChoiceForPlan.name, price: cancellationChoiceForPlan.price, mode: "change" });
+                  setCancellationChoiceForPlan(null);
+                }}
+                style={{ padding: "14px", borderRadius: 12, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                解約予約を維持したままプランを変更する
+              </button>
+              <button
+                onClick={() => setCancellationChoiceForPlan(null)}
+                style={{ padding: "10px", borderRadius: 12, border: "none", background: "transparent", color: "#bbb", fontSize: 12, cursor: "pointer" }}
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       
 
@@ -485,7 +530,13 @@ export default function PlanSelector({ currentPlan = "free", onSubscribed }: Pro
                         </button>
                       ) : isPaid && isDowngrade ? (
                         <button
-                          onClick={() => setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" })}
+                          onClick={() => {
+                            if (cancelAtPeriodEnd) {
+                              setCancellationChoiceForPlan({ key: plan.key, name: plan.name, price: plan.price! });
+                            } else {
+                              setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" });
+                            }
+                          }}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",

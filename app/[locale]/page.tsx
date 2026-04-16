@@ -1494,6 +1494,8 @@ if (isMobile) return <MobileHome />;
                 {activePage === "plan" ? (
                   <PlanSelector
                     currentPlan={profile?.plan ?? "free"}
+                    cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
+                    currentPeriodEnd={profile?.current_period_end ?? null}
                     onSubscribed={() => {
                       setActivePage("home");
                     }}

@@ -25,7 +25,7 @@ const PLAN_RANK: Record<string, number> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { userId, newPlan } = await req.json()
+    const { userId, newPlan, keepCancellation } = await req.json()
 
     if (!userId || !newPlan) {
       return NextResponse.json({ error: 'userId and newPlan are required' }, { status: 400 })
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('stripe_subscription_id, plan')
+      .select('stripe_subscription_id, plan, cancel_at_period_end')
       .eq('id', userId)
       .single()
 
@@ -139,6 +139,7 @@ export async function POST(req: NextRequest) {
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'create_prorations',
+        ...(profile.cancel_at_period_end ? { cancel_at_period_end: false } : {}),
       })
 
       await supabase
@@ -157,15 +158,22 @@ export async function POST(req: NextRequest) {
       }
 
     } else {
+      const clearCancellation = profile.cancel_at_period_end && keepCancellation === false
+
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'none',
         billing_cycle_anchor: 'unchanged' as any,
+        ...(clearCancellation ? { cancel_at_period_end: false } : {}),
       })
 
       await supabase
         .from('profiles')
-        .update({ plan: newPlan, plan_status: 'active' })
+        .update({
+          plan: newPlan,
+          plan_status: 'active',
+          ...(clearCancellation ? { cancel_at_period_end: false } : {}),
+        })
         .eq('id', userId)
 
       const customer = await stripe.customers.retrieve(subscription.customer as string)

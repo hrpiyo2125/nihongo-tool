@@ -103,11 +103,21 @@ export async function POST(req: NextRequest) {
       const status = subscription.status
       const cancelAtPeriodEnd = subscription.cancel_at_period_end
 
+      // 解約メール重複送信防止のため、現在のSupabase状態を確認
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('cancel_at_period_end')
+        .eq('id', userId)
+        .single()
+
+      const isNewCancellation = cancelAtPeriodEnd && !currentProfile?.cancel_at_period_end
+
       if (cancelAtPeriodEnd) {
-        // 解約予約：planは変えない、cancel_at_period_endとperiod_endだけ更新
+        // planも更新（解約予約中のプラン変更に対応）
         await supabase
           .from('profiles')
           .update({
+            plan,
             cancel_at_period_end: true,
             current_period_end: subscription.items.data[0]?.current_period_end
               ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
@@ -116,18 +126,21 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', userId)
 
-        const customerData = await stripe.customers.retrieve(subscription.customer as string)
-        const email = (customerData as any).email
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('current_period_end')
-          .eq('id', userId)
-          .single()
-        if (email) {
-          await sendCancelEmail({
-            to: email,
-            currentPeriodEnd: profile?.current_period_end ?? null,
-          })
+        // 新規解約のみメール送信（APIルートからの解約はAPIが送信するため重複防止）
+        if (isNewCancellation) {
+          const customerData = await stripe.customers.retrieve(subscription.customer as string)
+          const email = (customerData as any).email
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('current_period_end')
+            .eq('id', userId)
+            .single()
+          if (email) {
+            await sendCancelEmail({
+              to: email,
+              currentPeriodEnd: profile?.current_period_end ?? null,
+            })
+          }
         }
       } else {
         // プラン変更：planも更新
