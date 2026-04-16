@@ -613,6 +613,39 @@ const methodItems = [
     .then((data) => setAnnouncements(Array.isArray(data) ? data : []));
 }, []);
 
+  const loadProfile = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.email) return;
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .single();
+    if (profileData) {
+      setProfile({
+        full_name: profileData.full_name || "",
+        country: profileData.country || "",
+        city: profileData.city || "",
+        purpose: profileData.purpose || [],
+        occupation: profileData.occupation || "",
+        student_level: profileData.student_level || "",
+        occupation_other: profileData.occupation_other || "",
+        purpose_other: profileData.purpose_other || "",
+        notif_new_material: profileData.notif_new_material ?? true,
+        notif_favorite: profileData.notif_favorite ?? false,
+        notif_billing: profileData.notif_billing ?? true,
+        notif_announcement: profileData.notif_announcement ?? false,
+        plan: profileData.plan || "free",
+        plan_status: profileData.plan_status || "active",
+        cancel_at_period_end: profileData.cancel_at_period_end ?? false,
+        current_period_end: profileData.current_period_end || null,
+        trial_end: profileData.trial_end || null,
+      });
+      if (profileData.full_name) setUserName(profileData.full_name);
+    }
+  };
+
   useEffect(() => {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -628,33 +661,7 @@ const methodItems = [
       if (session?.user?.email) {
         setUserInitial(session.user.email[0].toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-        if (profileData) {
-          setProfile({
-            full_name: profileData.full_name || "",
-            country: profileData.country || "",
-            city: profileData.city || "",
-            purpose: profileData.purpose || [],
-            occupation: profileData.occupation || "",
-            student_level: profileData.student_level || "",
-            occupation_other: profileData.occupation_other || "",
-            purpose_other: profileData.purpose_other || "",
-            notif_new_material: profileData.notif_new_material ?? true,
-            notif_favorite: profileData.notif_favorite ?? false,
-            notif_billing: profileData.notif_billing ?? true,
-            notif_announcement: profileData.notif_announcement ?? false,
-            plan: profileData.plan || "free",
-            plan_status: profileData.plan_status || "active",
-            cancel_at_period_end: profileData.cancel_at_period_end ?? false,
-            current_period_end: profileData.current_period_end || null,
-            trial_end: profileData.trial_end || null,
-          });
-          if (profileData.full_name) setUserName(profileData.full_name);
-        }
+        await loadProfile();
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -665,6 +672,7 @@ const methodItems = [
       }
     });
     return () => subscription.unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openModal = (content = "all", method = "all") => setModal({ content, method });
@@ -874,7 +882,19 @@ if (isMobile) return <MobileHome />;
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18 }}>
   {materialsLoading ? (
-    <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>読み込み中...</div>
+    Array.from({ length: 8 }).map((_, i) => (
+      <div key={i} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white" }}>
+        <div className="skeleton" style={{ height: 120 }} />
+        <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="skeleton" style={{ height: 13, width: "75%" }} />
+          <div className="skeleton" style={{ height: 11, width: "50%" }} />
+          <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+            <div className="skeleton" style={{ height: 18, width: 40, borderRadius: 9 }} />
+            <div className="skeleton" style={{ height: 18, width: 40, borderRadius: 9 }} />
+          </div>
+        </div>
+      </div>
+    ))
   ) : materials
     .filter((mat) => {
       if (activeTab === "pickup") return mat.isPickup === true;
@@ -971,6 +991,7 @@ if (isMobile) return <MobileHome />;
       tmm={tmm}
       tm={tm}
       navItems={navItems}
+      onPlanChanged={loadProfile}
     />
   )
         )}

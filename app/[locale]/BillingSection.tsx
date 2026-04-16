@@ -279,7 +279,16 @@ export default function BillingSection({
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden" }}>
           <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", fontSize: 13, fontWeight: 700, color: "#555" }}>支払い履歴</div>
           {invoicesLoading ? (
-            <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb", fontSize: 13 }}>読み込み中...</div>
+            <div>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} style={{ padding: "14px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px", alignItems: "center", gap: 8 }}>
+                  <div className="skeleton" style={{ height: 13, width: "65%" }} />
+                  <div className="skeleton" style={{ height: 13, width: "55%" }} />
+                  <div className="skeleton" style={{ height: 13, width: "45%" }} />
+                  <div className="skeleton" style={{ height: 13, width: "60%" }} />
+                </div>
+              ))}
+            </div>
           ) : invoices.length === 0 ? (
             <div style={{ padding: "56px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>
               <div style={{ fontSize: 32, marginBottom: 12 }}>🧾</div>

@@ -73,7 +73,19 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
     return () => window.removeEventListener("toolio:fav-change", handler);
   }, [allMaterials]);
 
-  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (loading) return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white" }}>
+          <div className="skeleton" style={{ height: 110 }} />
+          <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="skeleton" style={{ height: 13, width: "75%" }} />
+            <div className="skeleton" style={{ height: 11, width: "50%" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
   if (favMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
@@ -174,7 +186,19 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
     });
   }, [isLoggedIn]);
 
-  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (loading) return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white" }}>
+          <div className="skeleton" style={{ height: 110 }} />
+          <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="skeleton" style={{ height: 13, width: "75%" }} />
+            <div className="skeleton" style={{ height: 11, width: "50%" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
   if (purchasedMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>🛒</div>
@@ -267,7 +291,19 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
     });
   }, [isLoggedIn]);
 
-  if (loading) return <p style={{ fontSize: 13, color: "#bbb" }}>読み込み中...</p>;
+  if (loading) return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white" }}>
+          <div className="skeleton" style={{ height: 110 }} />
+          <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="skeleton" style={{ height: 13, width: "75%" }} />
+            <div className="skeleton" style={{ height: 11, width: "50%" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
   if (historyMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
@@ -350,6 +386,7 @@ type MyPageProps = {
   tmm: (key: string) => string;
   tm: (key: string) => string;
   navItems: { id: string; label: string }[];
+  onPlanChanged?: () => Promise<void>;
 };
 
 export default function MyPage({
@@ -372,8 +409,11 @@ export default function MyPage({
   tmm,
   tm,
   navItems,
+  onPlanChanged,
 }: MyPageProps) {
   const router = useRouter();
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
 
   if (activePage === "settings-profile") return (
     <div>
@@ -411,10 +451,12 @@ export default function MyPage({
             {editingField === field.label ? (
               <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                 <button
+                  disabled={savingProfile}
                   onClick={async () => {
+                    setSavingProfile(true);
                     const supabase = createClient();
                     const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) return;
+                    if (!session) { setSavingProfile(false); return; }
                     const fieldMap: Record<string, string> = {
                       "名前": "full_name",
                       "居住地": "country",
@@ -423,16 +465,17 @@ export default function MyPage({
                       "指導している児童のレベル": "student_level",
                     };
                     const col = fieldMap[field.label];
-                    if (!col) return;
+                    if (!col) { setSavingProfile(false); return; }
                     const isArray = col === "purpose";
                     const value = isArray ? editingValue.split("・").map(s => s.trim()).filter(Boolean) : editingValue;
                     await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
                     setProfile((prev) => ({ ...prev, [col]: value as any }));
                     if (col === "full_name") setUserName(editingValue);
+                    setSavingProfile(false);
                     setEditingField(null);
                   }}
-                  style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                >{tm("save")}</button>
+                  style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingProfile ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingProfile ? "not-allowed" : "pointer", fontWeight: 700 }}
+                >{savingProfile ? "保存中..." : tm("save")}</button>
                 <button
                   onClick={() => setEditingField(null)}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
@@ -609,13 +652,16 @@ export default function MyPage({
                 <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>{item.desc}</div>
               </div>
               <div onClick={async () => {
+                if (savingNotifs.has(item.col)) return;
                 const newVal = !on;
+                setSavingNotifs(prev => new Set([...prev, item.col]));
                 setProfile((prev: any) => ({ ...prev, [item.col]: newVal }));
                 const supabase = createClient();
                 const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
+                if (!session) { setSavingNotifs(prev => { const s = new Set(prev); s.delete(item.col); return s; }); return; }
                 await supabase.from("profiles").upsert({ id: session.user.id, [item.col]: newVal });
-              }} style={{ flexShrink: 0, width: 44, height: 24, borderRadius: 12, background: on ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e8e8e8", position: "relative" as const, cursor: "pointer", transition: "background 0.2s" }}>
+                setSavingNotifs(prev => { const s = new Set(prev); s.delete(item.col); return s; });
+              }} style={{ flexShrink: 0, width: 44, height: 24, borderRadius: 12, background: on ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e8e8e8", position: "relative" as const, cursor: savingNotifs.has(item.col) ? "not-allowed" : "pointer", transition: "background 0.2s", opacity: savingNotifs.has(item.col) ? 0.7 : 1 }}>
                 <div style={{ position: "absolute" as const, top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.15)", transition: "left 0.15s" }} />
               </div>
             </div>
@@ -670,7 +716,8 @@ export default function MyPage({
             currentPlan={profile?.plan ?? "free"}
             cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
             currentPeriodEnd={profile?.current_period_end ?? null}
-            onSubscribed={() => {
+            onSubscribed={async () => {
+              await onPlanChanged?.();
               setActivePage("home");
             }}
           />
