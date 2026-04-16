@@ -518,7 +518,13 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                         <div style={{ fontSize: 10, color: "#ccc", padding: "8px 0" }}>－</div>
                       ) : isPaid && isUpgrade ? (
                         <button
-                          onClick={() => setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" })}
+                          onClick={() => {
+                            if (cancelAtPeriodEnd) {
+                              setCancellationChoiceForPlan({ key: plan.key, name: plan.name, price: plan.price! });
+                            } else {
+                              setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" });
+                            }
+                          }}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
