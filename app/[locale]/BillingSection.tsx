@@ -72,6 +72,7 @@ export default function BillingSection({
   const [reactivateLoading, setReactivateLoading] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -97,9 +98,10 @@ export default function BillingSection({
 
   const handleCancel = async () => {
     setCancelLoading(true);
+    setCancelError(null);
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
+    if (!session) { setCancelLoading(false); return; }
     try {
       const res = await fetch("/api/stripe/cancel-subscription", {
         method: "POST",
@@ -116,7 +118,11 @@ export default function BillingSection({
       } else if (data.error === 'subscription_reset') {
         setConfirmCancel(false);
         setSubscriptionResetModal(true);
+      } else {
+        setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
       }
+    } catch {
+      setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
     } finally {
       setCancelLoading(false);
     }
@@ -228,9 +234,14 @@ export default function BillingSection({
                 解約予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
                 期間終了後はFreeプランに移行します。
               </div>
+              {cancelError && (
+                <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
+                  {cancelError}
+                </div>
+              )}
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button
-                  onClick={() => setConfirmCancel(false)}
+                  onClick={() => { setConfirmCancel(false); setCancelError(null); }}
                   style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                 >
                   キャンセル

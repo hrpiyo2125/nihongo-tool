@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({
         cancel_at_period_end: true,
+        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
