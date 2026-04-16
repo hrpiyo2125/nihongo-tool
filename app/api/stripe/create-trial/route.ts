@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
         plan_status: 'trialing',
         stripe_subscription_id: subscription.id,
         trial_end: new Date(trialEnd * 1000).toISOString(),
-        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        current_period_end: new Date(trialEnd * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)

@@ -81,7 +81,9 @@ export async function POST(req: NextRequest) {
             stripe_customer_id: subscription.customer as string,
             stripe_subscription_id: subscription.id,
             cancel_at_period_end: false,
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            current_period_end: subscription.items.data[0]?.current_period_end
+              ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+              : null,
             payment_failed_at: null,
             updated_at: new Date().toISOString(),
           })
@@ -107,7 +109,9 @@ export async function POST(req: NextRequest) {
           .from('profiles')
           .update({
             cancel_at_period_end: true,
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            current_period_end: subscription.items.data[0]?.current_period_end
+              ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+              : null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
@@ -133,7 +137,9 @@ export async function POST(req: NextRequest) {
             plan,
             plan_status: status,
             cancel_at_period_end: false,
-            current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+            current_period_end: subscription.items.data[0]?.current_period_end
+              ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+              : null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)

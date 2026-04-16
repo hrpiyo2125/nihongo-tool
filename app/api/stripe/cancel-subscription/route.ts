@@ -59,12 +59,16 @@ export async function POST(req: NextRequest) {
       throw stripeError
     }
 
+    const currentPeriodEnd = subscription.items.data[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+      : null
+
     // Supabaseを更新
     await supabase
       .from('profiles')
       .update({
         cancel_at_period_end: true,
-        current_period_end: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        current_period_end: currentPeriodEnd,
         updated_at: new Date().toISOString(),
       })
       .eq('id', userId)
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendCancelEmail({
           to: email,
-          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+          currentPeriodEnd,
         })
       }
     } catch (emailError) {
@@ -85,15 +89,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       cancelAtPeriodEnd: true,
-      currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+      currentPeriodEnd,
     })
 
-  } catch (error: any) {
+  } catch (error) {
     console.error('cancel-subscription error:', error)
-    return NextResponse.json({
-      error: 'Internal server error',
-      debug: error?.message ?? String(error),
-      code: error?.code ?? null,
-    }, { status: 500 })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

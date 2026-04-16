@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
 
       const updatedSub = await stripe.subscriptions.retrieve(freeProfile.stripe_subscription_id)
 
-      const periodEnd = (updatedSub as any).current_period_end
-        ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
+      const periodEnd = updatedSub.items.data[0]?.current_period_end
+        ? new Date(updatedSub.items.data[0].current_period_end * 1000).toISOString()
         : null
 
       await supabase
@@ -131,8 +131,8 @@ export async function POST(req: NextRequest) {
     }
 
     const subscriptionItemId = subscription.items.data[0].id
-    const periodEnd = (subscription as any).current_period_end
-      ? new Date((subscription as any).current_period_end * 1000).toISOString()
+    const periodEnd = subscription.items.data[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
       : null
 
     if (isUpgrade) {

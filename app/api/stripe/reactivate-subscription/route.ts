@@ -74,12 +74,14 @@ export async function POST(req: NextRequest) {
     // TODO: キャンセル取り消しメール送信
     console.log(`[TODO] キャンセル取り消しメール → userId: ${userId}`)
 
+    const currentPeriodEnd = subscription.items.data[0]?.current_period_end
+      ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+      : null
+
     return NextResponse.json({
       success: true,
       cancelAtPeriodEnd: false,
-      currentPeriodEnd: (subscription as any).current_period_end
-        ? new Date((subscription as any).current_period_end * 1000).toISOString()
-        : null,
+      currentPeriodEnd,
     })
 
   } catch (error) {
