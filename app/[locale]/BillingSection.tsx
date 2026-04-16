@@ -119,7 +119,7 @@ export default function BillingSection({
         setConfirmCancel(false);
         setSubscriptionResetModal(true);
       } else {
-        setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
+        setCancelError(`[DEBUG] ${data.debug ?? data.error} (code: ${data.code ?? '-'})`);
       }
     } catch {
       setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');

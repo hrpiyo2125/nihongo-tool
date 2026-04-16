@@ -88,8 +88,12 @@ export async function POST(req: NextRequest) {
       currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('cancel-subscription error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({
+      error: 'Internal server error',
+      debug: error?.message ?? String(error),
+      code: error?.code ?? null,
+    }, { status: 500 })
   }
 }
