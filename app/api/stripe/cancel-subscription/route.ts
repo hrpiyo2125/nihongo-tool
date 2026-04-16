@@ -69,13 +69,17 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', userId)
 
-    const customer = await stripe.customers.retrieve(subscription.customer as string)
-    const email = (customer as any).email
-    if (email) {
-      await sendCancelEmail({
-        to: email,
-        currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
-      })
+    try {
+      const customer = await stripe.customers.retrieve(subscription.customer as string)
+      const email = (customer as any).email
+      if (email) {
+        await sendCancelEmail({
+          to: email,
+          currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+        })
+      }
+    } catch (emailError) {
+      console.error('cancel-subscription: sendCancelEmail failed (non-blocking)', emailError)
     }
 
     return NextResponse.json({
