@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -20,6 +21,7 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,8 +65,13 @@ function CheckoutForm({
       }
     }
 
-    onSuccess();
+    setSuccess(true);
+    setLoading(false);
+    setTimeout(() => onSuccess(), 1800);
   };
+
+  if (loading) return <ProcessingOverlay messages={["支払い処理中...", "もう少しで完了します", "カード情報を確認しています", "プランを準備しています"]} />;
+  if (success) return <SuccessOverlay label={`${planName}プランへようこそ。\n今すぐすべての教材が使えます。`} />;
 
   return (
     <div>
@@ -86,16 +93,15 @@ function CheckoutForm({
       {ready && (
         <button
           onClick={handleSubmit}
-          disabled={!stripe || loading}
+          disabled={!stripe}
           style={{
             width: "100%", height: 44, borderRadius: 22, border: "none",
             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
             color: "white", fontSize: 14, fontWeight: 700,
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
+            cursor: "pointer",
           }}
         >
-          {loading ? "処理中..." : `${planName}プランを始める`}
+          {planName}プランを始める
         </button>
       )}
 

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase";
+import { ProcessingOverlay, SuccessOverlay } from "../../components/ProcessingOverlay";
 
 type Profile = Record<string, any> & {
   plan: string;
@@ -69,7 +70,9 @@ export default function BillingSection({
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelSuccess, setCancelSuccess] = useState(false);
   const [reactivateLoading, setReactivateLoading] = useState(false);
+  const [reactivateSuccess, setReactivateSuccess] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
@@ -114,16 +117,19 @@ export default function BillingSection({
           cancel_at_period_end: true,
           current_period_end: data.currentPeriodEnd ?? null,
         });
-        setConfirmCancel(false);
+        setCancelSuccess(true);
+        setCancelLoading(false);
+        setTimeout(() => { setCancelSuccess(false); setConfirmCancel(false); }, 2000);
       } else if (data.error === 'subscription_reset') {
+        setCancelLoading(false);
         setConfirmCancel(false);
         setSubscriptionResetModal(true);
       } else {
         setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
+        setCancelLoading(false);
       }
     } catch {
       setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
-    } finally {
       setCancelLoading(false);
     }
   };
@@ -142,10 +148,16 @@ export default function BillingSection({
       const data = await res.json();
       if (data.success) {
         onProfileUpdate({ cancel_at_period_end: false });
+        setReactivateSuccess(true);
+        setReactivateLoading(false);
+        setTimeout(() => setReactivateSuccess(false), 2000);
       } else if (data.error === 'subscription_reset') {
+        setReactivateLoading(false);
         setSubscriptionResetModal(true);
+      } else {
+        setReactivateLoading(false);
       }
-    } finally {
+    } catch {
       setReactivateLoading(false);
     }
   };
@@ -225,35 +237,59 @@ export default function BillingSection({
           </div>
         </div>
 
+        {/* 解約取り消し処理中・完了モーダル */}
+        {(reactivateLoading || reactivateSuccess) && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
+              {reactivateLoading ? (
+                <ProcessingOverlay messages={["解約取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+              ) : (
+                <div style={{ padding: "36px 40px" }}>
+                  <SuccessOverlay label="解約予約を取り消しました。引き続きご利用いただけます。" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* 解約確認モーダル */}
         {confirmCancel && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>解約を確認</div>
-              <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                解約予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
-                期間終了後はFreeプランに移行します。
-              </div>
-              {cancelError && (
-                <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
-                  {cancelError}
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
+              {cancelLoading ? (
+                <ProcessingOverlay messages={["解約処理中...", "もう少しで完了します", "データを更新しています"]} />
+              ) : cancelSuccess ? (
+                <div style={{ padding: "36px 40px" }}>
+                  <SuccessOverlay label="解約予約が完了しました。期間終了までご利用いただけます。" />
+                </div>
+              ) : (
+                <div style={{ padding: "36px 40px" }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>解約を確認</div>
+                  <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
+                    解約予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
+                    期間終了後はFreeプランに移行します。
+                  </div>
+                  {cancelError && (
+                    <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
+                      {cancelError}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => { setConfirmCancel(false); setCancelError(null); }}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      解約予約する
+                    </button>
+                  </div>
                 </div>
               )}
-              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                <button
-                  onClick={() => { setConfirmCancel(false); setCancelError(null); }}
-                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                >
-                  キャンセル
-                </button>
-                <button
-                  onClick={handleCancel}
-                  disabled={cancelLoading}
-                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                >
-                  {cancelLoading ? "処理中..." : "解約予約する"}
-                </button>
-              </div>
             </div>
           </div>
         )}

@@ -314,7 +314,67 @@ export default function MaterialDetailPage() {
   const SB_PANEL_W = 393;
   const panelOpen = activePanel !== null;
 
-  if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#bbb", fontSize: 14 }}>読み込み中...</div>;
+  if (loading) return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f0f0f0", overflow: "hidden" }}>
+      <style>{`
+        @keyframes shimmer {
+          0% { background-position: -400px 0; }
+          100% { background-position: 400px 0; }
+        }
+        .sk {
+          background: linear-gradient(90deg, #e8e8e8 25%, #f4f4f4 50%, #e8e8e8 75%);
+          background-size: 800px 100%;
+          animation: shimmer 1.4s ease-in-out infinite;
+          border-radius: 6px;
+        }
+        .sk-white {
+          background: linear-gradient(90deg, rgba(255,255,255,0.35) 25%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0.35) 75%);
+          background-size: 800px 100%;
+          animation: shimmer 1.4s ease-in-out infinite;
+          border-radius: 6px;
+        }
+      `}</style>
+
+      {/* ヘッダー */}
+      <header style={{ flexShrink: 0, background: "linear-gradient(135deg,#f4b9b9 0%,#e49bfd 45%,#a3c0ff 100%)", padding: "0 16px", height: 52, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0 }}>
+          {/* ホームボタン */}
+          <div style={{ width: 34, height: 34, borderRadius: 8, background: "rgba(255,255,255,0.15)" }} />
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)" }} />
+          {/* タグ・タイトル */}
+          <div className="sk-white" style={{ width: 44, height: 18, borderRadius: 6 }} />
+          <div className="sk-white" style={{ width: 180, height: 16, borderRadius: 6 }} />
+          <div className="sk-white" style={{ width: 100, height: 13, borderRadius: 6 }} />
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)" }} />
+          <div className="sk-white" style={{ width: 210, height: 13, borderRadius: 6 }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <div className="sk-white" style={{ width: 96, height: 34, borderRadius: 8 }} />
+          <div style={{ width: 108, height: 34, borderRadius: 8, background: "rgba(255,255,255,0.85)" }} />
+        </div>
+      </header>
+
+      {/* ボディ */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
+        {/* サイドバー（アイコン列） */}
+        <div style={{ width: 64, background: "#f0f0f0", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 16, gap: 4, flexShrink: 0 }}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} style={{ width: 46, height: 54, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6 }}>
+              <div className="sk" style={{ width: 32, height: 32, borderRadius: 8 }} />
+              <div className="sk" style={{ width: 28, height: 8, borderRadius: 4 }} />
+            </div>
+          ))}
+        </div>
+
+        {/* メインエリア：用紙スケルトン */}
+        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 480, aspectRatio: "1 / 1.414", borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", overflow: "hidden" }}>
+            <div className="sk" style={{ width: "100%", height: "100%", borderRadius: 0 }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
   if (!material) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", color: "#bbb", fontSize: 14 }}>教材が見つかりませんでした</div>;
 
   const { bg, char, charColor } = getCardStyle(material);

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "../lib/supabase";
+import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
 
 const PLAN_LABELS: Record<string, string> = {
   light: "ライト",
@@ -21,6 +22,13 @@ const PRICE_IDS: Record<string, string> = {
   premium: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!,
 };
 
+const PROCESSING_MESSAGES = [
+  "支払い処理中...",
+  "もう少しで完了します",
+  "プランを準備しています",
+  "セキュアに処理中です",
+];
+
 type Props = {
   plan: string;
   mode?: "subscribe" | "change";
@@ -34,7 +42,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
- 
+
   useEffect(() => {
     const fetchCard = async () => {
       const supabase = createClient();
@@ -91,38 +99,33 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
     } catch {
       setError("エラーが発生しました。");
     } finally {
-      setLoading(false);
+      if (!success) setLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "48px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🎉</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
-            登録が完了しました！
-          </div>
-          <div style={{ fontSize: 13, color: "#999", marginBottom: 8, lineHeight: 1.8 }}>
-            {PLAN_LABELS[plan]}プランへようこそ。<br />今すぐすべての教材が使えます。
-          </div>
-          <div style={{ fontSize: 12, color: "#bbb", marginBottom: 32 }}>
-            本日より有効です。
-          </div>
+  const modalInner = () => {
+    if (loading) {
+      return <ProcessingOverlay messages={PROCESSING_MESSAGES} />;
+    }
+
+    if (success) {
+      return (
+        <>
+          <SuccessOverlay
+            label={`${PLAN_LABELS[plan]}プランへようこそ。\n今すぐすべての教材が使えます。`}
+          />
           <button
             onClick={onSuccess}
-            style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
+            style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
           >
             教材を見る →
           </button>
-        </div>
-      </div>
-    );
-  }
+        </>
+      );
+    }
 
-  return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 480, padding: "36px 32px", position: "relative", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+    return (
+      <>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.06)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
         <div style={{ fontSize: 32, marginBottom: 12 }}>✨</div>
@@ -155,14 +158,27 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
 
         <button
           onClick={handleSubscribe}
-          disabled={loading}
-          style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: loading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer" }}
+          style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
         >
-          {loading ? "処理中..." : `今すぐ¥${PLAN_PRICES[plan].toLocaleString()}で登録する`}
+          今すぐ¥{PLAN_PRICES[plan].toLocaleString()}で登録する
         </button>
         <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 12 }}>
           いつでもマイページからキャンセルできます。
         </div>
+      </>
+    );
+  };
+
+  return (
+    <div
+      onClick={loading || success ? undefined : onClose}
+      style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 480, padding: "36px 32px", position: "relative", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}
+      >
+        {modalInner()}
       </div>
     </div>
   );
