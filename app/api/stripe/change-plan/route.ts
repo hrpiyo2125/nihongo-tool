@@ -136,15 +136,17 @@ export async function POST(req: NextRequest) {
       : null
 
     if (isUpgrade) {
+      const keepCancellationOnUpgrade = keepCancellation === true
+
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'create_prorations',
-        ...(profile.cancel_at_period_end ? { cancel_at_period_end: false } : {}),
+        cancel_at_period_end: keepCancellationOnUpgrade,
       })
 
       await supabase
         .from('profiles')
-        .update({ plan: newPlan, plan_status: 'active', cancel_at_period_end: false })
+        .update({ plan: newPlan, plan_status: 'active', cancel_at_period_end: keepCancellationOnUpgrade })
         .eq('id', userId)
 
       const customer = await stripe.customers.retrieve(subscription.customer as string)
@@ -158,13 +160,13 @@ export async function POST(req: NextRequest) {
       }
 
     } else {
-      const clearCancellation = profile.cancel_at_period_end && keepCancellation === false
+      const newCancelAtPeriodEnd = profile.cancel_at_period_end ? keepCancellation === true : false
 
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
         proration_behavior: 'none',
         billing_cycle_anchor: 'unchanged' as any,
-        ...(clearCancellation ? { cancel_at_period_end: false } : {}),
+        ...(profile.cancel_at_period_end ? { cancel_at_period_end: newCancelAtPeriodEnd } : {}),
       })
 
       await supabase
@@ -172,7 +174,7 @@ export async function POST(req: NextRequest) {
         .update({
           plan: newPlan,
           plan_status: 'active',
-          ...(clearCancellation ? { cancel_at_period_end: false } : {}),
+          ...(profile.cancel_at_period_end ? { cancel_at_period_end: newCancelAtPeriodEnd } : {}),
         })
         .eq('id', userId)
 
