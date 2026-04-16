@@ -453,6 +453,42 @@ function UserMenuPopup({
   );
 }
 
+function GuestLoginPopup({
+  userIconRef, onClose, onRouterPush, sbOpen,
+}: {
+  userIconRef: React.RefObject<HTMLDivElement | null>;
+  sbOpen: boolean;
+  onClose: () => void;
+  onRouterPush: (href: string) => void;
+}) {
+  const el = userIconRef.current; if (!el) return null;
+  const rect = el.getBoundingClientRect(); if (!rect) return null;
+  return (
+    <div style={{
+      position: "fixed",
+      left: sbOpen ? 200 : 80,
+      bottom: window.innerHeight - rect.bottom - 8,
+      width: 240,
+      background: "white",
+      borderRadius: 14,
+      boxShadow: "0 8px 32px rgba(0,0,0,0.14)",
+      border: "0.5px solid rgba(200,170,240,0.25)",
+      zIndex: 50,
+      overflow: "hidden",
+    }}>
+      <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
+      </div>
+      <button onClick={() => { onClose(); onRouterPush("/auth?mode=login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+        <span style={{ fontSize: 16 }}>🔑</span>ログイン
+      </button>
+      <button onClick={() => { onClose(); onRouterPush("/auth"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#7040b0" }}>
+        <span style={{ fontSize: 16 }}>✨</span>会員でない方はこちらから新規登録
+      </button>
+    </div>
+  );
+}
+
 export default function Home() {
   const router = useRouter();
   const locale = useLocale();
@@ -552,6 +588,7 @@ const methodItems = [
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [guestMenuOpen, setGuestMenuOpen] = useState(false);
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
@@ -683,6 +720,17 @@ if (isMobile) return <MobileHome />;
           ))}
         </div>
         <div style={{ padding: "10px 6px", flexShrink: 0, position: "relative" }}>
+  {guestMenuOpen && !isLoggedIn && (
+  <>
+    <div onClick={() => setGuestMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
+    <GuestLoginPopup
+      userIconRef={userIconRef}
+      onClose={() => setGuestMenuOpen(false)}
+      onRouterPush={(href) => { setGuestMenuOpen(false); router.push(href); }}
+      sbOpen={sbOpen}
+    />
+  </>
+)}
   {userMenuOpen && isLoggedIn && (
   <>
     <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
@@ -708,7 +756,7 @@ if (isMobile) return <MobileHome />;
     />
   </>
 )}
-  <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { router.push("/auth?mode=login"); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
+  <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { setGuestMenuOpen(!guestMenuOpen); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
     <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
     {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? (
   <>
