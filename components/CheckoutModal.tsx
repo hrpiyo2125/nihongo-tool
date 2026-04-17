@@ -70,11 +70,17 @@ function CheckoutForm({
     setTimeout(() => onSuccess(), 1800);
   };
 
-  if (loading) return <ProcessingOverlay messages={["支払い処理中...", "もう少しで完了します", "カード情報を確認しています", "プランを準備しています"]} />;
   if (success) return <SuccessOverlay label={`${planName}プランへようこそ。\n今すぐすべての教材が使えます。`} />;
 
   return (
-    <div>
+    <div style={{ position: "relative" }}>
+      {/* PaymentElementは常にマウントしたまま、loading時はオーバーレイで覆う */}
+      {loading && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 10, background: "white", borderRadius: 12 }}>
+          <ProcessingOverlay messages={["支払い処理中...", "もう少しで完了します", "カード情報を確認しています", "プランを準備しています"]} />
+        </div>
+      )}
+
       {!ready && (
         <div style={{ textAlign: "center", padding: "24px 0", color: "#bbb", fontSize: 13 }}>
           読み込み中...
@@ -93,28 +99,31 @@ function CheckoutForm({
       {ready && (
         <button
           onClick={handleSubmit}
-          disabled={!stripe}
+          disabled={!stripe || loading}
           style={{
             width: "100%", height: 44, borderRadius: 22, border: "none",
             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
             color: "white", fontSize: 14, fontWeight: 700,
-            cursor: "pointer",
+            cursor: loading ? "not-allowed" : "pointer",
+            opacity: loading ? 0.7 : 1,
           }}
         >
           {planName}プランを始める
         </button>
       )}
 
-      <button
-        onClick={onClose}
-        style={{
-          width: "100%", height: 36, marginTop: 8, borderRadius: 18,
-          border: "none", background: "transparent", color: "#bbb",
-          fontSize: 12, cursor: "pointer",
-        }}
-      >
-        キャンセル
-      </button>
+      {!loading && (
+        <button
+          onClick={onClose}
+          style={{
+            width: "100%", height: 36, marginTop: 8, borderRadius: 18,
+            border: "none", background: "transparent", color: "#bbb",
+            fontSize: 12, cursor: "pointer",
+          }}
+        >
+          キャンセル
+        </button>
+      )}
     </div>
   );
 }
