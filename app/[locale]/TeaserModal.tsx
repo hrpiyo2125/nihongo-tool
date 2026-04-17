@@ -74,7 +74,7 @@ export default function TeaserModal({
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isLoggedIn) { setFavTooltip(!favTooltip); return; }
-    if (isFreeUser && !isFav && favIds.length >= 5) { setFavLimitTooltip(prev => !prev); return; }
+    if (isFreeUser && !isFav && new Set(favIds).size >= 5) { setFavLimitTooltip(prev => !prev); return; }
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
