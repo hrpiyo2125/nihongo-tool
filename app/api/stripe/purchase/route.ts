@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { getOrCreateStripeCustomer } from "../../../../lib/stripe-customer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const supabase = createClient(
@@ -24,21 +25,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "ALREADY_PURCHASED" }, { status: 400 });
     }
 
-    // StripeのCustomerを取得または作成
-    let customerId: string;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", userId)
-      .single();
-
-    if (profile?.stripe_customer_id) {
-      customerId = profile.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
-      customerId = customer.id;
-      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
-    }
+    const customerId = await getOrCreateStripeCustomer(supabase, userId, email);
 
     // 支払い方法を確認
     const paymentMethods = await stripe.paymentMethods.list({

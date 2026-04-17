@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendTrialStartEmail } from '@/lib/email'
+import { getOrCreateStripeCustomer } from '../../../../lib/stripe-customer'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
@@ -40,45 +41,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Stripe顧客の取得または作成
-    let customerId: string
-
-    if (profile.stripe_customer_id) {
-      try {
-        const existing = await stripe.customers.retrieve(profile.stripe_customer_id)
-        if ((existing as any).deleted) {
-          throw { code: 'resource_missing' }
-        }
-        customerId = profile.stripe_customer_id
-      } catch (e: any) {
-        if (e?.code === 'resource_missing') {
-          await supabase
-            .from('profiles')
-            .update({ stripe_customer_id: null })
-            .eq('id', userId)
-          const customer = await stripe.customers.create({
-            email,
-            metadata: { userId },
-          })
-          customerId = customer.id
-          await supabase
-            .from('profiles')
-            .update({ stripe_customer_id: customerId })
-            .eq('id', userId)
-        } else {
-          throw e
-        }
-      }
-    } else {
-      const customer = await stripe.customers.create({
-        email,
-        metadata: { userId },
-      })
-      customerId = customer.id
-      await supabase
-        .from('profiles')
-        .update({ stripe_customer_id: customerId })
-        .eq('id', userId)
-    }
+    const customerId = await getOrCreateStripeCustomer(supabase, userId, email)
 
     // トライアルサブスクを作成（クレカなし・14日間・ライトプラン）
     const trialEnd = Math.floor(Date.now() / 1000) + 14 * 24 * 60 * 60

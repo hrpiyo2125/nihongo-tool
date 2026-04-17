@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { getOrCreateStripeCustomer } from "../../../../lib/stripe-customer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const supabase = createClient(
@@ -12,36 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const { userId, email, priceId } = await req.json();
 
-    let customerId: string;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", userId)
-      .single();
-
-    if (profile?.stripe_customer_id) {
-      try {
-        const existing = await stripe.customers.retrieve(profile.stripe_customer_id);
-        // 削除済み顧客の場合もリセット
-        if (existing.deleted) {
-          throw { code: "resource_missing" };
-        }
-        customerId = profile.stripe_customer_id;
-      } catch (e: any) {
-        if (e?.code === "resource_missing") {
-          await supabase.from("profiles").update({ stripe_customer_id: null }).eq("id", userId);
-          const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
-          customerId = customer.id;
-          await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
-        } else {
-          throw e;
-        }
-      }
-    } else {
-      const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
-      customerId = customer.id;
-      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
-    }
+    const customerId = await getOrCreateStripeCustomer(supabase, userId, email);
 
     const setupIntent = await stripe.setupIntents.create({
       customer: customerId,

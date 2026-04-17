@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import { getOrCreateStripeCustomer } from "../../../../lib/stripe-customer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const supabase = createClient(
@@ -12,20 +13,7 @@ export async function POST(req: NextRequest) {
   try {
     const { userId, email, priceId } = await req.json();
 
-    let customerId: string;
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_customer_id")
-      .eq("id", userId)
-      .single();
-
-    if (profile?.stripe_customer_id) {
-      customerId = profile.stripe_customer_id;
-    } else {
-      const customer = await stripe.customers.create({ email, metadata: { user_id: userId } });
-      customerId = customer.id;
-      await supabase.from("profiles").update({ stripe_customer_id: customerId }).eq("id", userId);
-    }
+    const customerId = await getOrCreateStripeCustomer(supabase, userId, email);
 
     const paymentMethods = await stripe.paymentMethods.list({
       customer: customerId,
@@ -38,28 +26,36 @@ export async function POST(req: NextRequest) {
 
     const paymentMethodId = paymentMethods.data[0].id;
 
-    const existingSubscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-    });
+    // Supabaseに保存済みのサブスクIDを優先して使う（stripe.subscriptions.list呼び出しを省略）
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("stripe_subscription_id")
+      .eq("id", userId)
+      .single();
 
-    if (existingSubscriptions.data.length > 0) {
-      const existingSub = existingSubscriptions.data[0];
-      const updatedSub = await stripe.subscriptions.update(existingSub.id, {
-        items: [{ id: existingSub.items.data[0].id, price: priceId }],
-        proration_behavior: "always_invoice",
-      });
-      const planMap: Record<string, string> = {
-        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
-        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
-        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
-      };
-      const newPlan = planMap[priceId] ?? "light";
-      await supabase.from("profiles").update({
-        plan: newPlan,
-        stripe_subscription_id: updatedSub.id,
-      }).eq("id", userId);
-      return NextResponse.json({ success: true });
+    if (profile?.stripe_subscription_id) {
+      try {
+        const existingSub = await stripe.subscriptions.retrieve(profile.stripe_subscription_id);
+        if (existingSub.status === "active" || existingSub.status === "trialing") {
+          const updatedSub = await stripe.subscriptions.update(existingSub.id, {
+            items: [{ id: existingSub.items.data[0].id, price: priceId }],
+            proration_behavior: "always_invoice",
+          });
+          const planMap: Record<string, string> = {
+            [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
+            [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
+            [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+          };
+          const newPlan = planMap[priceId] ?? "light";
+          await supabase.from("profiles").update({
+            plan: newPlan,
+            stripe_subscription_id: updatedSub.id,
+          }).eq("id", userId);
+          return NextResponse.json({ success: true });
+        }
+      } catch {
+        // サブスクが存在しない場合は新規作成へ
+      }
     }
 
     const subscription = await stripe.subscriptions.create({
