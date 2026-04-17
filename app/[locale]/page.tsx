@@ -15,6 +15,7 @@ import MobileHome from "./MobileHome";
 import { TroubleSection, GuideSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
 import { BrandIcon } from "../../components/BrandIcon";
+import PersonalizedSection from "./PersonalizedSection";
 
 
 
@@ -592,6 +593,7 @@ const methodItems = [
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
+  const [topDlIds, setTopDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -664,6 +666,8 @@ const methodItems = [
       if (session) {
       const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
       if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+      const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
+      if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
       }
       if (session) {
       const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
@@ -878,6 +882,31 @@ if (isMobile) return <MobileHome />;
                  </div>
                 ))}
               </div>
+              <PersonalizedSection
+                materials={materials}
+                favIds={topFavIds}
+                dlIds={topDlIds}
+                userPlan={profile.plan ?? "free"}
+                isLoggedIn={isLoggedIn}
+                purchasedIds={purchasedIds}
+                locale={locale}
+                onCardClick={(mat) => setTopTeaserMat(mat)}
+                onFavToggle={async (mat) => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  if (topFavIds.includes(mat.id)) {
+                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                    setTopFavIds((prev) => prev.filter((id) => id !== mat.id));
+                    window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+                  } else {
+                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                    setTopFavIds((prev) => [...prev, mat.id]);
+                    window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+                  }
+                }}
+                onPlanChanged={loadProfile}
+              />
               <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 48 }}>
                 {[
                 { key: "pickup", label: th("pickup") },

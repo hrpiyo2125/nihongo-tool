@@ -9,6 +9,7 @@ import TeaserModal from "./TeaserModal";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
+import PersonalizedSection from "./PersonalizedSection";
 
 
 
@@ -182,6 +183,8 @@ export default function MobileHome() {
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
+  const [dlIds, setDlIds] = useState<string[]>([]);
+  const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const [modalFilter, setModalFilter] = useState<{ content: string; method: string } | null>(null);
   const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
@@ -201,6 +204,10 @@ export default function MobileHome() {
         if (profileData) setProfile(profileData);
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
         if (favData) setFavIds(favData.map((d: any) => d.material_id));
+        const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
+        if (dlData) setDlIds([...new Set(dlData.map((d: any) => d.material_id as string))]);
+        const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+        if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: any) => d.material_id as string))]);
       }
     });
   }, []);
@@ -397,6 +404,33 @@ export default function MobileHome() {
                 ))}
               </section>
             )}
+
+            {/* あなたへのおすすめ */}
+            <section style={{ padding: "24px 20px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+              <PersonalizedSection
+                materials={materials}
+                favIds={favIds}
+                dlIds={dlIds}
+                userPlan={profile.plan ?? "free"}
+                isLoggedIn={isLoggedIn}
+                purchasedIds={purchasedIds}
+                locale={locale}
+                columns={2}
+                onCardClick={(mat) => setTeaserMat(mat)}
+                onFavToggle={async (mat) => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  if (favIds.includes(mat.id)) {
+                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                    setFavIds(prev => prev.filter(id => id !== mat.id));
+                  } else {
+                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                    setFavIds(prev => [...prev, mat.id]);
+                  }
+                }}
+              />
+            </section>
 
             {/* 教材タブ（ピックアップ等） */}
             <section style={{ padding: "24px 0 32px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
