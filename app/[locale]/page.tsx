@@ -613,6 +613,17 @@ const methodItems = [
     .then((data) => setAnnouncements(Array.isArray(data) ? data : []));
 }, []);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { page } = (e as CustomEvent).detail;
+      setActivePage(page);
+      const c = document.getElementById("main-scroll");
+      if (c) c.scrollTo({ top: 0, behavior: "smooth" });
+    };
+    window.addEventListener("toolio:navigate-mypage", handler);
+    return () => window.removeEventListener("toolio:navigate-mypage", handler);
+  }, []);
+
   const loadProfile = async () => {
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
@@ -933,6 +944,7 @@ if (isMobile) return <MobileHome />;
               onClick={() => setTopTeaserMat(mat)}
               locale={locale}
               isLoggedIn={isLoggedIn}
+              userPlan={profile.plan ?? "free"}
               favIds={topFavIds}
               purchasedIds={purchasedIds}
               bg={bg} char={char} charColor={charColor}

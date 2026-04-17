@@ -58,14 +58,14 @@ const plans = [
 
 // 各featureがどのプランからOKか
 const features = [
-  { label: "お気に入り",       from: "free" },
-  { label: "DL履歴",           from: "free" },
+  { label: "お気に入り",       from: "free",     freeNote: "最大5件", paidNote: "無制限" },
+  { label: "DL履歴",           from: "free",     freeNote: "最大5件", paidNote: "無制限" },
   { label: "都度購入",         from: "light" },
   { label: "無料教材",         from: "free" },
   { label: "ライト教材",       from: "light" },
   { label: "スタンダード教材", from: "standard" },
   { label: "プレミアム教材",   from: "premium" },
-];
+] as { label: string; from: string; freeNote?: string; paidNote?: string }[];
 
 const planOrder = ["free", "light", "standard", "premium"];
 
@@ -444,7 +444,9 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                   </td>
                   {plans.map((plan) => {
                     const ok = isFeatureAvailable(feature.from, plan.key);
-                    const isCurrent = plan.key === currentPlan;
+                    const subText = ok && feature.freeNote
+                      ? plan.key === "free" ? feature.freeNote : feature.paidNote
+                      : null;
                     return (
                       <td key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{
                         textAlign: "center",
@@ -476,6 +478,9 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             </svg>
                           )}
                         </div>
+                        {subText && (
+                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600 }}>{subText}</div>
+                        )}
                       </td>
                     );
                   })}

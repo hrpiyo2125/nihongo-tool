@@ -60,6 +60,7 @@ export default function TeaserModal({
 }: Props) {
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
+  const [favLimitTooltip, setFavLimitTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
   const [purchaseStep, setPurchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
   
@@ -73,6 +74,7 @@ export default function TeaserModal({
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isLoggedIn) { setFavTooltip(!favTooltip); return; }
+    if (isFreeUser && !isFav && favIds.length >= 5) { setFavLimitTooltip(prev => !prev); return; }
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -159,6 +161,34 @@ export default function TeaserModal({
                     <button onClick={() => { window.location.href = "/auth"; }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
                     <button onClick={() => { window.location.href = "/auth?mode=login"; }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
                   </div>
+                </div>
+              </>
+            )}
+            {favLimitTooltip && (
+              <>
+                <div onClick={() => setFavLimitTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
+                <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "16px 18px", width: 280, border: "0.5px solid rgba(200,170,240,0.3)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                    <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
+                  </div>
+                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>
+                    無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
+                  </div>
+                  <button
+                    onClick={() => { setFavLimitTooltip(false); onClose(); window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
+                    style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}
+                  >
+                    お気に入り履歴を開く →
+                  </button>
+                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>
+                    無制限でお気に入り登録したい方はプランのアップグレードをしてください。
+                  </div>
+                  <button
+                    onClick={() => { setFavLimitTooltip(false); setShowPlanModal(true); }}
+                    style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
+                  >
+                    プランをアップグレードする →
+                  </button>
                 </div>
               </>
             )}

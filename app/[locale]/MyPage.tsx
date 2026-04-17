@@ -104,6 +104,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
     onClick={() => setTeaserMat(mat)}
     locale={locale}
     isLoggedIn={isLoggedIn}
+    userPlan={userPlan}
     favIds={favIds}
     {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
     onFavToggle={async (mat) => {
@@ -216,6 +217,7 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             mat={mat}
             locale={locale}
             isLoggedIn={isLoggedIn}
+            userPlan={userPlan}
             favIds={favIds}
             onClick={() => setTeaserMat(mat)}
             {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
@@ -320,6 +322,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             mat={mat}
             locale={locale}
             isLoggedIn={isLoggedIn}
+            userPlan={userPlan}
             favIds={favIds}
             onClick={() => setTeaserMat(mat)}
             {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
@@ -706,9 +709,18 @@ export default function MyPage({
   return (
     <div>
       <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
-          {navItems.find(n => n.id === activePage)?.label}
-        </h2>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
+            {navItems.find(n => n.id === activePage)?.label}
+          </h2>
+          {(activePage === "fav" || activePage === "dl") && (
+            <span style={{ fontSize: 11, color: "#bbb", fontWeight: 500 }}>
+              {(profile?.plan === "free" || !profile?.plan)
+                ? "無料プランの方は最大5件まで保存可能です"
+                : "ライトプラン以上：無制限で保存できます"}
+            </span>
+          )}
+        </div>
       </div>
       <div style={{ padding: "32px 48px 56px" }}>
         {activePage === "plan" ? (
