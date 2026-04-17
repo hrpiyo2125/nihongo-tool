@@ -65,6 +65,8 @@ export default function TeaserModal({
   
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [purchaseLockTooltip, setPurchaseLockTooltip] = useState(false);
+  const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
   const isFav = favIds.includes(mat.id);
   const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
 
@@ -192,9 +194,37 @@ export default function TeaserModal({
                       <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするか、この教材を単品購入できます。</div>
                       <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
                      {purchaseStep === "idle" && (
-                      <button onClick={() => setShowPurchaseConfirm(true)} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>
-                       ¥350 この教材を単品購入する
-                      </button>
+                      <div style={{ position: "relative" }}>
+                        <button
+                          onClick={() => {
+                            if (isFreeUser) setPurchaseLockTooltip(prev => !prev);
+                            else setShowPurchaseConfirm(true);
+                          }}
+                          style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: isFreeUser ? "#f8f5ff" : "white", color: "#9b6ed4", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                        >
+                          {isFreeUser && <BrandIcon name="lock" size={12} color="#9b6ed4" />}
+                          ¥350 この教材を単品購入する
+                        </button>
+                        {purchaseLockTooltip && isFreeUser && (
+                          <>
+                            <div onClick={() => setPurchaseLockTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 349 }} />
+                            <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 350, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 280, border: "0.5px solid rgba(200,170,240,0.35)" }}>
+                              <div style={{ fontSize: 11, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                                <BrandIcon name="lock" size={12} color="#7a50b0" />単品購入について
+                              </div>
+                              <div style={{ fontSize: 11, color: "#666", lineHeight: 1.7, marginBottom: 12 }}>
+                                単品購入はライトプラン会員の方以上が使用できます。この教材を単品購入したい方はライトプラン以上のプランにご登録ください。
+                              </div>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setPurchaseLockTooltip(false); setDownTooltip(false); setShowPlanModal(true); }}
+                                style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
+                              >
+                                プランをアップグレードする →
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                      )}
                       
                       {purchaseStep === "done" && (
