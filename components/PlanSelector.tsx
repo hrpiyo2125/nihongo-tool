@@ -199,7 +199,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                 : `${successPlan.name}プランへ変更しました。`}
             />
             <button
-              onClick={() => { setSuccessPlan(null); onSubscribed?.(); }}
+              onClick={() => { setSuccessPlan(null); onSubscribed?.(); router.refresh(); }}
               style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
             >
               確認する →
@@ -229,7 +229,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           planName={checkoutModal.planName}
           clientSecret={checkoutModal.clientSecret}
           setupIntentId={checkoutModal.setupIntentId}
-          onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); }}
+          onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); router.refresh(); }}
           onClose={() => setCheckoutModal(null)}
         />
       )}
@@ -281,7 +281,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           mode={confirmMode}
           keepCancellation={keepCancellation}
           cardInfo={confirmCardInfo ?? undefined}
-          onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); onSubscribed?.(); }}
+          onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); onSubscribed?.(); router.refresh(); }}
           onClose={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); }}
           onSubscriptionReset={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); setSubscriptionResetModal(true); }}
         />
