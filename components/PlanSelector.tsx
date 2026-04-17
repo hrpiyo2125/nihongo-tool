@@ -508,6 +508,22 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           background: "white", color: plan.color,
                           fontSize: 10, fontWeight: 700, cursor: "pointer", opacity: 0.8,
                         }}>このまま使う →</button>
+                      ) : plan.key === "free" && isPaid && cancelAtPeriodEnd ? (
+                        <button
+                          disabled
+                          style={{
+                            width: "100%", height: 40, borderRadius: 20, border: "none",
+                            background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
+                            color: "white", fontSize: 9, fontWeight: 700,
+                            cursor: "not-allowed", opacity: 0.65,
+                            lineHeight: 1.4, padding: "4px 6px",
+                          }}
+                        >
+                          解約予約済み<br />
+                          <span style={{ fontSize: 8, fontWeight: 500, opacity: 0.9 }}>
+                            {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" }) + "から無料プランへ" : ""}
+                          </span>
+                        </button>
                       ) : plan.key === "free" && isPaid ? (
                         <button
                           onClick={(() => setStartPlan({ key: "free", name: "無料", price: 0, mode: "cancel" }))}
