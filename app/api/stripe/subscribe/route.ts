@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
-import { getOrCreateStripeCustomer } from "../../../../lib/stripe-customer";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 const supabase = createClient(
@@ -9,16 +8,42 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+const PLAN_MAP: Record<string, string> = {
+  [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
+  [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
+  [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+};
+
 export async function POST(req: NextRequest) {
   try {
-    const { userId, email, priceId } = await req.json();
+    const { userId, priceId } = await req.json();
 
-    const customerId = await getOrCreateStripeCustomer(supabase, userId, email);
+    // Supabaseを1回だけ呼ぶ
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("stripe_customer_id, stripe_subscription_id")
+      .eq("id", userId)
+      .single();
 
-    const paymentMethods = await stripe.paymentMethods.list({
-      customer: customerId,
-      type: "card",
-    });
+    if (!profile?.stripe_customer_id) {
+      // 顧客未登録 = カードなし（新規カード入力フローへ）
+      return NextResponse.json({ requiresPaymentMethod: true });
+    }
+
+    const customerId = profile.stripe_customer_id;
+
+    // Stripeからカード情報取得
+    let paymentMethods: Stripe.ApiList<Stripe.PaymentMethod>;
+    try {
+      paymentMethods = await stripe.paymentMethods.list({ customer: customerId, type: "card" });
+    } catch (e: any) {
+      if (e?.code === "resource_missing") {
+        // StripeにCustomerが存在しない → Supabaseをリセットしてエラーを返す
+        await supabase.from("profiles").update({ stripe_customer_id: null, stripe_subscription_id: null }).eq("id", userId);
+        return NextResponse.json({ error: "stripe_customer_missing" }, { status: 404 });
+      }
+      throw e;
+    }
 
     if (paymentMethods.data.length === 0) {
       return NextResponse.json({ requiresPaymentMethod: true });
@@ -26,14 +51,8 @@ export async function POST(req: NextRequest) {
 
     const paymentMethodId = paymentMethods.data[0].id;
 
-    // Supabaseに保存済みのサブスクIDを優先して使う（stripe.subscriptions.list呼び出しを省略）
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("stripe_subscription_id")
-      .eq("id", userId)
-      .single();
-
-    if (profile?.stripe_subscription_id) {
+    // 既存サブスクがあればプラン変更（retrieve 1回）
+    if (profile.stripe_subscription_id) {
       try {
         const existingSub = await stripe.subscriptions.retrieve(profile.stripe_subscription_id);
         if (existingSub.status === "active" || existingSub.status === "trialing") {
@@ -41,23 +60,18 @@ export async function POST(req: NextRequest) {
             items: [{ id: existingSub.items.data[0].id, price: priceId }],
             proration_behavior: "always_invoice",
           });
-          const planMap: Record<string, string> = {
-            [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
-            [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
-            [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
-          };
-          const newPlan = planMap[priceId] ?? "light";
-          await supabase.from("profiles").update({
-            plan: newPlan,
-            stripe_subscription_id: updatedSub.id,
-          }).eq("id", userId);
+          const newPlan = PLAN_MAP[priceId] ?? "light";
+          await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: updatedSub.id }).eq("id", userId);
           return NextResponse.json({ success: true });
         }
-      } catch {
-        // サブスクが存在しない場合は新規作成へ
+      } catch (e: any) {
+        if (e?.code !== "resource_missing") throw e;
+        // Stripeにサブスクが存在しない → 新規作成へ
+        await supabase.from("profiles").update({ stripe_subscription_id: null }).eq("id", userId);
       }
     }
 
+    // 新規サブスク作成
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [{ price: priceId }],
@@ -66,19 +80,8 @@ export async function POST(req: NextRequest) {
     });
 
     if (subscription.status === "active") {
-      const planMap: Record<string, string> = {
-        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
-        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
-        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
-      };
-      const newPlan = planMap[priceId] ?? "light";
-      await supabase
-        .from("profiles")
-        .update({
-          plan: newPlan,
-          stripe_subscription_id: subscription.id,
-        })
-        .eq("id", userId);
+      const newPlan = PLAN_MAP[priceId] ?? "light";
+      await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: subscription.id }).eq("id", userId);
       return NextResponse.json({ success: true });
     }
 
