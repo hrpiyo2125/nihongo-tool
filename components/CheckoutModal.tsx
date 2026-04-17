@@ -64,14 +64,15 @@ function CheckoutForm({
   };
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ position: "relative", ...(loading ? { height: 200, overflow: "hidden" } : {}) }}>
+      {/* loading中はオーバーレイで覆う。PaymentElementは常にマウント維持 */}
       {loading && (
         <div style={{ position: "absolute", inset: 0, zIndex: 10, background: "white", borderRadius: 12 }}>
           <ProcessingOverlay messages={["支払い処理中...", "もう少しで完了します", "カード情報を確認しています", "プランを準備しています"]} />
         </div>
       )}
 
-      {!ready && (
+      {!ready && !loading && (
         <div style={{ textAlign: "center", padding: "24px 0", color: "#bbb", fontSize: 13 }}>
           読み込み中...
         </div>
@@ -86,16 +87,15 @@ function CheckoutForm({
         </div>
       )}
 
-      {ready && (
+      {ready && !loading && (
         <button
           onClick={handleSubmit}
-          disabled={!stripe || loading}
+          disabled={!stripe}
           style={{
             width: "100%", height: 44, borderRadius: 22, border: "none",
             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
             color: "white", fontSize: 14, fontWeight: 700,
-            cursor: loading ? "not-allowed" : "pointer",
-            opacity: loading ? 0.7 : 1,
+            cursor: "pointer",
           }}
         >
           {planName}プランを始める
