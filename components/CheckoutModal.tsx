@@ -161,7 +161,6 @@ export default function CheckoutModal({
           stripe={stripePromise}
           options={{
             clientSecret,
-            paymentMethodCreation: "manual",
             appearance: {
               theme: "stripe",
               variables: {
