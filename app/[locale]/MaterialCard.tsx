@@ -109,7 +109,7 @@ export default function MaterialCard({
               <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
             </div>
             <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>
-              無料会員の方は最大5件まで登録可能です（現在{uniqueFavCount}件）。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
+              無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
