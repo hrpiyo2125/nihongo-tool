@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "../lib/supabase";
+import { BrandIcon } from "./BrandIcon";
 
 type Props = {
   planName: string;
@@ -41,7 +42,7 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "40px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-        <div style={{ fontSize: 36, marginBottom: 16 }}>{isCancel ? "🔄" : "✨"}</div>
+        <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><BrandIcon name={isCancel ? "refresh" : "sparkle"} size={44} color="#e49bfd" /></div>
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
           {isCancel ? "無料プランに戻しますか？" : `${planName}プランを始めますか？`}
         </div>

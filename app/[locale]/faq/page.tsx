@@ -1,14 +1,16 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { BrandIcon } from "../../../components/BrandIcon";
+type BrandIconName = Parameters<typeof BrandIcon>[0]["name"];
 
 type FAQ = { q: string; a: string };
-type Category = { label: string; emoji: string; faqs: FAQ[] };
+type Category = { label: string; icon: BrandIconName; faqs: FAQ[] };
 
 const categories: Category[] = [
   {
     label: "サービスについて",
-    emoji: "✦",
+    icon: "sparkle",
     faqs: [
       { q: "toolioとはどんなサービスですか？", a: "toolioは、海外で日本語を学ぶ子どもたちのための教材プラットフォームです。ひらがな・カタカナ・漢字・算数など、さまざまな教材を印刷してすぐ使える形でご提供しています。先生や保護者の方がすぐに授業や家庭学習に取り入れられるよう、使い方ガイドも一緒にご用意しています。" },
       { q: "無料で使えますか？", a: "はい、一部の教材は無料でご利用いただけます。無料アカウントを作成すると、お気に入り保存・ダウンロード履歴などの機能もご利用いただけます。さらに多くの教材・体系的なカリキュラムをご利用いただくには、サブスクリプションプランへの登録をお勧めします。" },
@@ -17,7 +19,7 @@ const categories: Category[] = [
   },
   {
     label: "アカウント・登録",
-    emoji: "👤",
+    icon: "user",
     faqs: [
       { q: "アカウント登録は必要ですか？", a: "一部の教材は登録なしでご覧いただけますが、ダウンロード・お気に入り保存などの機能にはアカウント登録（無料）が必要です。メールアドレスだけで簡単に登録できます。" },
       { q: "登録に費用はかかりますか？", a: "無料アカウントの登録は完全無料です。有料のサブスクリプションプランへの加入は任意です。" },
@@ -26,7 +28,7 @@ const categories: Category[] = [
   },
   {
     label: "教材について",
-    emoji: "📄",
+    icon: "document",
     faqs: [
       { q: "教材はどのような形式で提供されますか？", a: "教材はPDF形式でご提供します。ダウンロードして印刷してお使いいただけます。印刷した教材は、個人の学習目的・教室内での教育目的に限りご使用いただけます。" },
       { q: "教材を印刷して配布してもいいですか？", a: "担当するクラスや家族内での教育目的での配布はOKです。ただし、第三者への販売・無制限の配布・ウェブ上への再掲載はお断りしています。詳しくは利用規約をご確認ください。" },
@@ -36,7 +38,7 @@ const categories: Category[] = [
   },
   {
     label: "プラン・料金",
-    emoji: "💳",
+    icon: "credit-card",
     faqs: [
       { q: "サブスクリプションプランの違いは何ですか？", a: "プランの詳細はプランページをご確認ください。無料プランでは一部の教材をご利用いただけます。有料プランでは全教材・体系的なカリキュラム・追加機能がご利用いただけます。" },
       { q: "いつでも解約できますか？", a: "はい、いつでもマイページから解約できます。解約後も次回更新日までは引き続きサービスをご利用いただけます。" },
@@ -45,7 +47,7 @@ const categories: Category[] = [
   },
   {
     label: "技術・動作環境",
-    emoji: "💻",
+    icon: "search",
     faqs: [
       { q: "スマートフォンでも使えますか？", a: "はい、スマートフォン・タブレット・PCでご利用いただけます。ただし、PDFのダウンロード・印刷にはPCのご利用をお勧めします。" },
       { q: "推奨ブラウザはありますか？", a: "Chrome・Safari・Firefox・Edgeの最新バージョンを推奨しています。古いバージョンのブラウザでは一部機能が正常に動作しない場合があります。" },
@@ -99,7 +101,7 @@ export default function FAQPage() {
               onClick={() => setActiveCategory(i)}
               style={{ fontSize: 13, padding: "8px 18px", borderRadius: 20, border: activeCategory === i ? "1px solid rgba(163,192,255,0.6)" : "1px solid rgba(0,0,0,0.08)", background: activeCategory === i ? "rgba(163,192,255,0.15)" : "white", color: activeCategory === i ? "#7a50b0" : "#888", cursor: "pointer", fontWeight: activeCategory === i ? 700 : 500, display: "flex", alignItems: "center", gap: 6 }}
             >
-              <span>{cat.emoji}</span>
+              <BrandIcon name={cat.icon} size={14} color={activeCategory === i ? "#9b6ed4" : "#bbb"} />
               <span>{cat.label}</span>
             </button>
           ))}

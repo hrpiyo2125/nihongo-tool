@@ -14,6 +14,7 @@ import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
 import { TroubleSection, GuideSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
+import { BrandIcon } from "../../components/BrandIcon";
 
 
 
@@ -433,21 +434,20 @@ function UserMenuPopup({
         </div>
       </div>
       {[
-        { icon: "👤", label: tm("profile"), page: "settings-profile" },
-        { icon: "📋", label: tm("plan"), page: "plan" },
-        { icon: "⭐", label: tm("points"), page: "pt" },
-        { icon: "🧾", label: tm("billing"), page: "settings-billing" },
-        { icon: "🔔", label: tm("notifications"), page: "settings-notifications" },
+        { icon: "user" as const, label: tm("profile"), page: "settings-profile" },
+        { icon: "plan" as const, label: tm("plan"), page: "plan" },
+        { icon: "star" as const, label: tm("points"), page: "pt" },
+        { icon: "billing" as const, label: tm("billing"), page: "settings-billing" },
+        { icon: "bell" as const, label: tm("notifications"), page: "settings-notifications" },
       ].map((item) => (
         <button key={item.label} onClick={() => {
          onNavigate(item.page);
          }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-          <span style={{ fontSize: 16 }}>{item.icon}</span>{item.label}
+          <BrandIcon name={item.icon} size={17} color="#c9a0f0" />{item.label}
         </button>
       ))}
       <button onClick={onLogout} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#e49bfd" }}>
-        
-        <span style={{ fontSize: 16 }}>🚪</span>{tm("logout")}
+        <BrandIcon name="logout" size={17} color="#e49bfd" />{tm("logout")}
       </button>
     </div>
   );
@@ -480,10 +480,10 @@ function GuestLoginPopup({
         <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
       </div>
       <button onClick={() => { onClose(); onRouterPush("/auth?mode=login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-        <span style={{ fontSize: 16 }}>🔑</span>ログイン
+        <BrandIcon name="key" size={17} color="#c9a0f0" />ログイン
       </button>
       <button onClick={() => { onClose(); onRouterPush("/auth"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#7040b0" }}>
-        <span style={{ fontSize: 16 }}>✨</span>会員でない方はこちらから新規登録
+        <BrandIcon name="sparkle" size={17} color="#9b6ed4" />会員でない方はこちらから新規登録
       </button>
     </div>
   );

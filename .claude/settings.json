@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"onSubscribed\\\\|onChangePlan\\\\|router\\\\.refresh\\\\|setProfile\" /Users/piyo/Desktop/toolio/app/[locale]/MyPage.tsx)",
+      "Bash(grep -n \"PlanSelector\\\\|BillingSection\\\\|onSubscribed\\\\|onChangePlan\" /Users/piyo/Desktop/toolio/app/[locale]/MyPage.tsx)"
+    ]
+  }
+}

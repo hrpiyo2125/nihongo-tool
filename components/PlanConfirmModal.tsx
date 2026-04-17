@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
+import { BrandIcon } from "./BrandIcon";
 
 const PLAN_LABELS: Record<string, string> = {
   light: "ライト",
@@ -128,7 +129,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
       <>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.06)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
-        <div style={{ fontSize: 32, marginBottom: 12 }}>✨</div>
+        <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><BrandIcon name="sparkle" size={40} color="#e49bfd" /></div>
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 6 }}>プランに登録する</div>
         <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>登録後すぐにすべての教材が使えます。</div>
 

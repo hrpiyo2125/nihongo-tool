@@ -1,3 +1,6 @@
+import { BrandIcon } from "../../components/BrandIcon";
+type BIconName = Parameters<typeof BrandIcon>[0]["name"];
+
 export default function ToolioConceptSection() {
   return (
     <section className="max-w-2xl mx-auto px-6 py-12 font-sans text-foreground">
@@ -16,46 +19,46 @@ export default function ToolioConceptSection() {
         <div className="flex flex-col gap-4">
           {[
             {
-              icon: "📝",
+              icon: "note" as BIconName,
               title: "ひらがな50音表を書く",
               result: "子供が楽しんでやっているように見えない、なんだか緊張感がある…",
               highlight: false,
             },
             {
-              icon: "📝",
+              icon: "note" as BIconName,
               title: "語彙や文の練習問題を重ねる",
               result:
                 "プリントを出すと嫌がる、意外とすぐに終わってしまうので時間が余る、だけど準備が意外と大変",
               highlight: false,
             },
             {
-              icon: "📝",
+              icon: "note" as BIconName,
               title: "大人向けの日本語教材を使う",
               result: "場面や文法が難しくて続かない",
               highlight: false,
             },
             {
-              icon: "📺",
+              icon: "search" as BIconName,
               title: "アニメ・漫画を見る",
               result:
                 "話していることや書いてあることが難しくて、日本語の勉強になっているのか？と不安になることもある",
               highlight: false,
             },
             {
-              icon: "📚",
+              icon: "books" as BIconName,
               title: "子ども向けの教科書を使う",
               result: "教科書を出すと、途端に嫌がる",
               highlight: false,
             },
             {
-              icon: "🃏",
+              icon: "card" as BIconName,
               title: "かるたをやる",
               result: "毎回楽しそう！",
               highlight: true,
             },
           ].map((item, i) => (
             <div key={i} className="flex gap-3 items-start text-sm leading-relaxed">
-              <span className="mt-0.5 text-base">{item.icon}</span>
+              <BrandIcon name={item.icon} size={16} color="#c9a0f0" style={{ marginTop: 2 }} />
               <div>
                 <span className="font-medium">{item.title}</span>
                 <span

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { BrandIcon } from "./BrandIcon";
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
 import dynamic from "next/dynamic";
@@ -335,7 +336,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
             alignItems: "center",
             gap: 10,
           }}>
-            <span style={{ fontSize: 18 }}>💡</span>
+            <BrandIcon name="lightbulb" size={20} color="#c9a0f0" />
             <div>
               <span style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>あなたの今月の使い方　</span>
               <span style={{ fontSize: 13, color: "#666" }}>

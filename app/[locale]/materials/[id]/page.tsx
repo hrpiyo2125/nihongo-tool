@@ -7,6 +7,7 @@ import PdfViewer from "./PdfViewer";
 import MaterialCard from "../../MaterialCard";
 import TeaserModal from "../../TeaserModal";
 import { getCardStyle, getTag } from "../../../../lib/materialUtils";
+import { BrandIcon } from "../../../../components/BrandIcon";
 import { contentTabsJa as contentTabs, methodTabsJa as methodTabs } from "../../../../lib/tabs";
 
 type Material = {
@@ -47,7 +48,7 @@ function LockTooltip({ type, visible, onClose }: { type: TooltipType; visible: b
       <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
       <div style={{ position: "absolute", top: "calc(100% + 10px)", right: 0, zIndex: 50, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "16px 18px", width: 230, border: "0.5px solid rgba(200,170,240,0.25)" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 6 }}>
-          {isFav ? "🔒 お気に入り機能" : "🔒 ダウンロード"}
+          <span style={{ display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="lock" size={13} color="#bbb" />{isFav ? "お気に入り機能" : "ダウンロード"}</span>
         </div>
         <div style={{ fontSize: 12, color: "#888", lineHeight: 1.7, marginBottom: 14 }}>
           {isFav ? "ログインするとお気に入りに保存できます。" : "ログインするとPDFをダウンロードできます。"}

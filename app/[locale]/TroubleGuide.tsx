@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { BrandIcon } from "../../components/BrandIcon";
 function TroubleNav({ onHome, onTop }: { onHome: () => void; onTop: () => void }) {
   return (
     <div style={{ display: "flex", gap: 10, paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)", marginTop: 8 }}>
@@ -7,7 +8,7 @@ function TroubleNav({ onHome, onTop }: { onHome: () => void; onTop: () => void }
         ← 何から始める？に戻る
       </button>
       <button onClick={onHome} style={{ fontSize: 12, padding: "8px 18px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.4)", background: "white", color: "#aaa", cursor: "pointer", fontWeight: 600 }}>
-        🏠 ホームに戻る
+        <BrandIcon name="home" size={13} color="#aaa" style={{ marginRight: 4 }} /> ホームに戻る
       </button>
     </div>
   );
@@ -61,14 +62,14 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
   
   {[
-    { icon: "📝", before: "ひらがな50音表を書く", after: "緊張感があって、楽しんでいるように見えない…" },
-    { icon: "📝", before: "語彙や文の練習問題を重ねる", after: "プリントを出すと嫌がる。準備も意外と大変。" },
-    { icon: "📚", before: "子ども向けの教科書を使う", after: "教科書を出すと、途端に嫌がる。" },
+    { icon: "note", before: "ひらがな50音表を書く", after: "緊張感があって、楽しんでいるように見えない…" },
+    { icon: "note", before: "語彙や文の練習問題を重ねる", after: "プリントを出すと嫌がる。準備も意外と大変。" },
+    { icon: "books", before: "子ども向けの教科書を使う", after: "教科書を出すと、途端に嫌がる。" },
 
   ].map((item, i) => (
     <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 10, alignItems: "center", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
       <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <span style={{ fontSize: 16, flexShrink: 0 }}>{item.icon}</span>
+        <BrandIcon name={item.icon as Parameters<typeof BrandIcon>[0]["name"]} size={16} color="#c9a0f0" />
         <span style={{ fontSize: 13, color: "#555", fontWeight: 600 }}>{item.before}</span>
       </div>
       <div style={{ fontSize: 18, color: "#ddd", flexShrink: 0 }}>→</div>
@@ -278,12 +279,12 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       {/* 3つのポイント */}
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 10, marginBottom: 16 }}>
         {[
-          { icon: "✂️", point: "短く話す", desc: "一文に一つの内容だけ。「ごはん、食べた？」" },
-          { icon: "🐢", point: "ゆっくり話す", desc: "急がず、間をとって。子どもが処理する時間を作る" },
-          { icon: "💬", point: "知っている言葉を使う", desc: "「食事」より「ごはん」。子どもが知っていそうな言葉で" },
+          { icon: "scissors" as const, point: "短く話す", desc: "一文に一つの内容だけ。「ごはん、食べた？」" },
+          { icon: "timer" as const, point: "ゆっくり話す", desc: "急がず、間をとって。子どもが処理する時間を作る" },
+          { icon: "chat" as const, point: "知っている言葉を使う", desc: "「食事」より「ごはん」。子どもが知っていそうな言葉で" },
         ].map((item) => (
           <div key={item.point} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "12px 16px" }}>
-            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>{item.icon}</div>
+            <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name={item.icon} size={18} color="white" /></div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#444", marginBottom: 3 }}>{item.point}</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
@@ -325,7 +326,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {[
           {
             skill: "聞く",
-            icon: "👂",
+            icon: "chat" as const,
             color: "#e8efff",
             border: "rgba(163,192,255,0.4)",
             titleColor: "#3a5a9a",
@@ -339,7 +340,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           },
           {
             skill: "話す",
-            icon: "🗣",
+            icon: "megaphone" as const,
             color: "#fce4f8",
             border: "rgba(228,155,253,0.4)",
             titleColor: "#7a2e7a",
@@ -353,7 +354,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           },
           {
             skill: "読む",
-            icon: "📖",
+            icon: "open-book" as const,
             color: "#fff8e0",
             border: "rgba(240,200,80,0.4)",
             titleColor: "#7a5a00",
@@ -367,7 +368,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           },
           {
             skill: "書く",
-            icon: "✏️",
+            icon: "pencil" as const,
             color: "#d6f5ee",
             border: "rgba(109,207,184,0.4)",
             titleColor: "#0d5c4a",
@@ -382,7 +383,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         ].map((skill) => (
           <div key={skill.skill} style={{ background: skill.color, border: `0.5px solid ${skill.border}`, borderRadius: 12, padding: "16px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <span style={{ fontSize: 20 }}>{skill.icon}</span>
+              <BrandIcon name={skill.icon} size={20} color={skill.titleColor} />
               <span style={{ fontSize: 14, fontWeight: 700, color: skill.titleColor }}>{skill.skill}</span>
             </div>
             <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
@@ -456,7 +457,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {[
           {
             level: "Basic",
-            icon: "🃏",
+            icon: "card" as const,
             color: "#d6f5e5",
             border: "rgba(109,207,184,0.4)",
             titleColor: "#2a6a44",
@@ -466,7 +467,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           },
           {
             level: "Middle",
-            icon: "🎮",
+            icon: "gamepad" as const,
             color: "#e8efff",
             border: "rgba(163,192,255,0.4)",
             titleColor: "#3a5a9a",
@@ -476,7 +477,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           },
           {
             level: "Advanced",
-            icon: "🎭",
+            icon: "megaphone" as const,
             color: "#ffe8f4",
             border: "rgba(244,185,185,0.4)",
             titleColor: "#a03070",
@@ -487,7 +488,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         ].map((item) => (
           <div key={item.level} style={{ background: item.color, border: `0.5px solid ${item.border}`, borderRadius: 12, padding: "16px 20px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <BrandIcon name={item.icon} size={20} color={item.titleColor} />
               <span style={{ fontSize: 14, fontWeight: 800, color: item.titleColor }}>{item.level}</span>
             </div>
             <div style={{ fontSize: 13, color: "#555", lineHeight: 1.8, marginBottom: 8 }}>{item.desc}</div>
@@ -514,14 +515,14 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         </div>
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
           {[
-            { time: "導入（5分）", icon: "💬", desc: "食べ物カードを見ながら「これ知ってる？」と話しかける" },
-            { time: "Basic（10分）", icon: "🃏", desc: "食べ物かるたで遊ぶ → 札が取れた！" },
-            { time: "Middle（10分）", icon: "🎮", desc: "食べ物ビンゴをする → 全部言えた！" },
-            { time: "Advanced（5分）", icon: "🎭", desc: "お買い物ロールプレイ → お店屋さんと話せた！" },
+            { time: "導入（5分）", icon: "chat" as const, desc: "食べ物カードを見ながら「これ知ってる？」と話しかける" },
+            { time: "Basic（10分）", icon: "card" as const, desc: "食べ物かるたで遊ぶ → 札が取れた！" },
+            { time: "Middle（10分）", icon: "gamepad" as const, desc: "食べ物ビンゴをする → 全部言えた！" },
+            { time: "Advanced（5分）", icon: "megaphone" as const, desc: "お買い物ロールプレイ → お店屋さんと話せた！" },
           ].map((step, i, arr) => (
             <div key={step.time}>
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10, padding: "12px 16px" }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</span>
+                <BrandIcon name={step.icon} size={18} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#c9a0f0", marginBottom: 3 }}>{step.time}</div>
                   <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{step.desc}</div>
@@ -543,13 +544,13 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         </div>
         <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
           {[
-            { time: "1回目", icon: "🃏", desc: "食べ物かるたで遊ぶ（Basic）→ 札が取れた！で終わる" },
-            { time: "2回目", icon: "🎮", desc: "食べ物ビンゴをする（Middle）→ 前回のかるたで覚えた言葉が出てくる！" },
-            { time: "3回目", icon: "🎭", desc: "お買い物ロールプレイ（Advanced）→ 気づいたら話せるようになってた！" },
+            { time: "1回目", icon: "card" as const, desc: "食べ物かるたで遊ぶ（Basic）→ 札が取れた！で終わる" },
+            { time: "2回目", icon: "gamepad" as const, desc: "食べ物ビンゴをする（Middle）→ 前回のかるたで覚えた言葉が出てくる！" },
+            { time: "3回目", icon: "megaphone" as const, desc: "お買い物ロールプレイ（Advanced）→ 気づいたら話せるようになってた！" },
           ].map((step, i, arr) => (
             <div key={step.time}>
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10, padding: "12px 16px" }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{step.icon}</span>
+                <BrandIcon name={step.icon} size={18} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: "#c9a0f0", marginBottom: 3 }}>{step.time}</div>
                   <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{step.desc}</div>
@@ -592,12 +593,12 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>子どもの興味も大切</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
         {[
-          { icon: "🚗", title: "好きなものから", desc: "車が好き→乗り物の語彙、動物が好き→動物の教材など、興味のあるテーマから入ると吸収が早い" },
-          { icon: "🍂", title: "季節・生活に合わせて", desc: "今の季節の教材、日常生活で使う言葉など、子どもの生活に近いものが定着しやすい" },
-          { icon: "✨", title: "「やってみたい！」を大切に", desc: "子どもが楽しそうと感じる教材を選ぶことが、続けるための一番の近道" },
+          { icon: "target" as const, title: "好きなものから", desc: "車が好き→乗り物の語彙、動物が好き→動物の教材など、興味のあるテーマから入ると吸収が早い" },
+          { icon: "calendar" as const, title: "季節・生活に合わせて", desc: "今の季節の教材、日常生活で使う言葉など、子どもの生活に近いものが定着しやすい" },
+          { icon: "sparkle" as const, title: "「やってみたい！」を大切に", desc: "子どもが楽しそうと感じる教材を選ぶことが、続けるための一番の近道" },
         ].map((item) => (
           <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-            <div style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</div>
+            <BrandIcon name={item.icon} size={24} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 4 }}>{item.title}</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
@@ -634,7 +635,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 1 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🎉</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="gamepad" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>説明より先に「楽しい活動」から入る</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>説明から始めると子どもは構えてしまいます。まず活動に飛び込んで、やりながら自然に言葉に触れさせましょう。</div>
@@ -649,7 +650,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 2 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🌱</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="chat" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>先生がさりげなく言葉を添える</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>「これは○○だよ」と教え込むのではなく、活動の中でさりげなく言葉を添えるだけで十分です。</div>
@@ -673,7 +674,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 3 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>⭐</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="star" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>必ず「できた！」で終わる</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>最後は子どもが「できた！」と感じられる活動で締めくくりましょう。こんな工夫を取り入れてみてください。</div>
@@ -698,7 +699,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 4 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>👀</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="search" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>疲れたサインを見逃さない</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>集中できる時間は子どもによって違います。サインを感じたら「今日はここまで」と早めに切り上げてOKです。</div>
@@ -726,7 +727,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 5 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🤍</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="heart" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>できなくても責めない</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>「怒られないようにやる」ではなく「やりたいからやる」を大切に。間違えても大丈夫、という空気が「できる」を引き出します。</div>
@@ -750,7 +751,7 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
         {/* 6 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>🌟</div>
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name="star" size={20} color="white" /></div>
             <div style={{ paddingTop: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>できた部分を認めてほめる</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7, marginBottom: 10 }}>できない部分には必ず原因があります。まずできていることを見つけて認めることが、子どもの自信につながります。</div>
@@ -820,14 +821,14 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>やる気のスイッチを押すヒント</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
         {[
-          { icon: "🗣", title: "「今日これだけやろう」と小さく始める", desc: "ハードルを下げるほど、動き出しやすくなる" },
-          { icon: "🎮", title: "最初はゲームや遊びで気分を上げる", desc: "楽しい入口があると、本題にも乗りやすい" },
-          { icon: "🌟", title: "「できたこと」を毎回見えるようにする", desc: "シール・スタンプなど、小さな達成感を積み重ねる" },
-          { icon: "📅", title: "決まった時間・場所でやる", desc: "「習慣」になると、やる気を待たなくてよくなる" },
+          { icon: "megaphone" as const, title: "「今日これだけやろう」と小さく始める", desc: "ハードルを下げるほど、動き出しやすくなる" },
+          { icon: "gamepad" as const, title: "最初はゲームや遊びで気分を上げる", desc: "楽しい入口があると、本題にも乗りやすい" },
+          { icon: "star" as const, title: "「できたこと」を毎回見えるようにする", desc: "シール・スタンプなど、小さな達成感を積み重ねる" },
+          { icon: "calendar" as const, title: "決まった時間・場所でやる", desc: "「習慣」になると、やる気を待たなくてよくなる" },
         ].map((step, i, arr) => (
           <div key={step.title}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name={step.icon} size={20} color="white" /></div>
               <div style={{ paddingTop: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
                 <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
@@ -922,12 +923,12 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>授業設計のちょっとしたコツ</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
         {[
-          { icon: "🎯", text: "最初に「今日はこれをやるよ」と伝える" },
-          { icon: "⏱", text: "1回の学習は15〜20分を目安に" },
-          { icon: "🎉", text: "終わりは「できたね」で締めくくる" },
+          { icon: "target" as const, text: "最初に「今日はこれをやるよ」と伝える" },
+          { icon: "timer" as const, text: "1回の学習は15〜20分を目安に" },
+          { icon: "check" as const, text: "終わりは「できたね」で締めくくる" },
         ].map((item) => (
           <div key={item.text} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 16px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10 }}>
-            <div style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</div>
+            <BrandIcon name={item.icon} size={18} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.text}</div>
           </div>
         ))}
@@ -964,10 +965,10 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
           { icon: "🧠", title: "定着する前に次へ進んでいる", desc: "「わかった」と「できる」は別物" },
           { icon: "📦", title: "使う場面がない", desc: "日常で使わないと記憶に残りにくい" },
           { icon: "😰", title: "プレッシャーがかかっている", desc: "緊張すると、知っていることも出てこない" },
-          { icon: "📚", title: "学習方法が合っていない", desc: "書くより話す・見るより聞くなど、得意な方法は子どもによって違う" },
+          { icon: "books", title: "学習方法が合っていない", desc: "書くより話す・見るより聞くなど、得意な方法は子どもによって違う" },
         ].map((item) => (
           <div key={item.title} style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-            <div style={{ fontSize: 24, flexShrink: 0 }}>{item.icon}</div>
+            <BrandIcon name={item.icon as Parameters<typeof BrandIcon>[0]["name"]} size={22} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 2 }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 4 }}>{item.title}</div>
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{item.desc}</div>
@@ -982,13 +983,13 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>定着のための3ステップ</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
         {[
-          { icon: "👀", title: "まず「知る」", desc: "教材・カードで内容に触れる。正確さより「なんとなくわかる」が大事" },
-          { icon: "🔄", title: "次に「慣れる」", desc: "ゲーム・かるたで繰り返す。楽しみながら自然に身につける" },
-          { icon: "🗣", title: "最後に「使う」", desc: "会話・ロールプレイで実際に使ってみる。ここで初めて「できた」になる" },
+          { icon: "open-book" as const, title: "まず「知る」", desc: "教材・カードで内容に触れる。正確さより「なんとなくわかる」が大事" },
+          { icon: "refresh" as const, title: "次に「慣れる」", desc: "ゲーム・かるたで繰り返す。楽しみながら自然に身につける" },
+          { icon: "megaphone" as const, title: "最後に「使う」", desc: "会話・ロールプレイで実際に使ってみる。ここで初めて「できた」になる" },
         ].map((step, i, arr) => (
           <div key={step.title}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name={step.icon} size={20} color="white" /></div>
               <div style={{ paddingTop: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
                 <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
@@ -1008,18 +1009,18 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
         {[
           {
-            icon: "😌",
+            icon: "heart" as const,
             title: "リラックスできる環境を作る",
             desc: "テストのような雰囲気にしない。間違えても大丈夫、という空気が「できる」を引き出します。「怒られないようにやる」より「やりたいからやる」を大切に。",
           },
           {
-            icon: "🔄",
+            icon: "refresh" as const,
             title: "学習方法を変えてみる",
             desc: "書くのが苦手なら話してみる、見るより聞く方が入りやすい子もいる。同じ内容でもアプローチを変えるだけで、ぐんと定着が変わることがあります。",
           },
         ].map((item) => (
           <div key={item.title} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "18px 20px" }}>
-            <div style={{ fontSize: 22, marginBottom: 10 }}>{item.icon}</div>
+            <div style={{ marginBottom: 10 }}><BrandIcon name={item.icon} size={22} color="#c9a0f0" /></div>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 8 }}>{item.title}</div>
             <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8 }}>{item.desc}</div>
           </div>
@@ -1078,13 +1079,13 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>1回の授業の目標の立て方</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 0 }}>
         {[
-          { icon: "🎯", title: "「今日のゴール」を最初に決める", desc: "子どもと一緒に「今日はこれができるようになろう」と確認する" },
-          { icon: "📝", title: "Can-doの形で言葉にする", desc: "「〜を学ぶ」ではなく「〜ができるようになる」という形にする" },
-          { icon: "🎉", title: "最後に「できたね」を確認して終わる", desc: "ゴールに戻って振り返ることで、達成感が生まれる" },
+          { icon: "target" as const, title: "「今日のゴール」を最初に決める", desc: "子どもと一緒に「今日はこれができるようになろう」と確認する" },
+          { icon: "note" as const, title: "Can-doの形で言葉にする", desc: "「〜を学ぶ」ではなく「〜ができるようになる」という形にする" },
+          { icon: "check" as const, title: "最後に「できたね」を確認して終わる", desc: "ゴールに戻って振り返ることで、達成感が生まれる" },
         ].map((step, i, arr) => (
           <div key={step.title}>
             <div style={{ display: "flex", gap: 14, alignItems: "flex-start", background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 18px" }}>
-              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>{step.icon}</div>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><BrandIcon name={step.icon} size={20} color="white" /></div>
               <div style={{ paddingTop: 4 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 3 }}>{step.title}</div>
                 <div style={{ fontSize: 13, color: "#777", lineHeight: 1.7 }}>{step.desc}</div>
@@ -1128,10 +1129,10 @@ function TroubleSection({ onOpenModal, onHome }: { onOpenModal: () => void; onHo
 function GuideSection() {
   const [guideTab, setGuideTab] = useState("start");
   const guideTabs = [
-    { id: "start",  label: "はじめての方へ",       emoji: "✦" },
-    { id: "find",   label: "教材の探し方",           emoji: "🔍" },
-    { id: "more",   label: "もっと活用したい",       emoji: "★" },
-    { id: "help",   label: "使っていてわからないとき", emoji: "❓" },
+    { id: "start",  label: "はじめての方へ",       icon: "sparkle" as const },
+    { id: "find",   label: "教材の探し方",           icon: "search" as const },
+    { id: "more",   label: "もっと活用したい",       icon: "star" as const },
+    { id: "help",   label: "使っていてわからないとき", icon: "lightbulb" as const },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column" as const }}>
@@ -1144,7 +1145,7 @@ function GuideSection() {
             const active = guideTab === tab.id;
             return (
               <button key={tab.id} onClick={() => setGuideTab(tab.id)} style={{ padding: "12px 22px", border: "none", borderBottom: active ? "2px solid #9b6ed4" : "2px solid transparent", background: "transparent", cursor: "pointer", fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#aaa", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" as const, flexShrink: 0 }}>
-                <span>{tab.emoji}</span>{tab.label}
+                <BrandIcon name={tab.icon} size={14} color={active ? "#9b6ed4" : "#ccc"} />{tab.label}
               </button>
             );
           })}
@@ -1186,12 +1187,12 @@ function GuideSection() {
               <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 12 }}>登録するとこんな機能が使えるようになります。</div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 16 }}>
                 {[
-                  { icon: "❤️", title: "お気に入り保存", desc: "気になった教材をハートボタンで保存できます", placeholder: "お気に入りボタンの画像" },
-                  { icon: "📂", title: "ダウンロード履歴", desc: "過去にダウンロードした教材をいつでも再ダウンロードできます", placeholder: "ダウンロード履歴画面の画像" },
+                  { icon: "heart" as const, title: "お気に入り保存", desc: "気になった教材をハートボタンで保存できます", placeholder: "お気に入りボタンの画像" },
+                  { icon: "folder" as const, title: "ダウンロード履歴", desc: "過去にダウンロードした教材をいつでも再ダウンロードできます", placeholder: "ダウンロード履歴画面の画像" },
                 ].map((item) => (
                   <div key={item.title} style={{ background: "#fafafa", border: "0.5px solid rgba(200,170,240,0.15)", borderRadius: 10, padding: "14px 16px" }}>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
-                      <span style={{ fontSize: 16 }}>{item.icon}</span>
+                      <BrandIcon name={item.icon} size={16} color="#c9a0f0" />
                       <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{item.title}</span>
                     </div>
                     <div style={{ fontSize: 12, color: "#999", lineHeight: 1.7, marginBottom: 10 }}>{item.desc}</div>
@@ -1265,11 +1266,11 @@ function GuideSection() {
       <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>ダウンロード・印刷する</div>
       <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
         {[
-          { icon: "🖨", text: "PDFをダウンロードして、A4用紙に印刷するだけ。カラーでも白黒でも使えます。" },
-          { icon: "✂️", text: "カード系教材は印刷後、ハサミで切り取ってご使用ください。" },
+          { icon: "printer" as const, text: "PDFをダウンロードして、A4用紙に印刷するだけ。カラーでも白黒でも使えます。" },
+          { icon: "scissors" as const, text: "カード系教材は印刷後、ハサミで切り取ってご使用ください。" },
         ].map((item) => (
           <div key={item.text} style={{ display: "flex", gap: 12, alignItems: "flex-start", padding: "12px 16px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 10 }}>
-            <div style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</div>
+            <BrandIcon name={item.icon} size={18} color="#c9a0f0" style={{ flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item.text}</div>
           </div>
         ))}
@@ -1378,7 +1379,7 @@ function GuideSection() {
       {/* ① ダウンロード履歴 */}
       <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 20 }}>📂</span>
+          <BrandIcon name="folder" size={20} color="#c9a0f0" />
           <span style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>ダウンロード履歴を活用する</span>
         </div>
         <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>過去にダウンロードした教材はサイドバーの「ダウンロード履歴」からすぐ再ダウンロードできます。</div>
@@ -1390,7 +1391,7 @@ function GuideSection() {
       {/* ② お気に入り */}
       <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 20 }}>❤️</span>
+          <BrandIcon name="heart" size={20} color="#c9a0f0" />
           <span style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>お気に入りリストを整理する</span>
         </div>
         <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>ハートボタンで保存した教材はサイドバーの「お気に入り」から確認できます。学習テーマや季節ごとにまとめておくと、授業・学習の計画が立てやすくなります。</div>
@@ -1402,7 +1403,7 @@ function GuideSection() {
       {/* ③ サブスク教材の確認 */}
       <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 20 }}>🔖</span>
+          <BrandIcon name="plan" size={20} color="#c9a0f0" />
           <span style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>サブスク教材を確認する</span>
         </div>
         <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 14 }}>教材一覧では、使えるプランがタグで色分けして表示されています。自分のプランで使える教材がひと目でわかります。</div>
@@ -1414,7 +1415,7 @@ function GuideSection() {
       {/* ④ トップページのタブ */}
       <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-          <span style={{ fontSize: 20 }}>✨</span>
+          <BrandIcon name="sparkle" size={20} color="#c9a0f0" />
           <span style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>トップページのタブを活用する</span>
         </div>
         <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 10 }}>ピックアップ・おすすめ・ランキング・新着の4つのタブから教材を探せます。ログインしていなくても、登録していなくても見られます。</div>

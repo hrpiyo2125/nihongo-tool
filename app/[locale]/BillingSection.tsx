@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "../../components/ProcessingOverlay";
+import { BrandIcon } from "../../components/BrandIcon";
 
 type Profile = Record<string, any> & {
   plan: string;
@@ -327,7 +328,7 @@ export default function BillingSection({
             </div>
           ) : invoices.length === 0 ? (
             <div style={{ padding: "56px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>
-              <div style={{ fontSize: 32, marginBottom: 12 }}>🧾</div>
+              <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><BrandIcon name="billing" size={38} color="#dbb0f5" /></div>
               支払い履歴はまだありません
             </div>
           ) : (
