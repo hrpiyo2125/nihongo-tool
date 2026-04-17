@@ -34,17 +34,19 @@ type Props = {
   plan: string;
   mode?: "subscribe" | "change";
   keepCancellation?: boolean | null;
+  cardInfo?: { brand: string; last4: string };
   onSuccess: () => void;
   onClose: () => void;
 };
 
-export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, onSuccess, onClose }: Props) {
-  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, cardInfo: cardInfoProp, onSuccess, onClose }: Props) {
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    if (cardInfoProp) return;
     const fetchCard = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -58,7 +60,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
       if (data.brand && data.last4) setCardInfo({ brand: data.brand, last4: data.last4 });
     };
     fetchCard();
-  }, []);
+  }, [cardInfoProp]);
 
   const handleSubscribe = async () => {
     setLoading(true);

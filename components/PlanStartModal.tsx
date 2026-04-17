@@ -8,18 +8,19 @@ type Props = {
   price: number;
   mode?: "subscribe" | "change" | "new-card" | "cancel";
   currentPeriodEnd?: string | null;
-  onConfirm: () => void;
+  cardInfo?: { brand: string; last4: string };
+  onConfirm: (cardInfo?: { brand: string; last4: string }) => void;
   onClose: () => void;
 };
 
-export default function PlanStartModal({ planName, price, mode, currentPeriodEnd, onConfirm, onClose }: Props) {
+export default function PlanStartModal({ planName, price, mode, currentPeriodEnd, cardInfo: cardInfoProp, onConfirm, onClose }: Props) {
   const isCancel = mode === "cancel";
   const showCard = mode === "change" || mode === "subscribe";
 
-  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(null);
+  const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
 
   useEffect(() => {
-    if (!showCard) return;
+    if (!showCard || cardInfoProp) return;
     const fetchCard = async () => {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
@@ -33,7 +34,7 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
       if (data.brand && data.last4) setCardInfo({ brand: data.brand, last4: data.last4 });
     };
     fetchCard();
-  }, [showCard]);
+  }, [showCard, cardInfoProp]);
 
   const periodEndText = currentPeriodEnd
     ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })
@@ -67,7 +68,7 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <button
-            onClick={onConfirm}
+            onClick={() => onConfirm(cardInfo ?? undefined)}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: isCancel ? "linear-gradient(135deg,#a3c0ff,#7aa0f0)" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
           >
             {isCancel ? "無料プランに戻す" : "はい、始めます"}

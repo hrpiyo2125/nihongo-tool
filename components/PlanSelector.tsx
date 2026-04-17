@@ -87,7 +87,8 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
   const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<string | null>(null);
-  const [startPlan, setStartPlan] = useState<{ key: string; name: string; price: number; mode: "subscribe" | "change" | "new-card" | "cancel" } | null>(null);
+  const [startPlan, setStartPlan] = useState<{ key: string; name: string; price: number; mode: "subscribe" | "change" | "new-card" | "cancel"; cardInfo?: { brand: string; last4: string } } | null>(null);
+  const [confirmCardInfo, setConfirmCardInfo] = useState<{ brand: string; last4: string } | null>(null);
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
   const [successPlan, setSuccessPlan] = useState<{ name: string; mode: "change" | "cancel"; currentPeriodEnd?: string | null } | null>(null);
   const [confirmMode, setConfirmMode] = useState<"subscribe" | "change">("subscribe");
@@ -173,7 +174,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
     setLoading(null);
 
     if (cardData.brand && cardData.last4) {
-      setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "subscribe" });
+      setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "subscribe", cardInfo: { brand: cardData.brand, last4: cardData.last4 } });
     } else {
       setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "new-card" });
     }
@@ -237,12 +238,14 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           planName={startPlan.name}
           price={startPlan.price}
           mode={startPlan.mode === "cancel" ? "cancel" : startPlan.mode === "new-card" ? "new-card" : "subscribe"}
-          onConfirm={async () => {
+          cardInfo={startPlan.cardInfo}
+          onConfirm={async (resolvedCardInfo) => {
             const plan = startPlan;
             setStartPlan(null);
             if (plan.mode === "cancel") {
               handleChangePlan("free");
             } else if (plan.mode === "change") {
+              setConfirmCardInfo(resolvedCardInfo ?? null);
               setConfirmMode("change");
               setConfirmPlan(plan.key);
             } else if (plan.mode === "new-card") {
@@ -264,6 +267,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
               }
               setLoading(null);
             } else {
+              setConfirmCardInfo(resolvedCardInfo ?? null);
               setConfirmMode("subscribe");
               setConfirmPlan(plan.key);
             }
@@ -276,8 +280,9 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           plan={confirmPlan}
           mode={confirmMode}
           keepCancellation={keepCancellation}
-          onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); onSubscribed?.(); }}
-          onClose={() => { setConfirmPlan(null); setKeepCancellation(null); }}
+          cardInfo={confirmCardInfo ?? undefined}
+          onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); onSubscribed?.(); }}
+          onClose={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); }}
         />
       )}
 
