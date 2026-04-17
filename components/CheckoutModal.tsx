@@ -21,7 +21,6 @@ function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,9 +31,7 @@ function CheckoutForm({
 
     const { error, setupIntent } = await stripe.confirmSetup({
       elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/?success=true`,
-      },
+      confirmParams: { return_url: `${window.location.origin}/?success=true` },
       redirect: "if_required",
     });
 
@@ -51,10 +48,7 @@ function CheckoutForm({
         const res = await fetch("/api/stripe/create-subscription-after-setup", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: session.user.id,
-            setupIntentId,
-          }),
+          body: JSON.stringify({ userId: session.user.id, setupIntentId }),
         });
         const data = await res.json();
         if (!data.success) {
@@ -65,16 +59,12 @@ function CheckoutForm({
       }
     }
 
-    setSuccess(true);
     setLoading(false);
-    setTimeout(() => onSuccess(), 1800);
+    onSuccess();
   };
-
-  if (success) return <SuccessOverlay label={`${planName}プランへようこそ。\n今すぐすべての教材が使えます。`} />;
 
   return (
     <div style={{ position: "relative" }}>
-      {/* PaymentElementは常にマウントしたまま、loading時はオーバーレイで覆う */}
       {loading && (
         <div style={{ position: "absolute", inset: 0, zIndex: 10, background: "white", borderRadius: 12 }}>
           <ProcessingOverlay messages={["支払い処理中...", "もう少しで完了します", "カード情報を確認しています", "プランを準備しています"]} />
@@ -141,9 +131,11 @@ export default function CheckoutModal({
   onSuccess: () => void;
   onClose: () => void;
 }) {
+  const [succeeded, setSucceeded] = useState(false);
+
   return (
     <div
-      onClick={onClose}
+      onClick={succeeded ? undefined : onClose}
       style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
         zIndex: 1000, display: "flex", alignItems: "center",
@@ -159,35 +151,47 @@ export default function CheckoutModal({
           maxHeight: "90vh", overflowY: "auto",
         }}
       >
-        <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 4, textAlign: "center" }}>
-          {planName}プランへ登録
-        </div>
-        <div style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 24 }}>
-          いつでもキャンセル可能です
-        </div>
-
-        <Elements
-          stripe={stripePromise}
-          options={{
-            clientSecret,
-            appearance: {
-              theme: "stripe",
-              variables: {
-                colorPrimary: "#e49bfd",
-                borderRadius: "12px",
-                fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif",
-              },
-            },
-            
-          }}
-        >
-          <CheckoutForm
-            planName={planName}
-            setupIntentId={setupIntentId}
-            onSuccess={onSuccess}
-            onClose={onClose}
-          />
-        </Elements>
+        {succeeded ? (
+          <>
+            <SuccessOverlay label={`${planName}プランへようこそ。\n今すぐすべての教材が使えます。`} />
+            <button
+              onClick={onSuccess}
+              style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
+            >
+              教材を見る →
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 4, textAlign: "center" }}>
+              {planName}プランへ登録
+            </div>
+            <div style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 24 }}>
+              いつでもキャンセル可能です
+            </div>
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: "stripe",
+                  variables: {
+                    colorPrimary: "#e49bfd",
+                    borderRadius: "12px",
+                    fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif",
+                  },
+                },
+              }}
+            >
+              <CheckoutForm
+                planName={planName}
+                setupIntentId={setupIntentId}
+                onSuccess={() => setSucceeded(true)}
+                onClose={onClose}
+              />
+            </Elements>
+          </>
+        )}
       </div>
     </div>
   );

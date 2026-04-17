@@ -84,7 +84,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
   const router = useRouter();
   const [monthlyCount, setMonthlyCount] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null);
-  const [checkoutModal, setCheckoutModal] = useState<{ planKey: string; planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
+  const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [confirmPlan, setConfirmPlan] = useState<string | null>(null);
   const [startPlan, setStartPlan] = useState<{ key: string; name: string; price: number; mode: "subscribe" | "change" | "new-card" | "cancel"; cardInfo?: { brand: string; last4: string } } | null>(null);
@@ -229,7 +229,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           planName={checkoutModal.planName}
           clientSecret={checkoutModal.clientSecret}
           setupIntentId={checkoutModal.setupIntentId}
-          onSuccess={() => { setCheckoutModal(null); setSuccessPlan({ name: checkoutModal.planName, mode: "change" }); }}
+          onSuccess={() => { setCheckoutModal(null); onSubscribed?.(); }}
           onClose={() => setCheckoutModal(null)}
         />
       )}
@@ -261,7 +261,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
               const subData = await subRes.json();
               if (subData.clientSecret) {
                 setLoading(null);
-                setCheckoutModal({ planKey: plan.key, planName: plan.name, clientSecret: subData.clientSecret, setupIntentId: subData.setupIntentId });
+                setCheckoutModal({ planName: plan.name, clientSecret: subData.clientSecret, setupIntentId: subData.setupIntentId });
               } else {
                 alert("決済の開始に失敗しました。もう一度お試しください。");
               }
