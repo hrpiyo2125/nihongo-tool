@@ -283,6 +283,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           cardInfo={confirmCardInfo ?? undefined}
           onSuccess={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); onSubscribed?.(); }}
           onClose={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); }}
+          onSubscriptionReset={() => { setConfirmPlan(null); setKeepCancellation(null); setConfirmCardInfo(null); setSubscriptionResetModal(true); }}
         />
       )}
 

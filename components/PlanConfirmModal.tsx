@@ -37,9 +37,10 @@ type Props = {
   cardInfo?: { brand: string; last4: string };
   onSuccess: () => void;
   onClose: () => void;
+  onSubscriptionReset?: () => void;
 };
 
-export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, cardInfo: cardInfoProp, onSuccess, onClose }: Props) {
+export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, cardInfo: cardInfoProp, onSuccess, onClose, onSubscriptionReset }: Props) {
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,8 +80,10 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
         const data = await res.json();
         if (data.success) {
           setSuccess(true);
+        } else if (data.error === "subscription_reset") {
+          onSubscriptionReset?.();
         } else {
-          setError(data.error ?? "プラン変更に失敗しました。");
+          setError("プラン変更に失敗しました。もう一度お試しください。");
         }
       } else {
         const res = await fetch("/api/stripe/subscribe", {
@@ -95,8 +98,10 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
         const data = await res.json();
         if (data.success) {
           setSuccess(true);
+        } else if (data.error === "stripe_customer_missing") {
+          onSubscriptionReset?.();
         } else {
-          setError(data.error ?? "登録に失敗しました。");
+          setError("登録に失敗しました。もう一度お試しください。");
         }
       }
     } catch {
@@ -110,6 +115,8 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
     if (loading) {
       return <ProcessingOverlay messages={PROCESSING_MESSAGES} />;
     }
+
+
 
     if (success) {
       return (
