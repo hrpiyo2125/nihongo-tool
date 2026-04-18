@@ -757,7 +757,7 @@ export default function MyPage({
                           clearTimeout(timeout);
                           const data = await res.json();
                           if (res.ok && data.success) {
-                            await supabase.auth.signOut();
+                            await supabase.auth.signOut({ scope: 'local' });
                             router.push(`/${locale}`);
                           } else {
                             setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
