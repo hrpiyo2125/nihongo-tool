@@ -636,6 +636,10 @@ const methodItems = [
       .select("*")
       .eq("id", session.user.id)
       .single();
+    if (profileData?.status === "deleted") {
+      window.location.href = `/${locale}/welcome-back`;
+      return;
+    }
     if (!profileData) {
       await supabase.from("profiles").upsert({
         id: session.user.id,
