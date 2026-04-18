@@ -155,17 +155,17 @@ export default function WelcomeBackPage() {
         <button
           onClick={handleSignOut}
           style={{
-            width: "100%", height: 44, borderRadius: 22, border: "0.5px solid rgba(200,180,230,0.4)",
-            background: "transparent", color: "#b090c8", fontSize: 13, fontWeight: 600,
-            cursor: "pointer",
+            width: "100%", height: 44, borderRadius: 22, border: "none",
+            background: "transparent", color: "#bbb", fontSize: 12, fontWeight: 500,
+            cursor: "pointer", textDecoration: "underline",
           }}
         >
-          ログアウト
+          再開せずに退出する
         </button>
 
-        <p style={{ fontSize: 11, color: "#ccc", marginTop: 16, lineHeight: 1.6 }}>
-          再開しない場合はログアウトしてください。<br />
-          データはそのまま保持されます。
+        <p style={{ fontSize: 11, color: "#ccc", marginTop: 12, lineHeight: 1.6 }}>
+          退出してもデータは保持されます。<br />
+          いつでも同じアカウントで再開できます。
         </p>
       </div>
     </div>
