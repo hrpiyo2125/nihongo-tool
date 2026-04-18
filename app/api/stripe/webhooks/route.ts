@@ -102,6 +102,8 @@ export async function POST(req: NextRequest) {
       const plan = PRICE_TO_PLAN[priceId] ?? 'free'
       const status = subscription.status
       const cancelAtPeriodEnd = subscription.cancel_at_period_end
+      const cancelAt = subscription.cancel_at // 特定日付指定のキャンセル
+      const isCanceling = cancelAtPeriodEnd || !!cancelAt
 
       // 解約メール重複送信防止のため、現在のSupabase状態を確認
       const { data: currentProfile } = await supabase
@@ -110,18 +112,23 @@ export async function POST(req: NextRequest) {
         .eq('id', userId)
         .single()
 
-      const isNewCancellation = cancelAtPeriodEnd && !currentProfile?.cancel_at_period_end
+      const isNewCancellation = isCanceling && !currentProfile?.cancel_at_period_end
 
-      if (cancelAtPeriodEnd) {
+      // current_period_end: cancel_at が設定されていればその日付を優先
+      const periodEnd = cancelAt
+        ? new Date(cancelAt * 1000).toISOString()
+        : subscription.items.data[0]?.current_period_end
+          ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+          : null
+
+      if (isCanceling) {
         // planも更新（解約予約中のプラン変更に対応）
         await supabase
           .from('profiles')
           .update({
             plan,
             cancel_at_period_end: true,
-            current_period_end: subscription.items.data[0]?.current_period_end
-              ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
-              : null,
+            current_period_end: periodEnd,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
@@ -143,7 +150,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } else {
-        // プラン変更：planも更新
+        // プラン変更（解約なし）：planも更新
         await supabase
           .from('profiles')
           .update({
