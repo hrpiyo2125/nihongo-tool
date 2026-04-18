@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       items: [{ price: priceId }],
       default_payment_method: paymentMethodId,
-      metadata: { user_id: userId },
+      metadata: { userId },
     });
 
     if (subscription.status === "active") {
