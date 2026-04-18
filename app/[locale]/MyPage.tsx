@@ -437,8 +437,11 @@ export default function MyPage({
   const router = useRouter();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
-  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
+  const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm">("closed");
+  const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, irreversible: false });
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.irreversible;
 
   if (activePage === "settings-profile") return (
     <div>
@@ -640,28 +643,73 @@ export default function MyPage({
         </div>
         <div style={{ paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
           <button
-            onClick={() => setConfirmDeleteAccount(true)}
+            onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, irreversible: false }); setDeleteError(null); }}
             style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}
           >アカウントを削除する</button>
         </div>
 
-        {confirmDeleteAccount && (
+        {/* ステップ1: チェックリストモーダル */}
+        {deleteStep === "checklist" && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>アカウントを削除しますか？</div>
-              <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                この操作は取り消せません。お気に入り・ダウンロード履歴・購入履歴など、すべてのデータが失われます。<br />
-                サブスクリプションをご利用中の場合は先に解約してください。
+            <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 440, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 8 }}>アカウント削除の前に確認してください</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 24, lineHeight: 1.6 }}>以下の内容をすべて確認してチェックを入れてください。</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
+                {([
+                  { key: "data", label: "お気に入り・ダウンロード履歴・購入履歴など、すべてのデータが完全に削除されます" },
+                  { key: "subscription", label: "有料プランを利用中の場合は、先にサブスクリプションを解約してください。削除後の返金はできません" },
+                  { key: "irreversible", label: "この操作は取り消せません。削除後は同じメールアドレスで再登録が可能ですが、以前のデータは復元できません" },
+                ] as { key: keyof typeof deleteChecks; label: string }[]).map(({ key, label }) => (
+                  <div
+                    key={key}
+                    onClick={() => setDeleteChecks(prev => ({ ...prev, [key]: !prev[key] }))}
+                    style={{ display: "flex", gap: 14, alignItems: "flex-start", cursor: "pointer", padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${deleteChecks[key] ? "#e49bfd" : "#eee"}`, background: deleteChecks[key] ? "rgba(228,155,253,0.06)" : "white", transition: "all 0.15s" }}
+                  >
+                    <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${deleteChecks[key] ? "#e49bfd" : "#ccc"}`, background: deleteChecks[key] ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
+                      {deleteChecks[key] && <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                    </div>
+                    <span style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{label}</span>
+                  </div>
+                ))}
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button
-                  onClick={() => setConfirmDeleteAccount(false)}
+                  onClick={() => setDeleteStep("closed")}
                   style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                 >キャンセル</button>
+                <button
+                  disabled={!allChecked}
+                  onClick={() => setDeleteStep("confirm")}
+                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: allChecked ? "#e55" : "#eee", color: allChecked ? "white" : "#bbb", cursor: allChecked ? "pointer" : "not-allowed", fontWeight: 700, transition: "all 0.15s" }}
+                >次へ →</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ステップ2: 最終確認モーダル */}
+        {deleteStep === "confirm" && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#c33", marginBottom: 12 }}>本当に削除しますか？</div>
+              <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 20 }}>
+                アカウントを完全に削除します。この操作は取り消せません。
+              </div>
+              {deleteError && (
+                <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 16 }}>
+                  {deleteError}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => setDeleteStep("checklist")}
+                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                >戻る</button>
                 <button
                   disabled={deletingAccount}
                   onClick={async () => {
                     setDeletingAccount(true);
+                    setDeleteError(null);
                     const supabase = createClient();
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) { setDeletingAccount(false); return; }
@@ -671,13 +719,17 @@ export default function MyPage({
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ userId: session.user.id }),
                       });
-                      if (res.ok) {
+                      const data = await res.json();
+                      if (res.ok && data.success) {
                         await supabase.auth.signOut();
                         router.push(`/${locale}`);
+                      } else {
+                        setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
+                        setDeletingAccount(false);
                       }
-                    } finally {
+                    } catch {
+                      setDeleteError("通信エラーが発生しました。しばらく経ってから再度お試しください。");
                       setDeletingAccount(false);
-                      setConfirmDeleteAccount(false);
                     }
                   }}
                   style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "#e55", color: "white", cursor: deletingAccount ? "not-allowed" : "pointer", fontWeight: 700, opacity: deletingAccount ? 0.7 : 1 }}

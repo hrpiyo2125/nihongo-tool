@@ -13,19 +13,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 })
     }
 
-    // Delete user data from related tables
+    // Delete user data from all related tables before deleting auth user
     await supabase.from('favorites').delete().eq('user_id', userId)
     await supabase.from('download_history').delete().eq('user_id', userId)
+    await supabase.from('purchases').delete().eq('user_id', userId)
     await supabase.from('profiles').delete().eq('id', userId)
 
     // Delete the auth user (requires service role)
     const { error } = await supabase.auth.admin.deleteUser(userId)
     if (error) {
+      console.error('deleteUser error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (err) {
+    console.error('delete-account error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
