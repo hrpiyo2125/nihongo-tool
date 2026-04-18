@@ -95,6 +95,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
   const [confirmMode, setConfirmMode] = useState<"subscribe" | "change">("subscribe");
   const [cancellationChoiceForPlan, setCancellationChoiceForPlan] = useState<{ key: string; name: string; price: number } | null>(null);
   const [keepCancellation, setKeepCancellation] = useState<boolean | null>(null);
+  const [showFreeDowngradeNotice, setShowFreeDowngradeNotice] = useState(false);
 
   useEffect(() => {
     const fetchMonthlyPurchases = async () => {
@@ -244,7 +245,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
             const plan = startPlan;
             setStartPlan(null);
             if (plan.mode === "cancel") {
-              handleChangePlan("free");
+              setShowFreeDowngradeNotice(true);
             } else if (plan.mode === "change") {
               setConfirmCardInfo(resolvedCardInfo ?? null);
               setConfirmMode("change");
@@ -275,6 +276,31 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
           }}
           onClose={() => setStartPlan(null)}
         />
+      )}
+      {showFreeDowngradeNotice && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
+          <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "36px 28px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>解約前にご確認ください</div>
+            <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 20 }}>
+              無料プランでは、<strong>お気に入り登録</strong>と<strong>ダウンロード履歴</strong>の表示は最新5件までとなります。<br /><br />
+              現在の登録・履歴データは削除されません。再度ライトプラン以上にアップグレードいただくと、すべての履歴が復活します。
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                onClick={() => { setShowFreeDowngradeNotice(false); handleChangePlan("free"); }}
+                style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
+              >
+                了解して無料プランに変更する
+              </button>
+              <button
+                onClick={() => setShowFreeDowngradeNotice(false)}
+                style={{ padding: "14px", borderRadius: 12, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                キャンセル
+              </button>
+            </div>
+          </div>
+        </div>
       )}
       {confirmPlan && (
         <PlanConfirmModal

@@ -186,6 +186,7 @@ export default function MobileHome() {
   const [dlIds, setDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
+  const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
   const [modalFilter, setModalFilter] = useState<{ content: string; method: string } | null>(null);
   const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
   const [activeContentFilter, setActiveContentFilter] = useState("all");
@@ -409,7 +410,7 @@ export default function MobileHome() {
             <section style={{ padding: "24px 20px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <PersonalizedSection
                 materials={materials}
-                favIds={favIds}
+                favIds={effectiveFavIds}
                 dlIds={dlIds}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
@@ -458,7 +459,7 @@ export default function MobileHome() {
                       onClick={() => setTeaserMat(mat)}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
-                      favIds={favIds}
+                      favIds={effectiveFavIds}
                       bg={bg} char={char} charColor={charColor}
                       tag={tag} tagBg={tagBg} tagColor={tagColor}
                       onFavToggle={async (mat) => {
@@ -509,7 +510,7 @@ export default function MobileHome() {
                       onClick={() => setTeaserMat(mat)}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
-                      favIds={favIds}
+                      favIds={effectiveFavIds}
                       bg={bg} char={char} charColor={charColor}
                       tag={tag} tagBg={tagBg} tagColor={tagColor}
                       onFavToggle={async (mat) => {
@@ -627,7 +628,7 @@ export default function MobileHome() {
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={profile.plan ?? "free"}
-            favIds={favIds}
+            favIds={effectiveFavIds}
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
             locale={locale}

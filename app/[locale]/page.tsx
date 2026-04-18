@@ -596,6 +596,7 @@ const methodItems = [
   const [topDlIds, setTopDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
+  const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
   const userIconRef = useRef<HTMLDivElement | null>(null);
@@ -884,7 +885,7 @@ if (isMobile) return <MobileHome />;
               </div>
               <PersonalizedSection
                 materials={materials}
-                favIds={topFavIds}
+                favIds={effectiveFavIds}
                 dlIds={topDlIds}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
@@ -974,7 +975,7 @@ if (isMobile) return <MobileHome />;
               locale={locale}
               isLoggedIn={isLoggedIn}
               userPlan={profile.plan ?? "free"}
-              favIds={topFavIds}
+              favIds={effectiveFavIds}
               purchasedIds={purchasedIds}
               bg={bg} char={char} charColor={charColor}
               tag={tag} tagBg={tagBg} tagColor={tagColor}

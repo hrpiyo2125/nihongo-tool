@@ -86,6 +86,10 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
       ))}
     </div>
   );
+  const isFreeUser = !userPlan || userPlan === "free";
+  const displayedFavMaterials = isFreeUser ? favMaterials.slice(0, 5) : favMaterials;
+  const hiddenFavCount = isFreeUser ? Math.max(0, favMaterials.length - 5) : 0;
+
   if (favMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
@@ -97,7 +101,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-        {favMaterials.map((mat) => (
+        {displayedFavMaterials.map((mat) => (
   <MaterialCard
     key={mat.id}
     mat={mat}
@@ -125,6 +129,12 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   />
 ))}
       </div>
+      {hiddenFavCount > 0 && (
+        <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
+          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenFavCount}件のお気に入りがあります</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>ライトプラン以上に登録いただくと復活します</div>
+        </div>
+      )}
      {teaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
         return (
@@ -306,6 +316,10 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
       ))}
     </div>
   );
+  const isFreeUserDl = !userPlan || userPlan === "free";
+  const displayedHistoryMaterials = isFreeUserDl ? historyMaterials.slice(0, 5) : historyMaterials;
+  const hiddenHistoryCount = isFreeUserDl ? Math.max(0, historyMaterials.length - 5) : 0;
+
   if (historyMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
@@ -316,7 +330,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
   return (
     <>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-        {historyMaterials.map((mat) => (
+        {displayedHistoryMaterials.map((mat) => (
           <MaterialCard
             key={mat.id}
             mat={mat}
@@ -343,6 +357,12 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
           />
         ))}
       </div>
+      {hiddenHistoryCount > 0 && (
+        <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
+          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenHistoryCount}件のダウンロード履歴があります</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>ライトプラン以上に登録いただくと復活します</div>
+        </div>
+      )}
       {teaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
         return (
