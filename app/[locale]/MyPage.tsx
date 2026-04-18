@@ -437,6 +437,8 @@ export default function MyPage({
   const router = useRouter();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
+  const [confirmDeleteAccount, setConfirmDeleteAccount] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   if (activePage === "settings-profile") return (
     <div>
@@ -449,13 +451,15 @@ export default function MyPage({
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>{userName}</div>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>{tm("free_plan")}</div>
-            <button style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>{tm("change_photo")}</button>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>
+              {profile.plan === "light" ? "Lightプラン" : profile.plan === "standard" ? "Standardプラン" : profile.plan === "premium" ? "Premiumプラン" : tm("free_plan")}
+            </div>
+            <button disabled style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#ccc", cursor: "not-allowed", fontWeight: 600 }}>{tm("change_photo")}（準備中）</button>
           </div>
         </div>
         {[
-          { label: tm("name"), value: profile.full_name || userName },
-          { label: tm("student_level"), value: profile.student_level || tm("not_registered") },
+          { label: tm("name"), value: profile.full_name || userName, col: "full_name" },
+          { label: tm("student_level"), value: profile.student_level || tm("not_registered"), col: "student_level" },
         ].map((field) => (
           <div key={field.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
             <div style={{ flex: 1 }}>
@@ -480,15 +484,7 @@ export default function MyPage({
                     const supabase = createClient();
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) { setSavingProfile(false); return; }
-                    const fieldMap: Record<string, string> = {
-                      "名前": "full_name",
-                      "居住地": "country",
-                      "職業": "occupation",
-                      "利用目的": "purpose",
-                      "指導している児童のレベル": "student_level",
-                    };
-                    const col = fieldMap[field.label];
-                    if (!col) { setSavingProfile(false); return; }
+                    const col = field.col;
                     const isArray = col === "purpose";
                     const value = isArray ? editingValue.split("・").map(s => s.trim()).filter(Boolean) : editingValue;
                     await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
@@ -637,11 +633,59 @@ export default function MyPage({
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>••••••••</div>
           </div>
-          <button style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>変更</button>
+          <button
+            onClick={() => router.push(`/${locale}/auth/reset-request`)}
+            style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}
+          >変更</button>
         </div>
         <div style={{ paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-          <button style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}>アカウントを削除する</button>
+          <button
+            onClick={() => setConfirmDeleteAccount(true)}
+            style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}
+          >アカウントを削除する</button>
         </div>
+
+        {confirmDeleteAccount && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>アカウントを削除しますか？</div>
+              <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
+                この操作は取り消せません。お気に入り・ダウンロード履歴・購入履歴など、すべてのデータが失われます。<br />
+                サブスクリプションをご利用中の場合は先に解約してください。
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                <button
+                  onClick={() => setConfirmDeleteAccount(false)}
+                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                >キャンセル</button>
+                <button
+                  disabled={deletingAccount}
+                  onClick={async () => {
+                    setDeletingAccount(true);
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) { setDeletingAccount(false); return; }
+                    try {
+                      const res = await fetch("/api/auth/delete-account", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ userId: session.user.id }),
+                      });
+                      if (res.ok) {
+                        await supabase.auth.signOut();
+                        router.push(`/${locale}`);
+                      }
+                    } finally {
+                      setDeletingAccount(false);
+                      setConfirmDeleteAccount(false);
+                    }
+                  }}
+                  style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "#e55", color: "white", cursor: deletingAccount ? "not-allowed" : "pointer", fontWeight: 700, opacity: deletingAccount ? 0.7 : 1 }}
+                >{deletingAccount ? "削除中..." : "削除する"}</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
