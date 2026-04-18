@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { createClient } from "../../../lib/supabase";
 
 const tiles = [
@@ -38,7 +39,7 @@ const tiles = [
 ];
 
 function AuthPageInner() {
-  const router = useRouter();
+  const locale = useLocale();
   const searchParams = useSearchParams();
   const [mode, setMode] = useState<"signup" | "login">(
     searchParams.get("mode") === "login" ? "login" : "signup"
@@ -105,8 +106,7 @@ function AuthPageInner() {
         setLoading(false);
         return;
       }
-      router.push("/");
-      router.refresh();
+      window.location.href = `/${locale}`;
     } else {
       const { error } = await supabase.auth.signUp({
         email,

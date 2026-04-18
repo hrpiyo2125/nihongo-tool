@@ -758,7 +758,7 @@ export default function MyPage({
                           const data = await res.json();
                           if (res.ok && data.success) {
                             await supabase.auth.signOut({ scope: 'local' });
-                            router.push(`/${locale}`);
+                            window.location.href = `/${locale}`;
                           } else {
                             setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
                             setDeletingAccount(false);
