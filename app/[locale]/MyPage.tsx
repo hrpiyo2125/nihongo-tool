@@ -439,11 +439,10 @@ export default function MyPage({
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
   const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm">("closed");
-  const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, irreversible: false });
+  const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, return: false });
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-  const hasActiveSubscription = profile.plan && profile.plan !== "free" && !profile.cancel_at_period_end;
-  const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.irreversible;
+  const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.return;
 
   if (activePage === "settings-profile") return (
     <div>
@@ -645,7 +644,7 @@ export default function MyPage({
         </div>
         <div style={{ paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
           <button
-            onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, irreversible: false }); setDeleteError(null); }}
+            onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, return: false }); setDeleteError(null); }}
             style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}
           >アカウントを削除する</button>
         </div>
@@ -657,10 +656,10 @@ export default function MyPage({
               <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 8 }}>アカウント削除の前に確認してください</div>
               <div style={{ fontSize: 13, color: "#999", marginBottom: 24, lineHeight: 1.6 }}>以下の内容をすべて確認してチェックを入れてください。</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
-                {/* データ削除 */}
                 {([
-                  { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴など、すべてのデータが完全に削除されます" },
-                  { key: "irreversible" as const, label: "この操作は取り消せません。削除後は同じメールアドレスで再登録が可能ですが、以前のデータは復元できません" },
+                  { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴などのデータはすべて保存されます。いつでも再開できます。" },
+                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的に解約されます（返金なし）。期間終了まではご利用いただけます。" },
+                  { key: "return" as const, label: "同じメールアドレスでいつでも再開できます。再ログイン後にアカウントの復元が案内されます。" },
                 ]).map(({ key, label }) => (
                   <div
                     key={key}
@@ -673,33 +672,6 @@ export default function MyPage({
                     <span style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{label}</span>
                   </div>
                 ))}
-
-                {/* サブスク確認（アクティブなら押せない） */}
-                <div style={{ padding: "12px 16px", borderRadius: 10, border: `1.5px solid ${hasActiveSubscription ? "#ffcccc" : deleteChecks.subscription ? "#e49bfd" : "#eee"}`, background: hasActiveSubscription ? "#fff8f8" : deleteChecks.subscription ? "rgba(228,155,253,0.06)" : "white", transition: "all 0.15s" }}>
-                  <div
-                    onClick={() => { if (!hasActiveSubscription) setDeleteChecks(prev => ({ ...prev, subscription: !prev.subscription })); }}
-                    style={{ display: "flex", gap: 14, alignItems: "flex-start", cursor: hasActiveSubscription ? "default" : "pointer" }}
-                  >
-                    <div style={{ width: 20, height: 20, borderRadius: 5, border: `2px solid ${hasActiveSubscription ? "#ffaaaa" : deleteChecks.subscription ? "#e49bfd" : "#ccc"}`, background: hasActiveSubscription ? "#ffd0d0" : deleteChecks.subscription ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 1 }}>
-                      {!hasActiveSubscription && deleteChecks.subscription && <svg width="11" height="11" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-                      {hasActiveSubscription && <span style={{ fontSize: 10, color: "#c33", fontWeight: 800 }}>!</span>}
-                    </div>
-                    <span style={{ fontSize: 13, color: hasActiveSubscription ? "#c33" : "#555", lineHeight: 1.7, fontWeight: hasActiveSubscription ? 600 : 400 }}>
-                      サブスクリプションを解約済み、または有料プランに加入していない
-                    </span>
-                  </div>
-                  {hasActiveSubscription && (
-                    <div style={{ marginTop: 10, marginLeft: 34 }}>
-                      <div style={{ fontSize: 12, color: "#c33", marginBottom: 8, lineHeight: 1.6 }}>
-                        現在 <strong>{profile.plan}プラン</strong> が有効です。アカウントを削除する前に解約してください。
-                      </div>
-                      <button
-                        onClick={() => { setDeleteStep("closed"); setActivePage("settings-billing"); }}
-                        style={{ fontSize: 12, padding: "7px 18px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                      >支払い・プラン管理へ →</button>
-                    </div>
-                  )}
-                </div>
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
                 <button
@@ -724,9 +696,9 @@ export default function MyPage({
                 <ProcessingOverlay messages={["アカウントを削除しています...", "データを削除しています...", "もう少しで完了します"]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#c33", marginBottom: 12 }}>本当に削除しますか？</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#c33", marginBottom: 12 }}>退会しますか？</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 20 }}>
-                    アカウントを完全に削除します。この操作は取り消せません。
+                    退会後も、同じメールアドレスで再ログインするといつでもアカウントを再開できます。データはすべて保持されます。
                   </div>
                   {deleteError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 16 }}>
@@ -774,7 +746,7 @@ export default function MyPage({
                         }
                       }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "#e55", color: "white", cursor: "pointer", fontWeight: 700 }}
-                    >削除する</button>
+                    >退会する</button>
                   </div>
                 </div>
               )}

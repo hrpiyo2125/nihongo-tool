@@ -100,11 +100,22 @@ function AuthPageInner() {
     setLoading(true);
 
     if (isLogin) {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setError("メールアドレスまたはパスワードが間違っています");
         setLoading(false);
         return;
+      }
+      if (signInData.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("status")
+          .eq("id", signInData.user.id)
+          .single();
+        if (profile?.status === "deleted") {
+          window.location.href = `/${locale}/welcome-back`;
+          return;
+        }
       }
       window.location.href = `/${locale}`;
     } else {
