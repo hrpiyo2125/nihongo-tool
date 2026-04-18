@@ -36,9 +36,9 @@ export default function WelcomeBackPage() {
       setUserName(profile.full_name || session.user.email || "");
 
       const [favRes, dlRes, purchRes] = await Promise.all([
-        supabase.from("favorites").select("id", { count: "exact", head: true }).eq("user_id", session.user.id),
-        supabase.from("download_history").select("id", { count: "exact", head: true }).eq("user_id", session.user.id),
-        supabase.from("purchases").select("id", { count: "exact", head: true }).eq("user_id", session.user.id),
+        supabase.from("favorites").select("*", { count: "exact", head: true }).eq("user_id", session.user.id),
+        supabase.from("download_history").select("*", { count: "exact", head: true }).eq("user_id", session.user.id),
+        supabase.from("purchases").select("*", { count: "exact", head: true }).eq("user_id", session.user.id),
       ]);
 
       setCounts({
@@ -66,10 +66,10 @@ export default function WelcomeBackPage() {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleClose = async () => {
     const supabase = createClient();
     await supabase.auth.signOut({ scope: "local" });
-    window.location.href = `/${locale}`;
+    window.location.href = `/${locale}/auth`;
   };
 
   if (loading) {
@@ -89,18 +89,32 @@ export default function WelcomeBackPage() {
       padding: "24px 16px",
     }}>
       <div style={{
+        position: "relative",
         width: "100%", maxWidth: 440,
         background: "rgba(255,255,255,0.92)",
         backdropFilter: "blur(12px)",
         borderRadius: 24, border: "0.5px solid rgba(200,180,230,0.4)",
         boxShadow: "0 8px 48px rgba(180,130,210,0.14)",
-        padding: "48px 40px 40px",
+        padding: "48px 40px 44px",
         textAlign: "center",
       }}>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>🌸</div>
+        {/* ✕ ボタン */}
+        <button
+          onClick={handleClose}
+          style={{
+            position: "absolute", top: 16, right: 16,
+            width: 32, height: 32, borderRadius: "50%",
+            border: "0.5px solid rgba(200,180,230,0.4)",
+            background: "rgba(245,240,255,0.8)",
+            color: "#b090c8", fontSize: 16, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >✕</button>
+
+        <div style={{ fontSize: 44, marginBottom: 12 }}>🌸</div>
 
         <h1 style={{
-          fontSize: 26, fontWeight: 800, marginBottom: 8,
+          fontSize: 24, fontWeight: 800, marginBottom: 6,
           background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)",
           WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
         }}>
@@ -111,15 +125,11 @@ export default function WelcomeBackPage() {
           {userName} さん
         </p>
         <p style={{ fontSize: 13, color: "#999", lineHeight: 1.7, marginBottom: 28 }}>
-          以前のデータがそのまま保存されています。<br />
-          アカウントを再開しますか？
+          以前のデータがそのまま保存されています。
         </p>
 
         {/* データ件数 */}
-        <div style={{
-          display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10,
-          marginBottom: 32,
-        }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginBottom: 32 }}>
           {[
             { label: "お気に入り", count: counts.favorites, emoji: "♡" },
             { label: "ダウンロード", count: counts.downloads, emoji: "↓" },
@@ -145,27 +155,16 @@ export default function WelcomeBackPage() {
             background: reactivating ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
             color: "white", fontSize: 15, fontWeight: 800,
             cursor: reactivating ? "not-allowed" : "pointer",
-            marginBottom: 12, transition: "all 0.15s",
+            transition: "all 0.15s",
             boxShadow: "0 4px 16px rgba(228,155,253,0.35)",
           }}
         >
           {reactivating ? "再開中..." : "アカウントを再開する →"}
         </button>
 
-        <button
-          onClick={handleSignOut}
-          style={{
-            width: "100%", height: 44, borderRadius: 22, border: "none",
-            background: "transparent", color: "#bbb", fontSize: 12, fontWeight: 500,
-            cursor: "pointer", textDecoration: "underline",
-          }}
-        >
-          再開せずに退出する
-        </button>
-
-        <p style={{ fontSize: 11, color: "#ccc", marginTop: 12, lineHeight: 1.6 }}>
-          退出してもデータは保持されます。<br />
-          いつでも同じアカウントで再開できます。
+        <p style={{ fontSize: 11, color: "#ccc", marginTop: 20, lineHeight: 1.7 }}>
+          ✕ を閉じると自動的にサインアウトされます。<br />
+          データはそのまま保持されます。
         </p>
       </div>
     </div>
