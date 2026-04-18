@@ -230,7 +230,11 @@ export default function MaterialDetailPage() {
       setIsLoggedIn(!!session);
       if (session) {
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
-        if (favData) setTeaserFavIds(favData.map((d: { material_id: string }) => d.material_id));
+        if (favData) {
+          const ids = favData.map((d: { material_id: string }) => d.material_id);
+          setTeaserFavIds(ids);
+          setIsFav(ids.includes(id));
+        }
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) setProfile(profileData);
         
