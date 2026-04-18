@@ -88,16 +88,20 @@ function pickPersonalized(
     if (upgradePick[i]) result.push(upgradePick[i]);
   }
 
-  // If history is empty, fall back to recommended/pickup materials
-  if (historyMats.length === 0) {
-    const fallback = materials
-      .filter((m) => m.isRecommended || m.isPickup)
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 8);
-    if (fallback.length > 0) return fallback;
-  }
+  if (result.length > 0) return result.slice(0, 8);
 
-  return result.slice(0, 8);
+  // Fallback: show recommended/pickup materials (covers no-history case and edge cases)
+  const fallback = materials
+    .filter((m) => m.isRecommended || m.isPickup)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 8);
+  if (fallback.length > 0) return fallback;
+
+  // Last resort: return any accessible materials
+  return materials
+    .filter((m) => (planRank[m.requiredPlan] ?? 0) <= userRank)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 8);
 }
 
 export default function PersonalizedSection({
@@ -175,7 +179,7 @@ export default function PersonalizedSection({
           </div>
         ) : personalizedMats.length === 0 ? (
           <div style={{ color: "#bbb", fontSize: 13, padding: "24px 0" }}>
-            おすすめ教材を準備中です。教材をお気に入りやダウンロードするとパーソナライズが始まります。
+            おすすめ教材を読み込み中です。しばらくお待ちください。
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns},1fr)`, gap: columns <= 2 ? 12 : 18 }}>
