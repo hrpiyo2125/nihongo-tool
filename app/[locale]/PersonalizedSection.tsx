@@ -90,18 +90,22 @@ function pickPersonalized(
 
   if (result.length > 0) return result.slice(0, 8);
 
-  // Fallback: show recommended/pickup materials (covers no-history case and edge cases)
-  const fallback = materials
-    .filter((m) => m.isRecommended || m.isPickup)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 8);
-  if (fallback.length > 0) return fallback;
-
-  // Last resort: return any accessible materials
-  return materials
+  // Fallback: 50/50 split from all materials (e.g. no history, or all materials already seen)
+  const allAccessible = materials
     .filter((m) => (planRank[m.requiredPlan] ?? 0) <= userRank)
     .sort(() => Math.random() - 0.5)
-    .slice(0, 8);
+    .slice(0, 4);
+  const allNeedUpgrade = materials
+    .filter((m) => (planRank[m.requiredPlan] ?? 0) > userRank)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 4);
+  const fallback: Material[] = [];
+  const fallbackLen = Math.max(allAccessible.length, allNeedUpgrade.length);
+  for (let i = 0; i < fallbackLen; i++) {
+    if (allAccessible[i]) fallback.push(allAccessible[i]);
+    if (allNeedUpgrade[i]) fallback.push(allNeedUpgrade[i]);
+  }
+  return fallback.slice(0, 8);
 }
 
 export default function PersonalizedSection({
