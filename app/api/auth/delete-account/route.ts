@@ -7,28 +7,45 @@ const supabase = createClient(
 )
 
 export async function POST(req: NextRequest) {
+  let userId: string
   try {
-    const { userId } = await req.json()
-    if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 })
-    }
-
-    // Delete user data from all related tables before deleting auth user
-    await supabase.from('favorites').delete().eq('user_id', userId)
-    await supabase.from('download_history').delete().eq('user_id', userId)
-    await supabase.from('purchases').delete().eq('user_id', userId)
-    await supabase.from('profiles').delete().eq('id', userId)
-
-    // Delete the auth user (requires service role)
-    const { error } = await supabase.auth.admin.deleteUser(userId)
-    if (error) {
-      console.error('deleteUser error:', error)
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ success: true })
-  } catch (err) {
-    console.error('delete-account error:', err)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const body = await req.json()
+    userId = body.userId
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
+
+  if (!userId) {
+    return NextResponse.json({ error: 'userId is required' }, { status: 400 })
+  }
+
+  console.log('[delete-account] Starting deletion for userId:', userId)
+
+  // 関連テーブルを削除（FK制約でauth削除が失敗しないよう先に削除）
+  const tables = [
+    { table: 'favorites', col: 'user_id' },
+    { table: 'download_history', col: 'user_id' },
+    { table: 'purchases', col: 'user_id' },
+  ]
+  for (const { table, col } of tables) {
+    const { error } = await supabase.from(table).delete().eq(col, userId)
+    if (error) {
+      console.warn(`[delete-account] Warning deleting from ${table}:`, error.message)
+      // 続行（テーブルが存在しない・行がない場合もある）
+    } else {
+      console.log(`[delete-account] Deleted from ${table}`)
+    }
+  }
+
+  // profilesはauth削除のCASCADEに任せる（先に消すと問題が出る場合がある）
+  // auth ユーザーを削除（service roleが必要）
+  console.log('[delete-account] Calling auth.admin.deleteUser...')
+  const { error: deleteError } = await supabase.auth.admin.deleteUser(userId)
+  if (deleteError) {
+    console.error('[delete-account] auth.admin.deleteUser failed:', deleteError)
+    return NextResponse.json({ error: deleteError.message }, { status: 500 })
+  }
+
+  console.log('[delete-account] Successfully deleted userId:', userId)
+  return NextResponse.json({ success: true })
 }

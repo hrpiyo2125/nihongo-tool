@@ -745,12 +745,16 @@ export default function MyPage({
                         const supabase = createClient();
                         const { data: { session } } = await supabase.auth.getSession();
                         if (!session) { setDeletingAccount(false); return; }
+                        const controller = new AbortController();
+                        const timeout = setTimeout(() => controller.abort(), 20000);
                         try {
                           const res = await fetch("/api/auth/delete-account", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({ userId: session.user.id }),
+                            signal: controller.signal,
                           });
+                          clearTimeout(timeout);
                           const data = await res.json();
                           if (res.ok && data.success) {
                             await supabase.auth.signOut();
@@ -759,8 +763,13 @@ export default function MyPage({
                             setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
                             setDeletingAccount(false);
                           }
-                        } catch {
-                          setDeleteError("通信エラーが発生しました。しばらく経ってから再度お試しください。");
+                        } catch (e: any) {
+                          clearTimeout(timeout);
+                          if (e?.name === "AbortError") {
+                            setDeleteError("処理がタイムアウトしました。しばらく経ってから再度お試しください。");
+                          } else {
+                            setDeleteError("通信エラーが発生しました。しばらく経ってから再度お試しください。");
+                          }
                           setDeletingAccount(false);
                         }
                       }}
