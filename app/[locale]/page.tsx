@@ -636,28 +636,34 @@ const methodItems = [
       .select("*")
       .eq("id", session.user.id)
       .single();
-    if (profileData) {
-      setProfile({
-        full_name: profileData.full_name || "",
-        country: profileData.country || "",
-        city: profileData.city || "",
-        purpose: profileData.purpose || [],
-        occupation: profileData.occupation || "",
-        student_level: profileData.student_level || "",
-        occupation_other: profileData.occupation_other || "",
-        purpose_other: profileData.purpose_other || "",
-        notif_new_material: profileData.notif_new_material ?? true,
-        notif_favorite: profileData.notif_favorite ?? false,
-        notif_billing: profileData.notif_billing ?? true,
-        notif_announcement: profileData.notif_announcement ?? false,
-        plan: profileData.plan || "free",
-        plan_status: profileData.plan_status || "active",
-        cancel_at_period_end: profileData.cancel_at_period_end ?? false,
-        current_period_end: profileData.current_period_end || null,
-        trial_end: profileData.trial_end || null,
+    if (!profileData) {
+      await supabase.from("profiles").upsert({
+        id: session.user.id,
+        full_name: session.user.user_metadata?.full_name || "",
+        status: "active",
       });
-      if (profileData.full_name) setUserName(profileData.full_name);
     }
+    const data = profileData ?? { id: session.user.id };
+    setProfile({
+      full_name: data.full_name || "",
+      country: data.country || "",
+      city: data.city || "",
+      purpose: data.purpose || [],
+      occupation: data.occupation || "",
+      student_level: data.student_level || "",
+      occupation_other: data.occupation_other || "",
+      purpose_other: data.purpose_other || "",
+      notif_new_material: data.notif_new_material ?? true,
+      notif_favorite: data.notif_favorite ?? false,
+      notif_billing: data.notif_billing ?? true,
+      notif_announcement: data.notif_announcement ?? false,
+      plan: data.plan || "free",
+      plan_status: data.plan_status || "active",
+      cancel_at_period_end: data.cancel_at_period_end ?? false,
+      current_period_end: data.current_period_end || null,
+      trial_end: data.trial_end || null,
+    });
+    if (data.full_name) setUserName(data.full_name);
   };
 
   useEffect(() => {

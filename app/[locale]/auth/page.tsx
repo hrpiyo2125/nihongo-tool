@@ -119,7 +119,7 @@ function AuthPageInner() {
       }
       window.location.href = `/${locale}`;
     } else {
-      const { error } = await supabase.auth.signUp({
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -130,6 +130,13 @@ function AuthPageInner() {
         setError("登録に失敗しました。もう一度お試しください");
         setLoading(false);
         return;
+      }
+      if (signUpData.user) {
+        await supabase.from("profiles").upsert({
+          id: signUpData.user.id,
+          full_name: name.trim(),
+          status: "active",
+        });
       }
       setMessage(
         "確認メールを送信しました。メールのリンクをクリックして登録を完了してください。"
