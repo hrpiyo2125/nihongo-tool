@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
 
       await stripe.subscriptions.update(profile.stripe_subscription_id, {
         items: [{ id: subscriptionItemId, price: newPriceId }],
-        proration_behavior: 'create_prorations',
+        proration_behavior: 'always_invoice',
         cancel_at_period_end: keepCancellationOnUpgrade,
       })
 
