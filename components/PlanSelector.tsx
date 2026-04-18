@@ -60,7 +60,8 @@ const plans = [
 const features = [
   { label: "お気に入り",       from: "free",     freeNote: "最大5件", paidNote: "無制限" },
   { label: "DL履歴",           from: "free",     freeNote: "最大5件", paidNote: "無制限" },
-  { label: "都度購入",         from: "light" },
+  { label: "単品購入",         from: "light" },
+  { label: "おすすめ教材表示", from: "light" },
   { label: "無料教材",         from: "free" },
   { label: "ライト教材",       from: "light" },
   { label: "スタンダード教材", from: "standard" },
