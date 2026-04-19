@@ -438,10 +438,11 @@ export default function MyPage({
   const router = useRouter();
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
-  const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm">("closed");
+  const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm" | "done">("closed");
   const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, return: false });
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deletePeriodEnd, setDeletePeriodEnd] = useState<string | null>(null);
   const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.return;
 
   if (activePage === "settings-profile") return (
@@ -454,7 +455,12 @@ export default function MyPage({
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
           <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>{userName}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
+              {profile.status === "pending_deletion" && (
+                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#fff0e8", color: "#a04020", whiteSpace: "nowrap" }}>退会予約済み</span>
+              )}
+            </div>
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>
               {profile.plan === "light" ? "Lightプラン" : profile.plan === "standard" ? "Standardプラン" : profile.plan === "premium" ? "Premiumプラン" : tm("free_plan")}
             </div>
@@ -730,8 +736,9 @@ export default function MyPage({
                           const data = await res.json();
                           if (res.ok && data.success) {
                             if (data.status === 'pending_deletion') {
-                              // サブスク期間満了まで使用継続 → ログアウトせずにマイページをリロード
-                              window.location.reload();
+                              setDeletePeriodEnd(profile?.current_period_end ?? null);
+                              setDeleteStep("done");
+                              setDeletingAccount(false);
                             } else {
                               await supabase.auth.signOut({ scope: 'local' });
                               window.location.href = `/${locale}`;
@@ -755,6 +762,36 @@ export default function MyPage({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* ステップ3: 退会予約完了（サブスク期間中） */}
+        {deleteStep === "done" && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", padding: "40px 40px 36px", textAlign: "center" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 20 }}>退会予約が完了しました！</div>
+              {deletePeriodEnd ? (() => {
+                const d = new Date(deletePeriodEnd);
+                const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+                return (
+                  <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: 28 }}>
+                    <span style={{ fontWeight: 700, color: "#7a50b0" }}>{dateStr}</span>まで現在のプランでお使いいただけます。<br />
+                    {dateStr}になったら、自動的にtoolioから退会されます。<br /><br />
+                    <span style={{ color: "#aaa", fontSize: 13 }}>いつでも戻ってきてください。お待ちしています。</span>
+                  </div>
+                );
+              })() : (
+                <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: 28 }}>
+                  現在のプランの期間が終了したら、自動的にtoolioから退会されます。<br /><br />
+                  <span style={{ color: "#aaa", fontSize: 13 }}>いつでも戻ってきてください。お待ちしています。</span>
+                </div>
+              )}
+              <button
+                onClick={() => { setDeleteStep("closed"); window.location.reload(); }}
+                style={{ fontSize: 14, padding: "12px 32px", borderRadius: 24, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
+              >閉じる</button>
             </div>
           </div>
         )}
