@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { createClient } from "../../../lib/supabase";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const tiles = [
   { char: "あ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4" },
@@ -51,6 +52,7 @@ function AuthPageInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const isLogin = mode === "login";
   const supabase = createClient();
@@ -100,7 +102,7 @@ function AuthPageInner() {
     setLoading(true);
 
     if (isLogin) {
-      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken: captchaToken ?? undefined } });
       if (error) {
         setError("メールアドレスまたはパスワードが間違っています");
         setLoading(false);
@@ -126,6 +128,7 @@ function AuthPageInner() {
         options: {
           data: { full_name: name.trim() },
           emailRedirectTo: `${window.location.origin}/${locale}/auth?mode=login`,
+          captchaToken: captchaToken ?? undefined,
         },
       });
       if (error) {
@@ -411,6 +414,11 @@ function AuthPageInner() {
                 </div>
               )}
 
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={(token) => setCaptchaToken(token)}
+                options={{ appearance: "interaction-only" }}
+              />
               <button type="submit" disabled={loading} style={{
                 width: "100%", height: 46, borderRadius: 24, border: "none",
                 background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -463,6 +471,11 @@ function AuthPageInner() {
                 </div>
               )}
 
+              <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={(token) => setCaptchaToken(token)}
+                options={{ appearance: "interaction-only" }}
+              />
               <button type="submit" disabled={loading} style={{
                 width: "100%", height: 46, borderRadius: 24, border: "none",
                 background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
