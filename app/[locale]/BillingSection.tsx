@@ -80,6 +80,10 @@ export default function BillingSection({
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [subscriptionResetModal, setSubscriptionResetModal] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [withdrawalLoading, setWithdrawalLoading] = useState(false);
+  const [withdrawalSuccess, setWithdrawalSuccess] = useState(false);
+  const [confirmWithdrawalCancel, setConfirmWithdrawalCancel] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -166,6 +170,34 @@ export default function BillingSection({
     }
   };
 
+  const handleWithdrawalCancel = async () => {
+    setWithdrawalLoading(true);
+    setWithdrawalError(null);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setWithdrawalLoading(false); return; }
+    try {
+      const res = await fetch("/api/auth/reactivate-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        onProfileUpdate({ status: "active", cancel_at_period_end: false, deleted_at: null } as any);
+        setWithdrawalSuccess(true);
+        setWithdrawalLoading(false);
+        setTimeout(() => { setWithdrawalSuccess(false); setConfirmWithdrawalCancel(false); }, 2000);
+      } else {
+        setWithdrawalError("エラーが発生しました。しばらく経ってから再度お試しください。");
+        setWithdrawalLoading(false);
+      }
+    } catch {
+      setWithdrawalError("エラーが発生しました。しばらく経ってから再度お試しください。");
+      setWithdrawalLoading(false);
+    }
+  };
+
   const isPaid = profile.plan !== "free";
   const isPendingDeletion = profile.status === "pending_deletion";
 
@@ -220,6 +252,16 @@ export default function BillingSection({
                 </div>
               )}
             </div>
+            {isPendingDeletion && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+                <button
+                  onClick={() => setConfirmWithdrawalCancel(true)}
+                  style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
+                >
+                  退会をやめる
+                </button>
+              </div>
+            )}
             {!isPendingDeletion && (
               <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                 <button
@@ -249,6 +291,63 @@ export default function BillingSection({
             )}
           </div>
         </div>
+
+        {/* 退会取り消し処理中・完了モーダル */}
+        {(withdrawalLoading || withdrawalSuccess) && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
+              {withdrawalLoading ? (
+                <ProcessingOverlay messages={["退会取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+              ) : (
+                <div style={{ padding: "36px 40px" }}>
+                  <SuccessOverlay label="退会予約を取り消しました。引き続きご利用いただけます。" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 退会取り消し確認モーダル */}
+        {confirmWithdrawalCancel && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
+              {withdrawalLoading ? (
+                <ProcessingOverlay messages={["退会取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+              ) : withdrawalSuccess ? (
+                <div style={{ padding: "36px 40px" }}>
+                  <SuccessOverlay label="退会予約を取り消しました。引き続きご利用いただけます。" />
+                </div>
+              ) : (
+                <div style={{ padding: "36px 40px" }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>退会をやめますか？</div>
+                  <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
+                    退会予約を取り消すと、<strong>{formatDate(profile.current_period_end)}</strong> 以降も引き続きご利用いただけます。<br />
+                    現在のプランはそのまま継続されます。
+                  </div>
+                  {withdrawalError && (
+                    <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
+                      {withdrawalError}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => { setConfirmWithdrawalCancel(false); setWithdrawalError(null); }}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      onClick={handleWithdrawalCancel}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      退会をやめる
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 無料プラン変更取り消し処理中・完了モーダル */}
         {(reactivateLoading || reactivateSuccess) && (
