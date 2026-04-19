@@ -154,7 +154,7 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendUpgradeEmail({
           to: email,
-          planLabel: newPlan === 'light' ? 'Lightプラン' : newPlan === 'standard' ? 'Standardプラン' : 'Premiumプラン',
+          planLabel: newPlan === 'light' ? 'ライトプラン' : newPlan === 'standard' ? 'スタンダードプラン' : 'プレミアムプラン',
           currentPeriodEnd: periodEnd,
         })
       }
@@ -183,7 +183,7 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendDowngradeEmail({
           to: email,
-          newPlanLabel: newPlan === 'light' ? 'Lightプラン' : newPlan === 'standard' ? 'Standardプラン' : 'Premiumプラン',
+          newPlanLabel: newPlan === 'light' ? 'ライトプラン' : newPlan === 'standard' ? 'スタンダードプラン' : 'プレミアムプラン',
           currentPeriodEnd: periodEnd,
         })
       }

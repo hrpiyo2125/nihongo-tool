@@ -115,10 +115,10 @@ export async function sendTrialStartEmail({
     subject: `【toolio】14日間の無料トライアルが始まりました`,
     html: `
       <p>toolioをご利用いただきありがとうございます。</p>
-      <p>Lightプランの<strong>14日間無料トライアル</strong>が始まりました。</p>
+      <p>ライトプランの<strong>14日間無料トライアル</strong>が始まりました。</p>
       <p>トライアル終了日：<strong>${formatDate(trialEnd)}</strong></p>
-      <p>期間中はLightプランのすべての機能をお使いいただけます。</p>
-      <p>トライアル終了後はFreeプランに自動で戻ります。クレジットカードの登録は不要です。</p>
+      <p>期間中はライトプランのすべての機能をお使いいただけます。</p>
+      <p>トライアル終了後は無料プランに自動で戻ります。クレジットカードの登録は不要です。</p>
       <br />
       <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
     `,
@@ -160,7 +160,7 @@ export async function sendPaymentFailedEmail({
     html: `
       <p>toolioをご利用いただきありがとうございます。</p>
       <p>お支払いが確認できませんでした。クレジットカード情報をご確認ください。</p>
-      <p>7日以内にお支払いが確認できない場合、Freeプランに移行します。</p>
+      <p>7日以内にお支払いが確認できない場合、無料プランに移行します。</p>
       <a href="https://nihongo-tool.com/ja" style="display:inline-block;margin-top:16px;padding:10px 24px;background:linear-gradient(135deg,#f4b9b9,#e49bfd);color:white;border-radius:20px;text-decoration:none;font-weight:700;">カード情報を確認する</a>
       <br /><br />
       <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
@@ -177,10 +177,10 @@ export async function sendDowngradedToFreeEmail({
   await resend.emails.send({
     from: FROM,
     to,
-    subject: `【toolio】Freeプランに移行しました`,
+    subject: `【toolio】無料プランに移行しました`,
     html: `
       <p>toolioをご利用いただきありがとうございます。</p>
-      <p>ご利用のプランがFreeプランに移行しました。</p>
+      <p>ご利用のプランが無料プランに移行しました。</p>
       <p>再度ご登録いただくことでいつでも有料プランをご利用いただけます。</p>
       <a href="https://nihongo-tool.com/ja" style="display:inline-block;margin-top:16px;padding:10px 24px;background:linear-gradient(135deg,#f4b9b9,#e49bfd);color:white;border-radius:20px;text-decoration:none;font-weight:700;">プランを確認する</a>
       <br /><br />

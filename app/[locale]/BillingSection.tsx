@@ -25,9 +25,9 @@ type Invoice = {
 
 const PLAN_LABEL: Record<string, string> = {
   free: "無料プラン",
-  light: "Lightプラン",
-  standard: "Standardプラン",
-  premium: "Premiumプラン",
+  light: "ライトプラン",
+  standard: "スタンダードプラン",
+  premium: "プレミアムプラン",
 };
 
 const PLAN_PRICE: Record<string, string> = {

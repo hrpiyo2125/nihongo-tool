@@ -216,7 +216,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
     <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
       <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
-        お支払い情報に問題が発生したため、現在のプランがFreeプランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+        お支払い情報に問題が発生したため、現在のプランが無料プランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
       </div>
       <button
         onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}
