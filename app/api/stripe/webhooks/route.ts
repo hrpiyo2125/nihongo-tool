@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {
   sendCancelEmail,
+  sendWithdrawalEmail,
   sendDowngradedToFreeEmail,
   sendPaymentFailedEmail,
   sendTrialEndingSoonEmail,
@@ -105,14 +106,15 @@ export async function POST(req: NextRequest) {
       const cancelAt = subscription.cancel_at // 特定日付指定のキャンセル
       const isCanceling = cancelAtPeriodEnd || !!cancelAt
 
-      // 解約メール重複送信防止のため、現在のSupabase状態を確認
+      // メール重複送信防止・退会判定のため、現在のSupabase状態を確認
       const { data: currentProfile } = await supabase
         .from('profiles')
-        .select('cancel_at_period_end')
+        .select('cancel_at_period_end, status')
         .eq('id', userId)
         .single()
 
       const isNewCancellation = isCanceling && !currentProfile?.cancel_at_period_end
+      const isPendingDeletion = currentProfile?.status === 'pending_deletion'
 
       // current_period_end: cancel_at が設定されていればその日付を優先
       const periodEnd = cancelAt
@@ -133,7 +135,7 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', userId)
 
-        // 新規解約のみメール送信（APIルートからの解約はAPIが送信するため重複防止）
+        // 新規キャンセルのみメール送信（退会と無料プラン変更でメールを使い分け）
         if (isNewCancellation) {
           const customerData = await stripe.customers.retrieve(subscription.customer as string)
           const email = (customerData as any).email
@@ -143,10 +145,17 @@ export async function POST(req: NextRequest) {
             .eq('id', userId)
             .single()
           if (email) {
-            await sendCancelEmail({
-              to: email,
-              currentPeriodEnd: profile?.current_period_end ?? null,
-            })
+            if (isPendingDeletion) {
+              await sendWithdrawalEmail({
+                to: email,
+                currentPeriodEnd: profile?.current_period_end ?? null,
+              })
+            } else {
+              await sendCancelEmail({
+                to: email,
+                currentPeriodEnd: profile?.current_period_end ?? null,
+              })
+            }
           }
         }
       } else {

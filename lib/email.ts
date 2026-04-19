@@ -56,7 +56,7 @@ export async function sendDowngradeEmail({
   })
 }
 
-// ─── キャンセル予約完了 ───────────────────────────────────────
+// ─── 無料プランへの変更予約完了 ──────────────────────────────
 export async function sendCancelEmail({
   to, currentPeriodEnd,
 }: {
@@ -66,13 +66,36 @@ export async function sendCancelEmail({
   await resend.emails.send({
     from: FROM,
     to,
-    subject: `【toolio】解約予約が完了しました`,
+    subject: `【toolio】無料プランへの変更予約が完了しました`,
     html: `
       <p>toolioをご利用いただきありがとうございます。</p>
-      <p>解約予約を承りました。</p>
-      <p><strong>${formatDate(currentPeriodEnd)} まで</strong>引き続きご利用いただけます。</p>
-      <p>期間終了後はFreeプランに移行します。</p>
-      <p>ご利用を継続される場合は、マイページの「請求・プラン管理」から解約を取り消すことができます。</p>
+      <p>無料プランへの変更予約を承りました。</p>
+      <p><strong>${formatDate(currentPeriodEnd)} まで</strong>引き続き現在のプランをご利用いただけます。</p>
+      <p>期間終了後は無料プランに移行します。</p>
+      <p>ご利用を継続される場合は、マイページの「請求・プラン管理」から変更を取り消すことができます。</p>
+      <br />
+      <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
+    `,
+  })
+}
+
+// ─── 退会予約完了 ─────────────────────────────────────────────
+export async function sendWithdrawalEmail({
+  to, currentPeriodEnd,
+}: {
+  to: string
+  currentPeriodEnd: string | null
+}) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `【toolio】退会予約が完了しました`,
+    html: `
+      <p>toolioをご利用いただきありがとうございます。</p>
+      <p>退会予約を承りました。</p>
+      <p><strong>${formatDate(currentPeriodEnd)} まで</strong>引き続き現在のプランをご利用いただけます。</p>
+      <p>期間終了後、自動的に退会となります。</p>
+      <p>いつでも同じメールアドレスで再開できます。お待ちしています。</p>
       <br />
       <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
     `,
