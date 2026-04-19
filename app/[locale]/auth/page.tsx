@@ -133,6 +133,15 @@ function AuthPageInner() {
         return;
       }
       if (signUpData.user) {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("status")
+          .eq("id", signUpData.user.id)
+          .single();
+        if (existingProfile?.status === "deleted") {
+          window.location.href = `/${locale}/welcome-back`;
+          return;
+        }
         await supabase.from("profiles").upsert({
           id: signUpData.user.id,
           full_name: name.trim(),
