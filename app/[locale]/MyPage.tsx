@@ -471,6 +471,11 @@ export default function MyPage({
   const [freePlanLoading, setFreePlanLoading] = useState(false);
   const [freePlanSuccess, setFreePlanSuccess] = useState(false);
   const [freePlanError, setFreePlanError] = useState<string | null>(null);
+  const [emailModal, setEmailModal] = useState(false);
+  const [emailNew, setEmailNew] = useState("");
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState(false);
 
   const handleAvatarUpload = async (file: File) => {
     setUploadingAvatar(true);
@@ -605,6 +610,7 @@ export default function MyPage({
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>メールアドレス</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>{userEmail || "—"}</div>
           </div>
+          <button onClick={() => { setEmailModal(true); setEmailNew(""); setEmailError(null); setEmailSent(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>変更</button>
         </div>
 
         {/* パスワード */}
@@ -780,6 +786,64 @@ export default function MyPage({
             <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "10px 16px", borderRadius: 10, textAlign: "center" }}>退会予約済みです</div>
           )}
         </div>
+
+        {/* メールアドレス変更モーダル */}
+        {emailModal && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 440, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", padding: "36px 40px" }}>
+              {emailSent ? (
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, marginBottom: 16 }}>📧</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#333", marginBottom: 12 }}>確認メールを送信しました</div>
+                  <div style={{ fontSize: 13, color: "#555", lineHeight: 1.85, marginBottom: 8, textAlign: "left", background: "#f8f6ff", borderRadius: 10, padding: "16px 18px", border: "0.5px solid rgba(200,170,240,0.3)" }}>
+                    <div style={{ fontWeight: 700, color: "#7a50b0", marginBottom: 8 }}>📌 変更を完了するには</div>
+                    <div>新しいメールアドレス（<strong style={{ color: "#333" }}>{emailNew}</strong>）に確認メールが届きます。</div>
+                    <div style={{ marginTop: 8 }}>メール内の「<strong>メールアドレスを変更する</strong>」リンクをクリックすると、変更が反映されます。</div>
+                  </div>
+                  <div style={{ fontSize: 12, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>
+                    リンクをクリックするまでは、現在のメールアドレスのままです。<br />メールが届かない場合は迷惑メールフォルダをご確認ください。
+                  </div>
+                  <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>確認しました</button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>メールアドレスの変更</div>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>現在のメールアドレス</div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#888", padding: "10px 12px", borderRadius: 8, background: "#f5f5f5" }}>{userEmail}</div>
+                  </div>
+                  <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいメールアドレス</div>
+                    <input
+                      type="email"
+                      value={emailNew}
+                      onChange={(e) => setEmailNew(e.target.value)}
+                      placeholder="new@example.com"
+                      style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }}
+                    />
+                  </div>
+                  {emailError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{emailError}</div>}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>キャンセル</button>
+                    <button
+                      disabled={emailLoading}
+                      onClick={async () => {
+                        if (!emailNew || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNew)) { setEmailError("正しいメールアドレスを入力してください"); return; }
+                        if (emailNew === userEmail) { setEmailError("現在と同じメールアドレスです"); return; }
+                        setEmailLoading(true); setEmailError(null);
+                        const supabase = createClient();
+                        const { error } = await supabase.auth.updateUser({ email: emailNew });
+                        if (error) { setEmailError("変更に失敗しました。しばらく経ってから再度お試しください"); setEmailLoading(false); return; }
+                        setEmailLoading(false); setEmailSent(true);
+                      }}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: emailLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: emailLoading ? "not-allowed" : "pointer", fontWeight: 700 }}
+                    >{emailLoading ? "送信中..." : "確認メールを送信"}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* パスワード変更モーダル */}
         {pwModal && (
