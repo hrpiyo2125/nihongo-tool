@@ -436,13 +436,19 @@ function AuthPageInner() {
                 outline: "none", marginBottom: 4, boxSizing: "border-box",
               }} />
 
-              <div style={{ textAlign: "right", marginBottom: 10 }}>
-              <a href="/auth/reset-request" style={{ fontSize: 11, color: "#b090c8", textDecoration: "none" }}>パスワードをお忘れの方</a>
-              </div>
-
               {error && (
-                <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>
-                  {error}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, color: "#c44a88", padding: "6px 10px", background: "#fff0f6", borderRadius: 6, marginBottom: 8 }}>
+                    {error}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 6 }}>
+                    <span onClick={() => handleModeChange("signup")} style={{ fontSize: 11, color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>
+                      → 新規登録はこちら
+                    </span>
+                    <a href="/auth/reset-request" style={{ fontSize: 11, color: "#b090c8", textDecoration: "none" }}>
+                      → パスワードをお忘れの方
+                    </a>
+                  </div>
                 </div>
               )}
 
