@@ -640,6 +640,7 @@ const methodItems = [
       window.location.href = `/${locale}/welcome-back`;
       return;
     }
+    // pending_deletion は期間満了まで通常利用継続
     if (!profileData) {
       await supabase.from("profiles").upsert({
         id: session.user.id,

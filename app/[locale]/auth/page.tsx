@@ -116,6 +116,7 @@ function AuthPageInner() {
           window.location.href = `/${locale}/welcome-back`;
           return;
         }
+        // pending_deletion は期間満了まで通常利用継続
       }
       window.location.href = `/${locale}`;
     } else {

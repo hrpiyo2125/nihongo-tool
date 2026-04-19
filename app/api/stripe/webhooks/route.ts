@@ -174,24 +174,40 @@ export async function POST(req: NextRequest) {
       const userId = subscription.metadata?.userId
       if (!userId) break
 
+      // 退会予約中（pending_deletion）だった場合は完全削除へ移行
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('status')
+        .eq('id', userId)
+        .single()
+
+      const isPendingDeletion = currentProfile?.status === 'pending_deletion'
+
+      const updateData: Record<string, any> = {
+        plan: 'free',
+        plan_status: 'canceled',
+        stripe_subscription_id: null,
+        cancel_at_period_end: false,
+        current_period_end: null,
+        trial_end: null,
+        payment_failed_at: null,
+        updated_at: new Date().toISOString(),
+      }
+      if (isPendingDeletion) {
+        updateData.status = 'deleted'
+      }
+
       await supabase
         .from('profiles')
-        .update({
-          plan: 'free',
-          plan_status: 'canceled',
-          stripe_subscription_id: null,
-          cancel_at_period_end: false,
-          current_period_end: null,
-          trial_end: null,
-          payment_failed_at: null,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq('id', userId)
 
-      const deletedCustomer = await stripe.customers.retrieve(subscription.customer as string)
-      const deletedEmail = (deletedCustomer as any).email
-      if (deletedEmail) {
-        await sendDowngradedToFreeEmail({ to: deletedEmail })
+      if (!isPendingDeletion) {
+        const deletedCustomer = await stripe.customers.retrieve(subscription.customer as string)
+        const deletedEmail = (deletedCustomer as any).email
+        if (deletedEmail) {
+          await sendDowngradedToFreeEmail({ to: deletedEmail })
+        }
       }
 
       break

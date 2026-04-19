@@ -729,8 +729,13 @@ export default function MyPage({
                           clearTimeout(timeout);
                           const data = await res.json();
                           if (res.ok && data.success) {
-                            await supabase.auth.signOut({ scope: 'local' });
-                            window.location.href = `/${locale}`;
+                            if (data.status === 'pending_deletion') {
+                              // サブスク期間満了まで使用継続 → ログアウトせずにマイページをリロード
+                              window.location.reload();
+                            } else {
+                              await supabase.auth.signOut({ scope: 'local' });
+                              window.location.href = `/${locale}`;
+                            }
                           } else {
                             setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
                             setDeletingAccount(false);

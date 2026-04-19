@@ -43,10 +43,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // サブスクがある場合は期間満了まで使用継続できるよう pending_deletion にする
+  const newStatus = profile?.stripe_subscription_id ? 'pending_deletion' : 'deleted'
+
   const { error } = await supabase
     .from('profiles')
     .update({
-      status: 'deleted',
+      status: newStatus,
       deleted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
@@ -57,6 +60,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '削除に失敗しました' }, { status: 500 })
   }
 
-  console.log('[delete-account] soft delete done', userId)
-  return NextResponse.json({ success: true })
+  console.log('[delete-account] soft delete done', userId, 'status:', newStatus)
+  return NextResponse.json({ success: true, status: newStatus })
 }
