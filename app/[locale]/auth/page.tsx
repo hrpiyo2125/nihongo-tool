@@ -134,6 +134,11 @@ function AuthPageInner() {
         return;
       }
       if (signUpData.user) {
+        if ((signUpData.user.identities ?? []).length === 0) {
+          setError("このメールアドレスはすでに登録されています。");
+          setLoading(false);
+          return;
+        }
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("status")
@@ -396,8 +401,13 @@ function AuthPageInner() {
               />
 
               {error && (
-                <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>
-                  {error}
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, color: "#c44a88", padding: "6px 10px", background: "#fff0f6", borderRadius: 6, marginBottom: 8 }}>
+                    {error}
+                  </div>
+                  <span onClick={() => handleModeChange("login")} style={{ fontSize: 11, color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>
+                    → ログインはこちら
+                  </span>
                 </div>
               )}
 
