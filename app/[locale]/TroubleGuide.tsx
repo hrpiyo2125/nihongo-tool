@@ -1215,12 +1215,12 @@ function GuideSection() {
             <div style={{ width: 40, height: 40, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 12, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>03</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 4 }}>サブスクプランに登録する</div>
-              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>プランに応じて使える教材が増えます。まずは気軽にLightプランから試してみてください。</div>
+              <div style={{ fontSize: 13, color: "#777", lineHeight: 1.8, marginBottom: 16 }}>プランに応じて使える教材が増えます。まずは気軽にライトプランから試してみてください。</div>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: 8, marginBottom: 16 }}>
                 {[
-                  { plan: "Light", price: "¥980", color: "#d6f5e5", textColor: "#2a6a44" },
-                  { plan: "Standard", price: "¥1,980", color: "#e8efff", textColor: "#3a5a9a" },
-                  { plan: "Premium", price: "¥3,980", color: "#ffe8f4", textColor: "#a03070" },
+                  { plan: "ライト", price: "¥980", color: "#d6f5e5", textColor: "#2a6a44" },
+                  { plan: "スタンダード", price: "¥1,980", color: "#e8efff", textColor: "#3a5a9a" },
+                  { plan: "プレミアム", price: "¥3,980", color: "#ffe8f4", textColor: "#a03070" },
                 ].map((item) => (
                   <div key={item.plan} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: item.color, borderRadius: 10, padding: "10px 16px" }}>
                     <div style={{ fontSize: 13, fontWeight: 700, color: item.textColor }}>{item.plan}</div>

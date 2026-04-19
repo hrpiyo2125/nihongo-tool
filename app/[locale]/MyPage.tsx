@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, type Dispatch, type SetStateAction } from "react";
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
 import { useRouter } from 'next/navigation';
 import { createClient } from "../../lib/supabase";
 import { getCardStyle } from "../../lib/materialUtils";
@@ -395,8 +395,12 @@ type MyPageProps = {
   setActivePage: (page: string) => void;
   isLoggedIn: boolean;
   userInitial: string;
+  setUserInitial: (initial: string) => void;
+  avatarUrl: string | null;
+  setAvatarUrl: (url: string | null) => void;
   userName: string;
   setUserName: (name: string) => void;
+  userEmail: string;
   profile: Record<string, any>;
   setProfile: Dispatch<SetStateAction<Record<string, any>>>;
   editingField: string | null;
@@ -418,8 +422,12 @@ export default function MyPage({
   setActivePage,
   isLoggedIn,
   userInitial,
+  setUserInitial,
+  avatarUrl,
+  setAvatarUrl,
   userName,
   setUserName,
+  userEmail,
   profile,
   setProfile,
   editingField,
@@ -436,7 +444,22 @@ export default function MyPage({
   onPlanChanged,
 }: MyPageProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [draftResidence, setDraftResidence] = useState({ country: "", city: "" });
+  const [draftOccupation, setDraftOccupation] = useState("");
+  const [draftOccupationOther, setDraftOccupationOther] = useState("");
+  const [draftPurpose, setDraftPurpose] = useState<string[]>([]);
+  const [draftPurposeOther, setDraftPurposeOther] = useState("");
+  const [savingSection, setSavingSection] = useState(false);
+  const [pwModal, setPwModal] = useState(false);
+  const [pwNew, setPwNew] = useState("");
+  const [pwConfirm, setPwConfirm] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+  const [pwSuccess, setPwSuccess] = useState(false);
   const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
   const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm" | "done">("closed");
   const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, return: false });
@@ -448,6 +471,23 @@ export default function MyPage({
   const [freePlanLoading, setFreePlanLoading] = useState(false);
   const [freePlanSuccess, setFreePlanSuccess] = useState(false);
   const [freePlanError, setFreePlanError] = useState<string | null>(null);
+
+  const handleAvatarUpload = async (file: File) => {
+    setUploadingAvatar(true);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setUploadingAvatar(false); return; }
+    const ext = file.name.split(".").pop() ?? "jpg";
+    const path = `${session.user.id}/avatar.${ext}`;
+    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (!error) {
+      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+      const url = `${publicUrl}?t=${Date.now()}`;
+      await supabase.from("profiles").upsert({ id: session.user.id, avatar_url: url });
+      setAvatarUrl(url);
+    }
+    setUploadingAvatar(false);
+  };
 
   const handleFreePlan = async () => {
     setFreePlanLoading(true);
@@ -479,13 +519,27 @@ export default function MyPage({
 
   if (activePage === "settings-profile") return (
     <div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
         <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>My Account</p>
         <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{tm("profile_title")}</h2>
       </div>
       <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: 600 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
-          <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+          <div
+            onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+            style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden", cursor: "pointer", position: "relative" }}
+          >
+            {avatarUrl
+              ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : userInitial}
+            {uploadingAvatar && (
+              <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 20, height: 20, border: "2px solid white", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+              </div>
+            )}
+          </div>
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ""; }} />
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
@@ -494,11 +548,12 @@ export default function MyPage({
               )}
             </div>
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>
-              {profile.plan === "light" ? "Lightプラン" : profile.plan === "standard" ? "Standardプラン" : profile.plan === "premium" ? "Premiumプラン" : tm("free_plan")}
+              {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : tm("free_plan")}
             </div>
-            <button disabled style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#ccc", cursor: "not-allowed", fontWeight: 600 }}>{tm("change_photo")}（準備中）</button>
+            <button onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
           </div>
         </div>
+        {/* 名前 / 学習レベル */}
         {[
           { label: tm("name"), value: profile.full_name || userName, col: "full_name" },
           { label: tm("student_level"), value: profile.student_level || tm("not_registered"), col: "student_level" },
@@ -527,159 +582,187 @@ export default function MyPage({
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) { setSavingProfile(false); return; }
                     const col = field.col;
-                    const isArray = col === "purpose";
-                    const value = isArray ? editingValue.split("・").map(s => s.trim()).filter(Boolean) : editingValue;
+                    const value = editingValue;
                     await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
-                    setProfile((prev) => ({ ...prev, [col]: value as any }));
-                    if (col === "full_name") setUserName(editingValue);
+                    setProfile((prev) => ({ ...prev, [col]: value }));
+                    if (col === "full_name") { setUserName(editingValue); if (editingValue) setUserInitial(editingValue.charAt(0).toUpperCase()); }
                     setSavingProfile(false);
                     setEditingField(null);
                   }}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingProfile ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingProfile ? "not-allowed" : "pointer", fontWeight: 700 }}
                 >{savingProfile ? "保存中..." : tm("save")}</button>
-                <button
-                  onClick={() => setEditingField(null)}
-                  style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                >{tm("cancel")}</button>
+                <button onClick={() => setEditingField(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
               </div>
             ) : (
-              <button
-                onClick={() => { setEditingField(field.label); setEditingValue(field.value === "未設定" ? "" : field.value); }}
-                style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}
-              >編集</button>
+              <button onClick={() => { setEditingField(field.label); setEditingValue(field.value === "未設定" ? "" : field.value); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
             )}
           </div>
         ))}
 
-        {/* 居住地 */}
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("residence")}</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            <div>
-              <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("country")}</div>
-              <select
-                value={profile.country || ""}
-                onChange={async (e) => {
-                  const val = e.target.value;
-                  setProfile((prev: any) => ({ ...prev, country: val, city: "" }));
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  await supabase.from("profiles").upsert({ id: session.user.id, country: val, city: "" });
-                }}
-                style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555", background: "white" }}
-              >
-                <option value="">{tm("select_country")}</option>
-                {["日本", "オーストラリア", "アメリカ", "カナダ", "イギリス", "ニュージーランド", "シンガポール", "マレーシア", "台湾", "韓国", "中国", "タイ", "フランス", "ドイツ", "その他"].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            </div>
-            {profile.country && (
-              <div>
-                <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("city")}</div>
-                <input
-                  placeholder={tm("enter_city")}
-                  value={profile.city || ""}
-                  onChange={(e) => setProfile((prev: any) => ({ ...prev, city: e.target.value }))}
-                  onBlur={async () => {
-                    const supabase = createClient();
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) return;
-                    await supabase.from("profiles").upsert({ id: session.user.id, city: profile.city });
-                  }}
-                  style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555" }}
-                />
-              </div>
-            )}
+        {/* メールアドレス */}
+        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>メールアドレス</div>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>{userEmail || "—"}</div>
           </div>
         </div>
 
-        {/* 職業 */}
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("occupation")}</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {[tm("occ_teacher"), tm("occ_parent"), tm("occ_school"), tm("occ_school_owner"), tm("occ_other")].map((opt) => (
-              <div key={opt} onClick={async () => {
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
-                await supabase.from("profiles").upsert({ id: session.user.id, occupation: opt });
-                setProfile((prev) => ({ ...prev, occupation: opt }));
-              }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${profile.occupation === opt ? "#e49bfd" : "#ddd"}`, background: profile.occupation === opt ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  {profile.occupation === opt && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "white" }} />}
-                </div>
-                <span style={{ fontSize: 13, color: profile.occupation === opt ? "#7a50b0" : "#555", fontWeight: profile.occupation === opt ? 700 : 400 }}>{opt}</span>
-              </div>
-            ))}
-            {profile.occupation === "その他" && (
-              <input
-                placeholder="職業を入力してください"
-                value={profile.occupation_other || ""}
-                onChange={(e) => setProfile((prev: any) => ({ ...prev, occupation_other: e.target.value }))}
-                onBlur={async () => {
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  await supabase.from("profiles").upsert({ id: session.user.id, occupation_other: profile.occupation_other });
-                }}
-                style={{ marginTop: 8, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* 利用目的 */}
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12 }}>{tm("purpose")}</div>
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {[tm("purpose_lesson"), tm("purpose_home"), tm("purpose_research"), tm("purpose_other")].map((opt) => {
-              const checked = profile.purpose?.includes(opt);
-              return (
-                <div key={opt} onClick={async () => {
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  const newPurpose = checked
-                    ? profile.purpose.filter((p: string) => p !== opt)
-                    : [...(profile.purpose || []), opt];
-                  await supabase.from("profiles").upsert({ id: session.user.id, purpose: newPurpose });
-                  setProfile((prev) => ({ ...prev, purpose: newPurpose }));
-                }} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
-                  <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${checked ? "#e49bfd" : "#ddd"}`, background: checked ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {checked && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
-                  </div>
-                  <span style={{ fontSize: 13, color: checked ? "#7a50b0" : "#555", fontWeight: checked ? 700 : 400 }}>{opt}</span>
-                </div>
-              );
-            })}
-            {profile.purpose?.includes("その他") && (
-              <input
-                placeholder="利用目的を入力してください"
-                value={profile.purpose_other || ""}
-                onChange={(e) => setProfile((prev: any) => ({ ...prev, purpose_other: e.target.value }))}
-                onBlur={async () => {
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  await supabase.from("profiles").upsert({ id: session.user.id, purpose_other: profile.purpose_other });
-                }}
-                style={{ marginTop: 8, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }}
-              />
-            )}
-          </div>
-        </div>
+        {/* パスワード */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>••••••••</div>
           </div>
-          <button
-            onClick={() => router.push(`/${locale}/auth/reset-request`)}
-            style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}
-          >変更</button>
+          <button onClick={() => { setPwModal(true); setPwNew(""); setPwConfirm(""); setPwError(null); setPwSuccess(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>変更</button>
         </div>
+
+        {/* 居住地 */}
+        {(() => {
+          const isEditing = editingSection === "residence";
+          const summary = profile.country ? (profile.city ? `${profile.country}・${profile.city}` : profile.country) : "未設定";
+          return (
+            <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("residence")}</div>
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                </div>
+                {!isEditing ? (
+                  <button onClick={() => { setDraftResidence({ country: profile.country || "", city: profile.city || "" }); setEditingSection("residence"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                ) : (
+                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <button disabled={savingSection} onClick={async () => {
+                      setSavingSection(true);
+                      const supabase = createClient();
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
+                      setProfile((prev: any) => ({ ...prev, country: draftResidence.country, city: draftResidence.city }));
+                      setSavingSection(false);
+                      setEditingSection(null);
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                  </div>
+                )}
+              </div>
+              {isEditing && (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("country")}</div>
+                    <select value={draftResidence.country} onChange={(e) => setDraftResidence(prev => ({ ...prev, country: e.target.value, city: "" }))} style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555", background: "white" }}>
+                      <option value="">{tm("select_country")}</option>
+                      {["日本", "オーストラリア", "アメリカ", "カナダ", "イギリス", "ニュージーランド", "シンガポール", "マレーシア", "台湾", "韓国", "中国", "タイ", "フランス", "ドイツ", "その他"].map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  {draftResidence.country && (
+                    <div>
+                      <div style={{ fontSize: 11, color: "#bbb", marginBottom: 6 }}>{tm("city")}</div>
+                      <input placeholder={tm("enter_city")} value={draftResidence.city} onChange={(e) => setDraftResidence(prev => ({ ...prev, city: e.target.value }))} style={{ width: "100%", fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", color: "#555" }} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* 職業 */}
+        {(() => {
+          const isEditing = editingSection === "occupation";
+          const occOpts = [tm("occ_teacher"), tm("occ_parent"), tm("occ_school"), tm("occ_school_owner"), tm("occ_other")];
+          const summary = profile.occupation || "未設定";
+          return (
+            <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("occupation")}</div>
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                </div>
+                {!isEditing ? (
+                  <button onClick={() => { setDraftOccupation(profile.occupation || ""); setDraftOccupationOther(profile.occupation_other || ""); setEditingSection("occupation"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                ) : (
+                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <button disabled={savingSection} onClick={async () => {
+                      setSavingSection(true);
+                      const supabase = createClient();
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
+                      setProfile((prev: any) => ({ ...prev, occupation: draftOccupation, occupation_other: draftOccupationOther }));
+                      setSavingSection(false);
+                      setEditingSection(null);
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                  </div>
+                )}
+              </div>
+              {isEditing && (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  {occOpts.map((opt) => (
+                    <div key={opt} onClick={() => setDraftOccupation(opt)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: "50%", border: `2px solid ${draftOccupation === opt ? "#e49bfd" : "#ddd"}`, background: draftOccupation === opt ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {draftOccupation === opt && <div style={{ width: 8, height: 8, borderRadius: "50%", background: "white" }} />}
+                      </div>
+                      <span style={{ fontSize: 13, color: draftOccupation === opt ? "#7a50b0" : "#555", fontWeight: draftOccupation === opt ? 700 : 400 }}>{opt}</span>
+                    </div>
+                  ))}
+                  {draftOccupation === tm("occ_other") && (
+                    <input placeholder="職業を入力してください" value={draftOccupationOther} onChange={(e) => setDraftOccupationOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* 利用目的 */}
+        {(() => {
+          const isEditing = editingSection === "purpose";
+          const purposeOpts = [tm("purpose_lesson"), tm("purpose_home"), tm("purpose_research"), tm("purpose_other")];
+          const summary = (profile.purpose as string[] | undefined)?.length ? (profile.purpose as string[]).join("・") : "未設定";
+          return (
+            <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("purpose")}</div>
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                </div>
+                {!isEditing ? (
+                  <button onClick={() => { setDraftPurpose(profile.purpose ? [...profile.purpose] : []); setDraftPurposeOther(profile.purpose_other || ""); setEditingSection("purpose"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                ) : (
+                  <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                    <button disabled={savingSection} onClick={async () => {
+                      setSavingSection(true);
+                      const supabase = createClient();
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
+                      setProfile((prev: any) => ({ ...prev, purpose: draftPurpose, purpose_other: draftPurposeOther }));
+                      setSavingSection(false);
+                      setEditingSection(null);
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                  </div>
+                )}
+              </div>
+              {isEditing && (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
+                  {purposeOpts.map((opt) => {
+                    const checked = draftPurpose.includes(opt);
+                    return (
+                      <div key={opt} onClick={() => setDraftPurpose(prev => checked ? prev.filter(p => p !== opt) : [...prev, opt])} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}>
+                        <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${checked ? "#e49bfd" : "#ddd"}`, background: checked ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "white", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {checked && <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>}
+                        </div>
+                        <span style={{ fontSize: 13, color: checked ? "#7a50b0" : "#555", fontWeight: checked ? 700 : 400 }}>{opt}</span>
+                      </div>
+                    );
+                  })}
+                  {draftPurpose.includes(tm("purpose_other")) && (
+                    <input placeholder="利用目的を入力してください" value={draftPurposeOther} onChange={(e) => setDraftPurposeOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
         <div style={{ paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
           {profile?.plan !== "free" && !profile?.cancel_at_period_end && profile?.status !== "pending_deletion" && (
             <button
@@ -697,6 +780,48 @@ export default function MyPage({
             <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "10px 16px", borderRadius: 10, textAlign: "center" }}>退会予約済みです</div>
           )}
         </div>
+
+        {/* パスワード変更モーダル */}
+        {pwModal && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", padding: "36px 40px" }}>
+              {pwSuccess ? (
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>パスワードを変更しました</div>
+                  <button onClick={() => setPwModal(false)} style={{ marginTop: 16, fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>閉じる</button>
+                </div>
+              ) : (
+                <>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>パスワードの変更</div>
+                  <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, marginBottom: 20 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード</div>
+                      <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="8文字以上" style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード（確認）</div>
+                      <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="もう一度入力" style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                    </div>
+                  </div>
+                  {pwError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{pwError}</div>}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button onClick={() => setPwModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>キャンセル</button>
+                    <button disabled={pwLoading} onClick={async () => {
+                      if (pwNew.length < 8) { setPwError("パスワードは8文字以上で入力してください"); return; }
+                      if (pwNew !== pwConfirm) { setPwError("パスワードが一致しません"); return; }
+                      setPwLoading(true); setPwError(null);
+                      const supabase = createClient();
+                      const { error } = await supabase.auth.updateUser({ password: pwNew });
+                      if (error) { setPwError("変更に失敗しました。もう一度お試しください"); setPwLoading(false); return; }
+                      setPwLoading(false); setPwSuccess(true);
+                    }} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: pwLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: pwLoading ? "not-allowed" : "pointer", fontWeight: 700 }}>{pwLoading ? "変更中..." : "変更する"}</button>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* 無料プランに変更する確認モーダル */}
         {confirmFreePlan && (

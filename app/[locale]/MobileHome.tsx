@@ -85,7 +85,7 @@ function MobileGuideSection() {
           {[
             { num: "01", title: "まず無料教材を試す", desc: "アカウント不要・登録なしで今すぐダウンロードできます。まずは気になった教材を1つ試してみてください。" },
             { num: "02", title: "気に入ったら無料登録する", desc: "登録するとお気に入り保存・ダウンロード履歴などが使えるようになります。" },
-            { num: "03", title: "サブスクプランに登録する", desc: "プランに応じて使える教材が増えます。Light ¥980 / Standard ¥1,980 / Premium ¥3,980。" },
+            { num: "03", title: "サブスクプランに登録する", desc: "プランに応じて使える教材が増えます。ライト ¥980 / スタンダード ¥1,980 / プレミアム ¥3,980。" },
           ].map((step) => (
             <div key={step.num} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "16px 18px", display: "flex", gap: 14 }}>
               <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{step.num}</div>
@@ -176,6 +176,7 @@ export default function MobileHome() {
   const [activeTab, setActiveTab] = useState("home");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [myPageOpen, setMyPageOpen] = useState(false);
   const [materials, setMaterials] = useState<Material[]>([]);
@@ -200,9 +201,13 @@ export default function MobileHome() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
-        setUserInitial(session.user.email[0].toUpperCase());
+        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-        if (profileData) setProfile(profileData);
+        if (profileData) {
+          setProfile(profileData);
+          if (profileData.full_name) setUserInitial(profileData.full_name.charAt(0).toUpperCase());
+          if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
+        }
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
         if (favData) setFavIds(favData.map((d: any) => d.material_id));
         const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
@@ -328,8 +333,8 @@ export default function MobileHome() {
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-        <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer" }}>
-          {userInitial}
+        <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
         </button>
       </header>
 
@@ -688,8 +693,8 @@ export default function MobileHome() {
     {/* ヘッダー */}
     <header style={{ position: "relative", zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0 }}>
       <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-      <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer" }}>
-      {userInitial}
+      <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+        {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
       </button>
     </header>
 

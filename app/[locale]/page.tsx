@@ -388,11 +388,12 @@ function MaterialsModal({
 
 
 function UserMenuPopup({
-  userIconRef, userInitial, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, userPlan, cancelAtPeriodEnd, currentPeriodEnd, tm,
+  userIconRef, userInitial, avatarUrl, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, userPlan, cancelAtPeriodEnd, currentPeriodEnd, tm,
 }: {
   userIconRef: React.RefObject<HTMLDivElement | null>;
   sbOpen: boolean;
   userInitial: string;
+  avatarUrl?: string | null;
   userName: string;
   userPlan: string;
   cancelAtPeriodEnd?: boolean;
@@ -421,7 +422,9 @@ function UserMenuPopup({
       overflow: "hidden",
     }}>
       <div style={{ padding: "16px 18px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", display: "flex", alignItems: "center", gap: 10 }}>
-        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
+          {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
+        </div>
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
           <div style={{ fontSize: 11, color: "#aaa" }}>
@@ -584,7 +587,9 @@ const methodItems = [
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState("ゲスト");
+  const [userEmail, setUserEmail] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
@@ -669,7 +674,11 @@ const methodItems = [
       trial_end: data.trial_end || null,
       status: data.status || "active",
     });
-    if (data.full_name) setUserName(data.full_name);
+    if (data.full_name) {
+      setUserName(data.full_name);
+      setUserInitial(data.full_name.charAt(0).toUpperCase());
+    }
+    if (data.avatar_url) setAvatarUrl(data.avatar_url);
   };
 
   useEffect(() => {
@@ -687,7 +696,8 @@ const methodItems = [
       if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
       }
       if (session?.user?.email) {
-        setUserInitial(session.user.email[0].toUpperCase());
+        setUserEmail(session.user.email);
+        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
         await loadProfile();
       }
@@ -695,7 +705,7 @@ const methodItems = [
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
-        setUserInitial(session.user.email[0].toUpperCase());
+        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
       }
     });
@@ -773,6 +783,7 @@ if (isMobile) return <MobileHome />;
     <UserMenuPopup
       userIconRef={userIconRef}
       userInitial={userInitial}
+      avatarUrl={avatarUrl}
       userName={userName}
       onClose={() => setUserMenuOpen(false)}
       onNavigate={(page) => { setUserMenuOpen(false); setActivePage(page); }}
@@ -793,7 +804,9 @@ if (isMobile) return <MobileHome />;
   </>
 )}
   <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { setGuestMenuOpen(!guestMenuOpen); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
-    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0 }}>{userInitial}</div>
+    <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
+      {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
+    </div>
     {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? (
   <>
     {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}
@@ -1030,8 +1043,12 @@ if (isMobile) return <MobileHome />;
       setActivePage={setActivePage}
       isLoggedIn={isLoggedIn}
       userInitial={userInitial}
+      setUserInitial={setUserInitial}
+      avatarUrl={avatarUrl}
+      setAvatarUrl={setAvatarUrl}
       userName={userName}
       setUserName={setUserName}
+      userEmail={userEmail}
       profile={profile}
       setProfile={setProfile}
       editingField={editingField}
