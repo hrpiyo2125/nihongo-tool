@@ -24,7 +24,7 @@ type Invoice = {
 };
 
 const PLAN_LABEL: Record<string, string> = {
-  free: "Freeプラン",
+  free: "無料プラン",
   light: "Lightプラン",
   standard: "Standardプラン",
   premium: "Premiumプラン",
@@ -51,7 +51,7 @@ function StatusBadge({ plan_status, cancel_at_period_end, trial_end, isPendingDe
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f8ee", color: "#2a6a44" }}>トライアル中</span>;
   }
   if (cancel_at_period_end) {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>解約予約済み</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>無料プランへ変更予定</span>;
   }
   if (plan_status === "past_due") {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#ffe8e8", color: "#a02020" }}>お支払い確認中</span>;
@@ -185,7 +185,7 @@ export default function BillingSection({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#7a50b0" }}>{PLAN_LABEL[profile.plan] ?? "Freeプラン"}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: "#7a50b0" }}>{PLAN_LABEL[profile.plan] ?? "無料プラン"}</div>
                 <StatusBadge
                   plan_status={profile.plan_status}
                   cancel_at_period_end={profile.cancel_at_period_end}
@@ -206,7 +206,7 @@ export default function BillingSection({
               )}
               {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
                 <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "6px 12px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} にFreeプランへ移行します
+                  {formatDate(profile.current_period_end)} に無料プランへ移行します
                 </div>
               )}
               {isPaid && !profile.cancel_at_period_end && profile.current_period_end && (
@@ -233,7 +233,7 @@ export default function BillingSection({
                     onClick={() => setConfirmCancel(true)}
                     style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                   >
-                    解約する
+                    無料プランに変更
                   </button>
                 )}
                 {isPaid && profile.cancel_at_period_end && (
@@ -242,7 +242,7 @@ export default function BillingSection({
                     disabled={reactivateLoading}
                     style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
                   >
-                    {reactivateLoading ? "処理中..." : "解約を取り消す"}
+                    {reactivateLoading ? "処理中..." : "変更を取り消す"}
                   </button>
                 )}
               </div>
@@ -250,37 +250,37 @@ export default function BillingSection({
           </div>
         </div>
 
-        {/* 解約取り消し処理中・完了モーダル */}
+        {/* 無料プラン変更取り消し処理中・完了モーダル */}
         {(reactivateLoading || reactivateSuccess) && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {reactivateLoading ? (
-                <ProcessingOverlay messages={["解約取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={["変更取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="解約予約を取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label="無料プランへの変更を取り消しました。引き続きご利用いただけます。" />
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* 解約確認モーダル */}
+        {/* 無料プラン変更確認モーダル */}
         {confirmCancel && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {cancelLoading ? (
-                <ProcessingOverlay messages={["解約処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={["変更処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : cancelSuccess ? (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="解約予約が完了しました。期間終了までご利用いただけます。" />
+                  <SuccessOverlay label="無料プランへの変更予約が完了しました。期間終了までご利用いただけます。" />
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>解約を確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>無料プランへの変更を確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                    解約予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
-                    期間終了後はFreeプランに移行します。
+                    変更予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
+                    期間終了後は無料プランに移行します。
                   </div>
                   {cancelError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
@@ -298,7 +298,7 @@ export default function BillingSection({
                       onClick={handleCancel}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                     >
-                      解約予約する
+                      無料プランに変更する
                     </button>
                   </div>
                 </div>
@@ -312,7 +312,7 @@ export default function BillingSection({
     <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
       <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
-        お支払い情報に問題が発生したため、現在のプランがFreeプランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+        お支払い情報に問題が発生したため、現在のプランが無料プランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
       </div>
       <button
         onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}

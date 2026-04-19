@@ -652,7 +652,7 @@ export default function MyPage({
           <button
             onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, return: false }); setDeleteError(null); }}
             style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}
-          >アカウントを削除する</button>
+          >アカウントを退会する</button>
         </div>
 
         {/* ステップ1: チェックリストモーダル */}
@@ -664,7 +664,7 @@ export default function MyPage({
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
                 {([
                   { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴などのデータはすべて保存されます。いつでも再開できます。" },
-                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的に解約されます（返金なし）。期間終了まではご利用いただけます。" },
+                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的に無料プランに変更されます（返金なし）。期間終了まではご利用いただけます。" },
                   { key: "return" as const, label: "同じメールアドレスでいつでも再開できます。再ログイン後にアカウントの復元が案内されます。" },
                 ]).map(({ key, label }) => (
                   <div
