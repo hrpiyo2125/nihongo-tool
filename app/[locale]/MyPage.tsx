@@ -445,6 +445,34 @@ export default function MyPage({
   const [deletePeriodEnd, setDeletePeriodEnd] = useState<string | null>(null);
   const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.return;
 
+  const handleFreePlan = async () => {
+    setFreePlanLoading(true);
+    setFreePlanError(null);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setFreePlanLoading(false); return; }
+    try {
+      const res = await fetch("/api/stripe/cancel-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProfile((prev: any) => ({ ...prev, cancel_at_period_end: true, current_period_end: data.currentPeriodEnd ?? prev.current_period_end }));
+        setFreePlanSuccess(true);
+        setFreePlanLoading(false);
+        setTimeout(() => { setFreePlanSuccess(false); setConfirmFreePlan(false); }, 2500);
+      } else {
+        setFreePlanError("エラーが発生しました。しばらく経ってから再度お試しください。");
+        setFreePlanLoading(false);
+      }
+    } catch {
+      setFreePlanError("エラーが発生しました。しばらく経ってから再度お試しください。");
+      setFreePlanLoading(false);
+    }
+  };
+
   if (activePage === "settings-profile") return (
     <div>
       <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
@@ -648,12 +676,61 @@ export default function MyPage({
             style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}
           >変更</button>
         </div>
-        <div style={{ paddingTop: 8, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-          <button
-            onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, return: false }); setDeleteError(null); }}
-            style={{ fontSize: 12, border: "none", background: "transparent", cursor: "pointer", color: "#ccc" }}
-          >アカウントを退会する</button>
+        <div style={{ paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)", display: "flex", flexDirection: "column", gap: 10 }}>
+          {profile?.plan !== "free" && !profile?.cancel_at_period_end && profile?.status !== "pending_deletion" && (
+            <button
+              onClick={() => { setConfirmFreePlan(true); setFreePlanError(null); }}
+              style={{ fontSize: 13, padding: "11px 0", borderRadius: 12, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", fontWeight: 600, width: "100%" }}
+            >無料プランに変更する</button>
+          )}
+          {profile?.status !== "pending_deletion" && (
+            <button
+              onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, return: false }); setDeleteError(null); }}
+              style={{ fontSize: 13, padding: "11px 0", borderRadius: 12, border: "0.5px solid rgba(220,100,100,0.4)", background: "white", color: "#c44", cursor: "pointer", fontWeight: 600, width: "100%" }}
+            >退会する</button>
+          )}
+          {profile?.status === "pending_deletion" && (
+            <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "10px 16px", borderRadius: 10, textAlign: "center" }}>退会予約済みです</div>
+          )}
         </div>
+
+        {/* 無料プランに変更する確認モーダル */}
+        {confirmFreePlan && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
+              {freePlanLoading ? (
+                <ProcessingOverlay messages={["変更処理中...", "もう少しで完了します", "データを更新しています"]} />
+              ) : freePlanSuccess ? (
+                <div style={{ padding: "36px 40px", textAlign: "center" }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>変更予約が完了しました</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、無料プランへ移行します。</div>
+                </div>
+              ) : (
+                <div style={{ padding: "36px 40px" }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>無料プランへの変更を確認</div>
+                  <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
+                    変更予約をすると、<strong>{profile?.current_period_end ? new Date(profile.current_period_end).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong> までご利用いただけます。<br />
+                    期間終了後は無料プランに移行します。
+                  </div>
+                  {freePlanError && (
+                    <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>{freePlanError}</div>
+                  )}
+                  <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => { setConfirmFreePlan(false); setFreePlanError(null); }}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                    >キャンセル</button>
+                    <button
+                      onClick={handleFreePlan}
+                      style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", cursor: "pointer", fontWeight: 700 }}
+                    >無料プランに変更する</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* ステップ1: チェックリストモーダル */}
         {deleteStep === "checklist" && (
