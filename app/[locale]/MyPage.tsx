@@ -901,6 +901,7 @@ export default function MyPage({
             currentPlan={profile?.plan ?? "free"}
             cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
             currentPeriodEnd={profile?.current_period_end ?? null}
+            isPendingDeletion={profile?.status === "pending_deletion"}
             onSubscribed={async () => {
               await onPlanChanged?.();
               setActivePage("home");

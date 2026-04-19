@@ -667,6 +667,7 @@ const methodItems = [
       cancel_at_period_end: data.cancel_at_period_end ?? false,
       current_period_end: data.current_period_end || null,
       trial_end: data.trial_end || null,
+      status: data.status || "active",
     });
     if (data.full_name) setUserName(data.full_name);
   };

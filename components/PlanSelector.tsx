@@ -79,9 +79,10 @@ type Props = {
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
   onSubscribed?: () => void;
+  isPendingDeletion?: boolean;
 };
 
-export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed }: Props) {
+export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed, isPendingDeletion = false }: Props) {
   const router = useRouter();
   const [monthlyCount, setMonthlyCount] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null);
@@ -557,9 +558,9 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             lineHeight: 1.4, padding: "4px 6px",
                           }}
                         >
-                          解約予約済み<br />
+                          {isPendingDeletion ? "退会予約済み" : "変更予約済み"}<br />
                           <span style={{ fontSize: 8, fontWeight: 500, opacity: 0.9 }}>
-                            {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" }) + "から無料プランへ" : ""}
+                            {currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" }) + (isPendingDeletion ? "に退会" : "から無料プランへ") : ""}
                           </span>
                         </button>
                       ) : plan.key === "free" && isPaid ? (
