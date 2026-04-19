@@ -125,6 +125,7 @@ function AuthPageInner() {
         password,
         options: {
           data: { full_name: name.trim() },
+          emailRedirectTo: `${window.location.origin}/${locale}/auth?mode=login`,
         },
       });
       if (error) {
