@@ -444,6 +444,10 @@ export default function MyPage({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deletePeriodEnd, setDeletePeriodEnd] = useState<string | null>(null);
   const allChecked = deleteChecks.data && deleteChecks.subscription && deleteChecks.return;
+  const [confirmFreePlan, setConfirmFreePlan] = useState(false);
+  const [freePlanLoading, setFreePlanLoading] = useState(false);
+  const [freePlanSuccess, setFreePlanSuccess] = useState(false);
+  const [freePlanError, setFreePlanError] = useState<string | null>(null);
 
   const handleFreePlan = async () => {
     setFreePlanLoading(true);
