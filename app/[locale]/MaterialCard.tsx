@@ -25,7 +25,7 @@ type Material = {
   tagColor?: string;
 };
 
-function PdfCardThumbnail({ pdfUrl, bg }: { pdfUrl: string; bg: string }) {
+function PdfCardThumbnail({ pdfUrl }: { pdfUrl: string }) {
   const [pdfPage, setPdfPage] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -54,7 +54,7 @@ function PdfCardThumbnail({ pdfUrl, bg }: { pdfUrl: string; bg: string }) {
   }, [pdfPage]);
 
   return (
-    <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden" }}>
+    <div style={{ height: 135, background: "#ece9f1", position: "relative", overflow: "hidden" }}>
       <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: pdfPage ? 0 : 1, transition: "opacity 0.3s" }} />
       <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block", opacity: pdfPage ? 1 : 0, transition: "opacity 0.3s" }} />
     </div>
@@ -125,7 +125,7 @@ export default function MaterialCard({
         </div>
       )}
       {mat.pdfFile && mat.pdfFile.length > 0 ? (
-        <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} />
+        <PdfCardThumbnail pdfUrl={mat.pdfFile} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       )}
