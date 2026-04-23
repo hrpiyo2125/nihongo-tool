@@ -59,8 +59,6 @@ export default function MobileMaterialsModal({
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showSkeleton, setShowSkeleton] = useState(true);
-  const [readyCount, setReadyCount] = useState(0);
 
   const filtered = materials.filter(m => {
     const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
@@ -68,17 +66,6 @@ export default function MobileMaterialsModal({
     const sMatch = !searchQuery || m.title.includes(searchQuery);
     return cMatch && mMatch && sMatch;
   });
-
-  useEffect(() => {
-    setShowSkeleton(true);
-    setReadyCount(0);
-  }, [activeContentFilter, activeMethodFilter, searchQuery]);
-
-  useEffect(() => {
-    if (filtered.length > 0 && readyCount >= filtered.length) {
-      setShowSkeleton(false);
-    }
-  }, [readyCount, filtered.length]);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
@@ -125,42 +112,25 @@ export default function MobileMaterialsModal({
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
           <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>{filtered.length}件</div>
-          <div style={{ position: "relative" }}>
-            {showSkeleton && (
-              <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "white", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-                {filtered.map((mat) => (
-                  <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
-                    <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
-                    <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                      <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
-                      <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
-                      <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-              {filtered.map((mat) => {
-                const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                return (
-                  <MaterialCard
-                    key={mat.id}
-                    mat={mat}
-                    onClick={() => onCardClick(mat)}
-                    locale={locale}
-                    isLoggedIn={isLoggedIn}
-                    userPlan={userPlan}
-                    favIds={favIds}
-                    purchasedIds={purchasedIds}
-                    onFavToggle={onFavToggle}
-                    onReady={() => setReadyCount(prev => prev + 1)}
-                    bg={bg} char={char} charColor={charColor}
-                    tag={tag} tagBg={tagBg} tagColor={tagColor}
-                  />
-                );
-              })}
-            </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+            {filtered.map((mat) => {
+              const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
+              return (
+                <MaterialCard
+                  key={mat.id}
+                  mat={mat}
+                  onClick={() => onCardClick(mat)}
+                  locale={locale}
+                  isLoggedIn={isLoggedIn}
+                  userPlan={userPlan}
+                  favIds={favIds}
+                  purchasedIds={purchasedIds}
+                  onFavToggle={onFavToggle}
+                  bg={bg} char={char} charColor={charColor}
+                  tag={tag} tagBg={tagBg} tagColor={tagColor}
+                />
+              );
+            })}
           </div>
         </div>
       </div>

@@ -74,7 +74,6 @@ type Props = {
   favIds?: string[];
   purchasedIds?: string[];
   onFavToggle?: (mat: Material) => void;
-  onReady?: () => void;
   bg: string;
   char: string;
   charColor: string;
@@ -84,16 +83,9 @@ type Props = {
 };
 
 export default function MaterialCard({
-  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle, onReady,
+  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
-  const charReadyCalled = useRef(false);
-  useEffect(() => {
-    if (!(mat.pdfFile && mat.pdfFile.length > 0) && !charReadyCalled.current) {
-      charReadyCalled.current = true;
-      onReady?.();
-    }
-  }, []);
   const isPurchased = purchasedIds.includes(mat.id);
   const uniqueFavCount = new Set(favIds ?? []).size;
   const isFreeUser = !userPlan || userPlan === "free";
@@ -137,7 +129,7 @@ export default function MaterialCard({
         </div>
       )}
       {mat.pdfFile && mat.pdfFile.length > 0 ? (
-        <PdfCardThumbnail pdfUrl={mat.pdfFile} onReady={onReady} />
+        <PdfCardThumbnail pdfUrl={mat.pdfFile} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       )}
