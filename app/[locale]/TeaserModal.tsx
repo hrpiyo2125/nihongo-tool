@@ -82,14 +82,14 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
 
   return (
     <>
-      <div style={{ width: "100%", aspectRatio: "210/297", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", background: "#fff" }}>
-        <canvas ref={mainRef} style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }} />
+      <div style={{ width: "100%", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", background: "#fff" }}>
+        <canvas ref={mainRef} style={{ width: "100%", height: "auto", display: "block" }} />
       </div>
       {pages.length > 1 && (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
           {[sub1Ref, sub2Ref].slice(0, pages.length - 1).map((ref, i) => (
-            <div key={i} style={{ aspectRatio: "210/297", borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", background: "#fff", opacity: pages[i + 1] ? 1 : 0 }}>
-              <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }} />
+            <div key={i} style={{ borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", background: "#fff" }}>
+              <canvas ref={ref} style={{ width: "100%", height: "auto", display: "block" }} />
             </div>
           ))}
         </div>
