@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 
 import { canDownload } from "../../lib/materialUtils";
@@ -17,6 +17,7 @@ type Material = {
   ageGroup: string;
   requiredPlan: string;
   thumbnail: string;
+  pdfFile?: string;
   isPickup: boolean;
   isRecommended: boolean;
   ranking: number | null;
@@ -28,6 +29,74 @@ type Material = {
   tagBg?: string;
   tagColor?: string;
 };
+
+function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
+  const [pages, setPages] = useState<any[]>([]);
+  const [failed, setFailed] = useState(false);
+  const mainRef = useRef<HTMLCanvasElement>(null);
+  const sub1Ref = useRef<HTMLCanvasElement>(null);
+  const sub2Ref = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
+        const doc = await pdfjsLib.getDocument({ url: proxyUrl, withCredentials: false }).promise;
+        const count = Math.min(doc.numPages, 3);
+        const list = [];
+        for (let i = 1; i <= count; i++) list.push(await doc.getPage(i));
+        setPages(list);
+      } catch {
+        setFailed(true);
+      }
+    })();
+  }, [pdfUrl]);
+
+  useEffect(() => {
+    const refs = [mainRef, sub1Ref, sub2Ref];
+    pages.forEach((page, i) => {
+      const canvas = refs[i]?.current;
+      if (!canvas) return;
+      const scale = i === 0 ? 2 : 1.5;
+      const viewport = page.getViewport({ scale });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      page.render({ canvasContext: canvas.getContext("2d")!, viewport });
+    });
+  }, [pages]);
+
+  if (failed || pages.length === 0) {
+    return (
+      <>
+        <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[0, 1].map(i => (
+            <div key={i} style={{ aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
+          ))}
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div style={{ width: "100%", aspectRatio: "210/297", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", background: "#fff" }}>
+        <canvas ref={mainRef} style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }} />
+      </div>
+      {pages.length > 1 && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {[sub1Ref, sub2Ref].slice(0, pages.length - 1).map((ref, i) => (
+            <div key={i} style={{ aspectRatio: "210/297", borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", background: "#fff", opacity: pages[i + 1] ? 1 : 0 }}>
+              <canvas ref={ref} style={{ width: "100%", height: "100%", display: "block", objectFit: "contain" }} />
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
 
 type ContentTab = { id: string; label: string; char: string; color: string; imageSrc?: string | null };
 type MethodTab = { id: string; label: string; char: string; imageSrc?: string | null };
@@ -99,13 +168,19 @@ export default function TeaserModal({
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
         {/* 左：プレビュー */}
-        <div style={{ background: "#f5f0ff", padding: 24, display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ width: "100%", aspectRatio: "3/4", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            {[0, 1].map(i => (
-              <div key={i} style={{ aspectRatio: "1", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
-            ))}
-          </div>
+        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+          {mat.pdfFile ? (
+            <PdfPreview pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
+          ) : (
+            <>
+              <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {[0, 1].map(i => (
+                  <div key={i} style={{ aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* 右：情報 */}

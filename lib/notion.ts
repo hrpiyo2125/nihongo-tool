@@ -83,6 +83,7 @@ export async function getMaterials() {
       props.requiredPlan?.rich_text?.[0]?.plain_text ?? ''
       ] ?? 'free',
       thumbnail:    props.thumbnail?.files[0]?.file?.url ?? props.thumbnail?.files[0]?.external?.url ?? '',
+      pdfFile:      props.pdfFile?.files[0]?.file?.url ?? props.pdfFile?.files[0]?.external?.url ?? '',
       isPickup:     props.isPickup?.checkbox     ?? false,
       isRecommended: props.isRecommended?.checkbox ?? false,
       ranking:      props.ranking?.number        ?? null,

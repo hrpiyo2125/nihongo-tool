@@ -2,10 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 
+function proxyUrl(url: string) {
+  return `/api/pdf-proxy?url=${encodeURIComponent(url)}`;
+}
+
 export default function PdfViewer({ url }: { url: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [pages, setPages] = useState<any[]>([]);
+  const [error, setError] = useState(false);
   const scaleRef = useRef(1);
   const offsetRef = useRef({ x: 0, y: 0 });
   const dragStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
@@ -14,15 +18,20 @@ export default function PdfViewer({ url }: { url: string }) {
 
   useEffect(() => {
     if (!url) return;
+    setError(false);
     (async () => {
-      const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-      const doc = await pdfjsLib.getDocument({ url, withCredentials: false }).promise;
-      const pageList = [];
-      for (let i = 1; i <= doc.numPages; i++) {
-        pageList.push(await doc.getPage(i));
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const doc = await pdfjsLib.getDocument({ url: proxyUrl(url), withCredentials: false }).promise;
+        const pageList = [];
+        for (let i = 1; i <= doc.numPages; i++) {
+          pageList.push(await doc.getPage(i));
+        }
+        setPages(pageList);
+      } catch {
+        setError(true);
       }
-      setPages(pageList);
     })();
   }, [url]);
 
@@ -115,6 +124,11 @@ export default function PdfViewer({ url }: { url: string }) {
       onTouchEnd={handleTouchEnd}
       style={{ width: "100%", height: "100%", overflow: "auto", cursor: dragStart.current ? "grabbing" : "grab", touchAction: "none" }}
     >
+      {error && (
+        <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 8 }}>
+          <div style={{ fontSize: 13, color: "#bbb" }}>PDFを読み込めませんでした</div>
+        </div>
+      )}
       <div ref={renderRef} style={{ transformOrigin: "top center", willChange: "transform", display: "flex", flexDirection: "column", alignItems: "center", gap: 32, padding: "40px 40px 100px" }}>
         {pages.map((page, i) => (
           <PageCanvas key={i} page={page} />
