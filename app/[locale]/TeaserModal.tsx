@@ -84,7 +84,7 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
   }
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
       {/* メインプレビュー：角丸フレームの中にA4を余白つきで表示 */}
       <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0 }}>
         <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
@@ -175,7 +175,7 @@ export default function TeaserModal({
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
         {/* 左：プレビュー */}
-        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
+        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, height: "100%", boxSizing: "border-box" }}>
           {mat.pdfFile ? (
             <PdfPreview pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
           ) : (
