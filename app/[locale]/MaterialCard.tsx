@@ -47,7 +47,9 @@ function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg:
         const canvas = document.createElement("canvas");
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        await page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas } as any).promise;
+        const ctx = canvas.getContext("2d")!;
+        const renderTask = page.render({ canvasContext: ctx, viewport, canvas });
+        await renderTask.promise;
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         thumbCache.set(pdfUrl, dataUrl);
         setImgSrc(dataUrl);
@@ -133,7 +135,7 @@ export default function MaterialCard({
           </button>
         </div>
       )}
-      {mat.pdfFile ? (
+      {mat.pdfFile && mat.pdfFile.length > 0 ? (
         <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
       ) : mat.thumbnail ? (
         <div style={{ height: 135, overflow: "hidden" }}>
