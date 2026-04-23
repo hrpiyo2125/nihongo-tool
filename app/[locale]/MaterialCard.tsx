@@ -3,6 +3,21 @@ import { useState, useRef, useEffect } from "react";
 import PlanModal from "../../components/PlanModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
+function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0 }} />}
+      <img
+        src={src}
+        alt={alt}
+        onLoad={() => setLoaded(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: loaded ? "block" : "none" }}
+      />
+    </>
+  );
+}
+
 type Material = {
   id: string;
   title: string;
@@ -132,8 +147,8 @@ export default function MaterialCard({
       {mat.pdfFile && mat.pdfFile.length > 0 ? (
         <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
       ) : mat.thumbnail ? (
-        <div style={{ height: 135, overflow: "hidden" }}>
-          <img src={mat.thumbnail} alt={mat.title} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+        <div style={{ height: 135, overflow: "hidden", position: "relative" }}>
+          <ThumbnailImage src={mat.thumbnail} alt={mat.title} />
         </div>
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
