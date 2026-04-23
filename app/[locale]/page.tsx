@@ -2,6 +2,36 @@
 import Link from "next/link";
 import { createClient } from "../../lib/supabase";
 import { useState, useEffect, useRef } from "react";
+
+function PdfCardThumb({ pdfUrl, bg, char, charColor }: { pdfUrl?: string; bg: string; char: string; charColor: string }) {
+  const [pdfPage, setPdfPage] = useState<any>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (!pdfUrl) return;
+    (async () => {
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
+        setPdfPage(await doc.getPage(1));
+      } catch (e) { console.error("PDF thumb error:", e); }
+    })();
+  }, [pdfUrl]);
+  useEffect(() => {
+    if (!pdfPage || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const viewport = pdfPage.getViewport({ scale: 1.5 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+  }, [pdfPage]);
+  return (
+    <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden" }}>
+      <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
+      {pdfPage && <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block" }} />}
+    </div>
+  );
+}
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
@@ -338,7 +368,7 @@ function MaterialsModal({
                           </div>
                         )}
 
-                        <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
+                        <PdfCardThumb pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
                         <div style={{ padding: "10px 12px 14px" }}>
                           <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
                           {(mat.level ?? []).length > 0 && (
