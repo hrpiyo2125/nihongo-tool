@@ -33,9 +33,9 @@ type Material = {
 function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
   const [pages, setPages] = useState<any[]>([]);
   const [failed, setFailed] = useState(false);
+  const [selected, setSelected] = useState(0);
   const mainRef = useRef<HTMLCanvasElement>(null);
-  const sub1Ref = useRef<HTMLCanvasElement>(null);
-  const sub2Ref = useRef<HTMLCanvasElement>(null);
+  const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -54,13 +54,23 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
     })();
   }, [pdfUrl]);
 
+  // メインcanvasを選択中ページで描画
   useEffect(() => {
-    const refs = [mainRef, sub1Ref, sub2Ref];
+    const page = pages[selected];
+    const canvas = mainRef.current;
+    if (!page || !canvas) return;
+    const viewport = page.getViewport({ scale: 2 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    page.render({ canvasContext: canvas.getContext("2d")!, viewport });
+  }, [pages, selected]);
+
+  // サムネイルを全ページ描画
+  useEffect(() => {
     pages.forEach((page, i) => {
-      const canvas = refs[i]?.current;
+      const canvas = thumbRefs.current[i];
       if (!canvas) return;
-      const scale = i === 0 ? 2 : 1.5;
-      const viewport = page.getViewport({ scale });
+      const viewport = page.getViewport({ scale: 0.6 });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       page.render({ canvasContext: canvas.getContext("2d")!, viewport });
@@ -69,32 +79,29 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
 
   if (failed || pages.length === 0) {
     return (
-      <>
-        <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[0, 1].map(i => (
-            <div key={i} style={{ aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
-          ))}
-        </div>
-      </>
+      <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
     );
   }
 
   return (
-    <>
-      <div style={{ width: "100%", borderRadius: 12, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.12)", background: "#fff" }}>
-        <canvas ref={mainRef} style={{ width: "100%", height: "auto", display: "block" }} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+      {/* メインプレビュー：角丸フレームの中にA4を余白つきで表示 */}
+      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0 }}>
+        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
       </div>
-      {pages.length > 1 && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {[sub1Ref, sub2Ref].slice(0, pages.length - 1).map((ref, i) => (
-            <div key={i} style={{ borderRadius: 8, overflow: "hidden", boxShadow: "0 2px 10px rgba(0,0,0,0.10)", background: "#fff" }}>
-              <canvas ref={ref} style={{ width: "100%", height: "auto", display: "block" }} />
-            </div>
-          ))}
-        </div>
-      )}
-    </>
+      {/* サムネイル：タップでメイン切り替え */}
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0 }}>
+        {pages.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => setSelected(i)}
+            style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
+          >
+            <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -168,7 +175,7 @@ export default function TeaserModal({
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
         {/* 左：プレビュー */}
-        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0 }}>
           {mat.pdfFile ? (
             <PdfPreview pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
           ) : (
