@@ -28,41 +28,36 @@ type Material = {
 
 function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [rendered, setRendered] = useState(false);
+  const rendered = useRef(false);
 
   useEffect(() => {
+    if (rendered.current) return;
+    rendered.current = true;
     (async () => {
       try {
-        console.log("[thumb] start", pdfUrl);
         const pdfjsLib = await import("pdfjs-dist");
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
-        const doc = await pdfjsLib.getDocument({ url: proxyUrl, withCredentials: false }).promise;
-        console.log("[thumb] doc loaded, pages:", doc.numPages);
+        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
         const page = await doc.getPage(1);
         const canvas = canvasRef.current;
-        console.log("[thumb] canvas ref:", !!canvas);
         if (!canvas) return;
         const viewport = page.getViewport({ scale: 1.5 });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        // @ts-ignore
-        page.render({ canvasContext: canvas.getContext("2d"), viewport });
-        console.log("[thumb] render called");
-        setRendered(true);
+        (page.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
       } catch (e) {
-        console.error("[thumb] error:", e);
+        console.error("PDF card thumbnail error:", e);
       }
     })();
   }, [pdfUrl]);
 
   return (
-    <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden" }}>
+      <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
       <canvas
         ref={canvasRef}
-        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block", opacity: rendered ? 1 : 0 }}
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block" }}
       />
-      {!rendered && <span style={{ fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>}
     </div>
   );
 }
@@ -88,7 +83,6 @@ export default function MaterialCard({
   mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
-  console.log("[card] title:", mat.title, "pdfFile:", mat.pdfFile);
   const isPurchased = purchasedIds.includes(mat.id);
   const uniqueFavCount = new Set(favIds ?? []).size;
   const isFreeUser = !userPlan || userPlan === "free";
