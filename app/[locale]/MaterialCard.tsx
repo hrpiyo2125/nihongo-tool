@@ -27,37 +27,41 @@ type Material = {
 };
 
 function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
+  const [pdfPage, setPdfPage] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rendered = useRef(false);
 
+  // Step1: PDFを読み込んで1ページ目を取得
   useEffect(() => {
-    if (rendered.current) return;
-    rendered.current = true;
     (async () => {
       try {
         const pdfjsLib = await import("pdfjs-dist");
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
         const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
-        const page = await doc.getPage(1);
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const viewport = page.getViewport({ scale: 1.5 });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        (page.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+        setPdfPage(await doc.getPage(1));
       } catch (e) {
         console.error("PDF card thumbnail error:", e);
       }
     })();
   }, [pdfUrl]);
 
+  // Step2: ページ取得後にcanvasへ描画（TeaserModalと同じパターン）
+  useEffect(() => {
+    if (!pdfPage || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const viewport = pdfPage.getViewport({ scale: 1.5 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+  }, [pdfPage]);
+
   return (
     <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden" }}>
-      <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
-      <canvas
-        ref={canvasRef}
-        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block" }}
-      />
+      {!pdfPage && (
+        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
+      )}
+      {pdfPage && (
+        <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block" }} />
+      )}
     </div>
   );
 }
