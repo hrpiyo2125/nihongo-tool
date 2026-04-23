@@ -29,7 +29,7 @@ type Material = {
   tagColor?: string;
 };
 
-function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
+function PdfPreview({ pdfUrl, bg }: { pdfUrl: string; bg: string }) {
   const [pages, setPages] = useState<any[]>([]);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -88,7 +88,7 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
       {/* メインプレビューエリア（常に同じ大きさ） */}
       <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
         {!ready && (
-          <div style={{ width: "80%", aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+          <div style={{ width: "80%", aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 1.4s infinite", borderRadius: 8 }} />
         )}
         <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: ready ? "block" : "none", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
       </div>
@@ -137,7 +137,7 @@ type Props = {
 };
 
 export default function TeaserModal({
-  mat, bg, char, charColor, tag, tagBg, tagColor,
+  mat, bg, tag, tagBg, tagColor,
   isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
   contentTabs, methodTabs, locale, tmm,
   onClose, onFavChange,
@@ -184,14 +184,15 @@ export default function TeaserModal({
 
         {/* 左：プレビュー */}
         <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overflow: "hidden" }}>
+          <style>{`@keyframes toolio-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
           {mat.pdfFile ? (
-            <PdfPreview pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
+            <PdfPreview pdfUrl={mat.pdfFile} bg={bg} />
           ) : (
             <>
-              <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+              <div style={{ width: "100%", aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 1.4s infinite", borderRadius: 12 }} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {[0, 1].map(i => (
-                  <div key={i} style={{ aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, color: charColor, fontWeight: 700, userSelect: "none", opacity: 0.7 }}>{char}</div>
+                  <div key={i} style={{ aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 1.4s infinite", borderRadius: 8 }} />
                 ))}
               </div>
             </>
