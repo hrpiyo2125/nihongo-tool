@@ -33,9 +33,11 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
   const [pages, setPages] = useState<any[]>([]);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState(0);
+  const [allRendered, setAllRendered] = useState(false);
   const mainRef = useRef<HTMLCanvasElement>(null);
   const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const loaded = pages.length > 0 && !failed;
+  const ready = loaded && allRendered;
 
   useEffect(() => {
     (async () => {
@@ -64,46 +66,48 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
     page.render({ canvasContext: canvas.getContext("2d")!, viewport });
   }, [pages, selected]);
 
+  // サムネイルを全枚描画してから一括表示
   useEffect(() => {
+    if (pages.length === 0) return;
+    let completed = 0;
     pages.forEach((page, i) => {
       const canvas = thumbRefs.current[i];
       if (!canvas) return;
       const viewport = page.getViewport({ scale: 0.6 });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      page.render({ canvasContext: canvas.getContext("2d")!, viewport });
+      page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise.then(() => {
+        completed++;
+        if (completed === pages.length) setAllRendered(true);
+      });
     });
   }, [pages]);
 
-  // ロード中・失敗・ロード済みすべて同じ構造を維持してレイアウトシフトを防ぐ
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
       {/* メインプレビューエリア（常に同じ大きさ） */}
       <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
-        {!loaded && (
+        {!ready && (
           <div style={{ width: "80%", aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
         )}
-        {loaded && (
-          <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
-        )}
+        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: ready ? "block" : "none", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
       </div>
       {/* サムネイル行（常に同じ高さを確保） */}
       <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72 }}>
-        {!loaded ? (
-          [0, 1, 2].map(i => (
-            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: bg, opacity: 0.4, flexShrink: 0 }} />
-          ))
-        ) : (
-          pages.map((_, i) => (
-            <div
-              key={i}
-              onClick={() => setSelected(i)}
-              style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
-            >
-              <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
-            </div>
-          ))
-        )}
+        {/* スケルトン：全描画完了まで表示 */}
+        {!ready && [0, 1, 2].map(i => (
+          <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: bg, opacity: 0.4, flexShrink: 0 }} />
+        ))}
+        {/* canvas は loaded 後すぐ DOM に置いて描画、ready になったら表示 */}
+        {loaded && pages.map((_, i) => (
+          <div
+            key={i}
+            onClick={() => ready && setSelected(i)}
+            style={{ width: 52, cursor: ready ? "pointer" : "default", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0, display: ready ? "block" : "none" }}
+          >
+            <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+          </div>
+        ))}
       </div>
     </div>
   );
