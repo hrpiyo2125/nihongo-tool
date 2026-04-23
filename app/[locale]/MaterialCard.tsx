@@ -5,14 +5,19 @@ import { BrandIcon } from "../../components/BrandIcon";
 
 function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    if (imgRef.current?.complete) setLoaded(true);
+  }, []);
   return (
     <>
-      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: loaded ? 0 : 1, transition: "opacity 0.3s" }} />
+      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: loaded ? 0 : 1, transition: "opacity 0.15s" }} />
       <img
+        ref={imgRef}
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: loaded ? 1 : 0, transition: "opacity 0.3s" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: loaded ? 1 : 0, transition: "opacity 0.15s" }}
       />
     </>
   );
