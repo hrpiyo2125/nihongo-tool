@@ -69,6 +69,7 @@ export default function MaterialsModal({
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [readyCount, setReadyCount] = useState(0);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -89,9 +90,14 @@ export default function MaterialsModal({
 
   useEffect(() => {
     setShowSkeleton(true);
-    const t = setTimeout(() => setShowSkeleton(false), 300);
-    return () => clearTimeout(t);
+    setReadyCount(0);
   }, [activeContent, activeMethod, searchResults]);
+
+  useEffect(() => {
+    if (filtered.length > 0 && readyCount >= filtered.length) {
+      setShowSkeleton(false);
+    }
+  }, [readyCount, filtered.length]);
 
   const handleMethodTabWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -204,6 +210,7 @@ export default function MaterialsModal({
                           else setFavIds(prev => [...prev, m.id]);
                           onFavToggle(m);
                         }}
+                        onReady={() => setReadyCount(prev => prev + 1)}
                         bg={bg} char={char} charColor={charColor}
                         tag={tag} tagBg={tagBg} tagColor={tagColor}
                       />

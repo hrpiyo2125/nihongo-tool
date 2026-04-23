@@ -25,11 +25,11 @@ type Material = {
   tagColor?: string;
 };
 
-function PdfCardThumbnail({ pdfUrl }: { pdfUrl: string }) {
+function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () => void }) {
   const [pdfPage, setPdfPage] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const readyCalled = useRef(false);
 
-  // Step1: PDFを読み込んで1ページ目を取得
   useEffect(() => {
     (async () => {
       try {
@@ -39,24 +39,28 @@ function PdfCardThumbnail({ pdfUrl }: { pdfUrl: string }) {
         setPdfPage(await doc.getPage(1));
       } catch (e) {
         console.error("PDF card thumbnail error:", e);
+        if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
       }
     })();
   }, [pdfUrl]);
 
-  // Step2: ページ取得後にcanvasへ描画（TeaserModalと同じパターン）
   useEffect(() => {
     if (!pdfPage || !canvasRef.current) return;
     const canvas = canvasRef.current;
     const viewport = pdfPage.getViewport({ scale: 1.5 });
     canvas.width = viewport.width;
     canvas.height = viewport.height;
-    (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+    const task = (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
+    task.promise?.then(() => {
+      if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
+    }).catch(() => {
+      if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
+    });
   }, [pdfPage]);
 
   return (
     <div style={{ height: 135, background: "#ece9f1", position: "relative", overflow: "hidden" }}>
-      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: pdfPage ? 0 : 1, transition: "opacity 0.3s" }} />
-      <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block", opacity: pdfPage ? 1 : 0, transition: "opacity 0.3s" }} />
+      <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block" }} />
     </div>
   );
 }
@@ -70,6 +74,7 @@ type Props = {
   favIds?: string[];
   purchasedIds?: string[];
   onFavToggle?: (mat: Material) => void;
+  onReady?: () => void;
   bg: string;
   char: string;
   charColor: string;
@@ -79,9 +84,16 @@ type Props = {
 };
 
 export default function MaterialCard({
-  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle,
+  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle, onReady,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
+  const charReadyCalled = useRef(false);
+  useEffect(() => {
+    if (!(mat.pdfFile && mat.pdfFile.length > 0) && !charReadyCalled.current) {
+      charReadyCalled.current = true;
+      onReady?.();
+    }
+  }, []);
   const isPurchased = purchasedIds.includes(mat.id);
   const uniqueFavCount = new Set(favIds ?? []).size;
   const isFreeUser = !userPlan || userPlan === "free";
@@ -125,7 +137,7 @@ export default function MaterialCard({
         </div>
       )}
       {mat.pdfFile && mat.pdfFile.length > 0 ? (
-        <PdfCardThumbnail pdfUrl={mat.pdfFile} />
+        <PdfCardThumbnail pdfUrl={mat.pdfFile} onReady={onReady} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       )}

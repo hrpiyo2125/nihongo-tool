@@ -60,6 +60,7 @@ export default function MobileMaterialsModal({
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSkeleton, setShowSkeleton] = useState(true);
+  const [readyCount, setReadyCount] = useState(0);
 
   const filtered = materials.filter(m => {
     const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
@@ -70,9 +71,14 @@ export default function MobileMaterialsModal({
 
   useEffect(() => {
     setShowSkeleton(true);
-    const t = setTimeout(() => setShowSkeleton(false), 300);
-    return () => clearTimeout(t);
+    setReadyCount(0);
   }, [activeContentFilter, activeMethodFilter, searchQuery]);
+
+  useEffect(() => {
+    if (filtered.length > 0 && readyCount >= filtered.length) {
+      setShowSkeleton(false);
+    }
+  }, [readyCount, filtered.length]);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
@@ -147,6 +153,7 @@ export default function MobileMaterialsModal({
                     favIds={favIds}
                     purchasedIds={purchasedIds}
                     onFavToggle={onFavToggle}
+                    onReady={() => setReadyCount(prev => prev + 1)}
                     bg={bg} char={char} charColor={charColor}
                     tag={tag} tagBg={tagBg} tagColor={tagColor}
                   />
