@@ -60,7 +60,8 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
 
   return (
     <div style={{ height: 135, background: "#ece9f1", position: "relative", overflow: "hidden" }}>
-      <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block" }} />
+      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: pdfPage ? 0 : 1, transition: "opacity 0.3s", pointerEvents: "none" }} />
+      <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block", opacity: pdfPage ? 1 : 0, transition: "opacity 0.3s" }} />
     </div>
   );
 }
