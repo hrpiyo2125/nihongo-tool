@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase";
 import { getCardStyle } from "../../lib/materialUtils";
 import MaterialCard from "./MaterialCard";
@@ -60,6 +60,7 @@ export default function MobileMaterialsModal({
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showCards, setShowCards] = useState(false);
 
   const filtered = materials.filter(m => {
     const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
@@ -67,6 +68,12 @@ export default function MobileMaterialsModal({
     const sMatch = !searchQuery || m.title.includes(searchQuery);
     return cMatch && mMatch && sMatch;
   });
+
+  useEffect(() => {
+    setShowCards(false);
+    const t = setTimeout(() => setShowCards(true), 120);
+    return () => clearTimeout(t);
+  }, [activeContentFilter, activeMethodFilter, searchQuery]);
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
@@ -113,7 +120,21 @@ export default function MobileMaterialsModal({
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
           <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>{filtered.length}件</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+          {!showCards ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+              {filtered.map((mat) => (
+                <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
+                  <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
+                  <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
+                    <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
+                    <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10, opacity: 1, transition: "opacity 0.15s" }}>
             {filtered.map((mat) => {
               const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
               return (
@@ -133,6 +154,7 @@ export default function MobileMaterialsModal({
               );
             })}
           </div>
+          )}
         </div>
       </div>
 

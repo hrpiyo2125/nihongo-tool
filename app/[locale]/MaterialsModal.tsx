@@ -69,6 +69,7 @@ export default function MaterialsModal({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [showCards, setShowCards] = useState(false);
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -86,6 +87,12 @@ export default function MaterialsModal({
     const mMatch = activeMethod === "all" || (m.method ?? []).includes(activeMethod);
     return cMatch && mMatch;
   });
+
+  useEffect(() => {
+    setShowCards(false);
+    const t = setTimeout(() => setShowCards(true), 120);
+    return () => clearTimeout(t);
+  }, [activeContent, activeMethod, searchResults]);
 
   const handleMethodTabWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -166,8 +173,21 @@ export default function MaterialsModal({
             <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "4px 24px 40px" }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
-              ) : (
+              ) : !showCards ? (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+                  {filtered.map((mat) => (
+                    <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
+                      <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
+                      <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                        <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
+                        <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
+                        <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14, opacity: 1, transition: "opacity 0.15s" }}>
                   {filtered.map((mat) => {
                     const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                     return (
