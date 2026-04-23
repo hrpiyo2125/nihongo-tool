@@ -36,6 +36,7 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
   const [selected, setSelected] = useState(0);
   const mainRef = useRef<HTMLCanvasElement>(null);
   const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  const loaded = pages.length > 0 && !failed;
 
   useEffect(() => {
     (async () => {
@@ -54,7 +55,6 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
     })();
   }, [pdfUrl]);
 
-  // メインcanvasを選択中ページで描画
   useEffect(() => {
     const page = pages[selected];
     const canvas = mainRef.current;
@@ -65,7 +65,6 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
     page.render({ canvasContext: canvas.getContext("2d")!, viewport });
   }, [pages, selected]);
 
-  // サムネイルを全ページ描画
   useEffect(() => {
     pages.forEach((page, i) => {
       const canvas = thumbRefs.current[i];
@@ -77,29 +76,35 @@ function PdfPreview({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: strin
     });
   }, [pages]);
 
-  if (failed || pages.length === 0) {
-    return (
-      <div style={{ width: "100%", aspectRatio: "210/297", background: bg, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 72, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
-    );
-  }
-
+  // ロード中・失敗・ロード済みすべて同じ構造を維持してレイアウトシフトを防ぐ
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
-      {/* メインプレビュー：角丸フレームの中にA4を余白つきで表示 */}
-      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0 }}>
-        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
+      {/* メインプレビューエリア（常に同じ大きさ） */}
+      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
+        {!loaded && (
+          <div style={{ width: "80%", aspectRatio: "210/297", background: bg, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, color: charColor, fontWeight: 700, userSelect: "none" }}>{char}</div>
+        )}
+        {loaded && (
+          <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
+        )}
       </div>
-      {/* サムネイル：タップでメイン切り替え */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0 }}>
-        {pages.map((_, i) => (
-          <div
-            key={i}
-            onClick={() => setSelected(i)}
-            style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
-          >
-            <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
-          </div>
-        ))}
+      {/* サムネイル行（常に同じ高さを確保） */}
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72 }}>
+        {!loaded ? (
+          [0, 1, 2].map(i => (
+            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: bg, opacity: 0.4, flexShrink: 0 }} />
+          ))
+        ) : (
+          pages.map((_, i) => (
+            <div
+              key={i}
+              onClick={() => setSelected(i)}
+              style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
+            >
+              <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+            </div>
+          ))
+        )}
       </div>
     </div>
   );
