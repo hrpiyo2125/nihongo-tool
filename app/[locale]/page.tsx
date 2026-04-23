@@ -3,35 +3,7 @@ import Link from "next/link";
 import { createClient } from "../../lib/supabase";
 import { useState, useEffect, useRef } from "react";
 
-function PdfCardThumb({ pdfUrl, bg, char, charColor }: { pdfUrl?: string; bg: string; char: string; charColor: string }) {
-  const [pdfPage, setPdfPage] = useState<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    if (!pdfUrl) return;
-    (async () => {
-      try {
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
-        setPdfPage(await doc.getPage(1));
-      } catch (e) { console.error("PDF thumb error:", e); }
-    })();
-  }, [pdfUrl]);
-  useEffect(() => {
-    if (!pdfPage || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const viewport = pdfPage.getViewport({ scale: 1.5 });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
-  }, [pdfPage]);
-  return (
-    <div style={{ height: 135, background: bg, position: "relative", overflow: "hidden" }}>
-      <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
-      {pdfPage && <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block" }} />}
-    </div>
-  );
-}
+
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
@@ -207,18 +179,20 @@ function IconItem({ item, onClick }: { item: ItemType; onClick?: () => void }) {
 
 // ===== 教材一覧モーダル =====
 function MaterialsModal({
-  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan,
+  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan, purchasedIds, onFavToggle,
 }: {
-  initContent: string; 
-  initMethod: string; 
-  onClose: () => void; 
-  isLoggedIn: boolean; 
-  materials: Material[]; 
-  tmm: (key: string) => string; 
-  contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[]; 
+  initContent: string;
+  initMethod: string;
+  onClose: () => void;
+  isLoggedIn: boolean;
+  materials: Material[];
+  tmm: (key: string) => string;
+  contentTabs: {id: string; label: string; char: string; color: string; imageSrc: string | null}[];
   methodTabs: {id: string; label: string; char: string; imageSrc: string | null}[];
   locale: string;
   userPlan: string;
+  purchasedIds: string[];
+  onFavToggle: (mat: Material) => void;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
 }) {
@@ -338,49 +312,23 @@ function MaterialsModal({
                   {filtered.map((mat) => {
                     const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                     return (
-                      <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
-
-                        {/* ✅ 教材カード右上：ログイン時のみハートを表示、未ログイン時は何も表示しない */}
-                        {isLoggedIn && (
-                          <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                const supabase = createClient();
-                                const { data: { session } } = await supabase.auth.getSession();
-                                if (!session) return;
-                                if (favIds.includes(mat.id)) {
-                                  await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                                  setFavIds((prev) => prev.filter((id) => id !== mat.id));
-                                  window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
-                                } else {
-                                  await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                                  setFavIds((prev) => [...prev, mat.id]);
-                                  window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
-                                }
-                              }}
-                              style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}
-                            >
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill={favIds.includes(mat.id) ? "#c9a0f0" : "none"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="#c9a0f0"/>
-                              </svg>
-                            </button>
-                          </div>
-                        )}
-
-                        <PdfCardThumb pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
-                        <div style={{ padding: "10px 12px 14px" }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
-                          {(mat.level ?? []).length > 0 && (
-                            <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
-                              {(mat.level ?? []).map((lv: string) => (
-                                <span key={lv} style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070" }}>{lv}</span>
-                              ))}
-                            </div>
-                          )}
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
-                        </div>
-                      </div>
+                      <MaterialCard
+                        key={mat.id}
+                        mat={mat}
+                        onClick={() => setTeaserMat(mat)}
+                        locale={locale}
+                        isLoggedIn={isLoggedIn}
+                        userPlan={userPlan}
+                        favIds={favIds}
+                        purchasedIds={purchasedIds}
+                        onFavToggle={(m) => {
+                          if (favIds.includes(m.id)) setFavIds(prev => prev.filter(id => id !== m.id));
+                          else setFavIds(prev => [...prev, m.id]);
+                          onFavToggle(m);
+                        }}
+                        bg={bg} char={char} charColor={charColor}
+                        tag={tag} tagBg={tagBg} tagColor={tagColor}
+                      />
                     );
                   })}
                 </div>
@@ -1150,6 +1098,21 @@ if (isMobile) return <MobileHome />;
           methodTabs={methodTabs}
           locale={locale}
           userPlan={profile.plan ?? "free"}
+          purchasedIds={purchasedIds}
+          onFavToggle={async (mat) => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            if (topFavIds.includes(mat.id)) {
+              await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+              setTopFavIds((prev: string[]) => prev.filter((id: string) => id !== mat.id));
+              window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: false } }));
+            } else {
+              await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+              setTopFavIds((prev: string[]) => [...prev, mat.id]);
+              window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
+            }
+          }}
         />
       )}
     </div>
