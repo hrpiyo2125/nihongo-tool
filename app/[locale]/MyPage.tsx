@@ -19,7 +19,6 @@ type Material = {
   method: string[];
   ageGroup: string;
   requiredPlan: string;
-  thumbnail: string;
   pdfFile?: string;
   isPickup: boolean;
   isRecommended: boolean;

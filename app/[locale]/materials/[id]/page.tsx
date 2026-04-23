@@ -19,7 +19,6 @@ type Material = {
   method: string[];
   ageGroup: string;
   requiredPlan: string;
-  thumbnail: string;
   mockupImage?: string;
   isPickup: boolean;
   isRecommended: boolean;
@@ -579,18 +578,12 @@ export default function MaterialDetailPage() {
             <PdfViewer url={material.pdfFile} />
           ) : (
             <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 480, aspectRatio: "1 / 1.414", background: material.thumbnail ? "white" : bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-                {material.thumbnail ? (
-                  <img src={material.thumbnail} alt={material.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                ) : (
-                  <>
-                    <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.25)" }} />
-                    <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
-                      <div style={{ fontSize: 80, fontWeight: 700, color: charColor }}>{char}</div>
-                      <div style={{ fontSize: 14, color: "rgba(80,80,120,0.5)", marginTop: 8, letterSpacing: 2 }}>PREVIEW</div>
-                    </div>
-                  </>
-                )}
+              <div style={{ width: 480, aspectRatio: "1 / 1.414", background: bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.25)" }} />
+                <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 80, fontWeight: 700, color: charColor }}>{char}</div>
+                  <div style={{ fontSize: 14, color: "rgba(80,80,120,0.5)", marginTop: 8, letterSpacing: 2 }}>PREVIEW</div>
+                </div>
               </div>
             </div>
           )}

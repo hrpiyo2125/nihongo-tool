@@ -20,7 +20,6 @@ type Material = {
   method: string[];
   ageGroup: string;
   requiredPlan: string;
-  thumbnail: string;
   isPickup: boolean;
   isRecommended: boolean;
   ranking: number | null;

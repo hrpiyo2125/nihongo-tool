@@ -3,29 +3,6 @@ import { useState, useRef, useEffect } from "react";
 import PlanModal from "../../components/PlanModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
-function ThumbnailImage({ src, alt, fallback }: { src: string; alt: string; fallback: React.ReactNode }) {
-  const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
-  useEffect(() => {
-    if (imgRef.current?.complete) setLoaded(true);
-  }, []);
-  if (error) return <>{fallback}</>;
-  return (
-    <>
-      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: loaded ? 0 : 1, transition: "opacity 0.15s" }} />
-      <img
-        ref={imgRef}
-        src={src}
-        alt={alt}
-        onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: loaded ? 1 : 0, transition: "opacity 0.15s" }}
-      />
-    </>
-  );
-}
-
 type Material = {
   id: string;
   title: string;
@@ -35,7 +12,6 @@ type Material = {
   method: string[];
   ageGroup: string;
   requiredPlan: string;
-  thumbnail: string;
   pdfFile?: string;
   isPickup: boolean;
   isRecommended: boolean;
@@ -148,18 +124,7 @@ export default function MaterialCard({
           </button>
         </div>
       )}
-      {mat.thumbnail ? (
-        <div style={{ height: 135, overflow: "hidden", position: "relative" }}>
-          <ThumbnailImage
-            src={mat.thumbnail}
-            alt={mat.title}
-            fallback={mat.pdfFile && mat.pdfFile.length > 0
-              ? <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} />
-              : <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
-            }
-          />
-        </div>
-      ) : mat.pdfFile && mat.pdfFile.length > 0 ? (
+      {mat.pdfFile && mat.pdfFile.length > 0 ? (
         <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
