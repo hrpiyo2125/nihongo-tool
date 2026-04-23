@@ -8,6 +8,7 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import TeaserModal from "./TeaserModal";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
+import MobileMaterialsModal from "./MobileMaterialsModal";
 import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
 
@@ -192,9 +193,8 @@ export default function MobileHome() {
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
   const [modalFilter, setModalFilter] = useState<{ content: string; method: string } | null>(null);
   const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
-  const [activeContentFilter, setActiveContentFilter] = useState("all");
-  const [activeMethodFilter, setActiveMethodFilter] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [modalInitContent, setModalInitContent] = useState("all");
+  const [modalInitMethod, setModalInitMethod] = useState("all");
   const [morePage, setMorePage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -377,7 +377,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
-                  <div key={item.label} onClick={() => { setActiveContentFilter(item.contentId); setActiveMethodFilter("all"); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => { setModalInitContent(item.contentId); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -395,7 +395,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
-                  <div key={item.label} onClick={() => { setActiveContentFilter("all"); setActiveMethodFilter(item.methodId); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => { setModalInitContent("all"); setModalInitMethod(item.methodId); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -697,108 +697,37 @@ export default function MobileHome() {
         </>
       )}
  {materialsModalOpen && (
-  <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
-    
-    {/* ヘッダー */}
-    <header style={{ position: "relative", zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0 }}>
-      <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-      <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
-        {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
-      </button>
-    </header>
-
-    {/* タイトル＋検索＋方法タブ */}
-    <div style={{ padding: "16px 16px 0", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
-      
-        
-      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" as const }}>
-        {[{ id: "all", label: "すべて" }, ...methodTabsForModal.filter(t => t.id !== "all")].map((tab) => {
-          const active = activeMethodFilter === tab.id;
-          return (
-            <button key={tab.id} onClick={() => setActiveMethodFilter(tab.id)} style={{ padding: "5px 12px", flexShrink: 0, background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)", border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)", borderRadius: 20, cursor: "pointer" }}>
-              <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" as const }}>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-
-    {/* メインエリア */}
-    <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-      <div style={{ width: 80, flexShrink: 0, overflowY: "auto", borderRight: "0.5px solid rgba(0,0,0,0.06)", padding: "8px 0" }}>
-        {[{ id: "all", label: "すべて", color: "#e8efff", imageSrc: "/all.png", char: "✦" }, ...contentTabsForModal.filter(t => t.id !== "all")].map((tab) => {
-          const active = activeContentFilter === tab.id;
-          return (
-            <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 4px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.12)" : "transparent", cursor: "pointer", borderLeft: active ? "3px solid #9b6ed4" : "3px solid transparent" }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 14 }}>
-                {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
-              </div>
-              <span style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", textAlign: "center" as const, lineHeight: 1.2 }}>{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-      <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
-        <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>
-          {materials.filter(m => {
-            const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
-            const mMatch = activeMethodFilter === "all" || (m.method ?? []).includes(activeMethodFilter);
-            const sMatch = !searchQuery || m.title.includes(searchQuery);
-            return cMatch && mMatch && sMatch;
-          }).length}件
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-          {materials.filter(m => {
-            const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
-            const mMatch = activeMethodFilter === "all" || (m.method ?? []).includes(activeMethodFilter);
-            const sMatch = !searchQuery || m.title.includes(searchQuery);
-            return cMatch && mMatch && sMatch;
-          }).map((mat) => {
-            const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-            return (
-              <MaterialCard
-                key={mat.id}
-                mat={mat}
-                onClick={() => setTeaserMat(mat)}
-                locale={locale}
-                isLoggedIn={isLoggedIn}
-                userPlan={profile.plan ?? "free"}
-                favIds={effectiveFavIds}
-                purchasedIds={purchasedIds}
-                onFavToggle={async (m) => {
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  if (favIds.includes(m.id)) {
-                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", m.id);
-                    setFavIds(prev => prev.filter(id => id !== m.id));
-                  } else {
-                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: m.id });
-                    setFavIds(prev => [...prev, m.id]);
-                  }
-                }}
-                bg={bg} char={char} charColor={charColor}
-                tag={tag} tagBg={tagBg} tagColor={tagColor}
-              />
-            );
-          })}
-        </div>
-      </div>
-    </div>
-
-    {/* 下部タブバー */}
-    <div style={{ height: 80, background: "white", borderTop: "0.5px solid rgba(200,170,240,0.25)", display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 16, flexShrink: 0 }}>
-      {tabs.map((tab) => {
-        const active = tab.id === "materials";
-        return (
-          <button key={tab.id} onClick={() => { if (tab.id !== "materials") { setMaterialsModalOpen(false); setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
-            {tab.icon(active)}
-            <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
-          </button>
-        );
-      })}
-    </div>
-  </div>
+  <MobileMaterialsModal
+    materials={materials}
+    locale={locale}
+    isLoggedIn={isLoggedIn}
+    userPlan={profile.plan ?? "free"}
+    favIds={effectiveFavIds}
+    purchasedIds={purchasedIds}
+    contentTabs={contentTabsForModal}
+    methodTabs={methodTabsForModal}
+    avatarUrl={avatarUrl}
+    userInitial={userInitial}
+    tabs={tabs}
+    initContent={modalInitContent}
+    initMethod={modalInitMethod}
+    onFavToggle={async (m) => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      if (favIds.includes(m.id)) {
+        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", m.id);
+        setFavIds(prev => prev.filter(id => id !== m.id));
+      } else {
+        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: m.id });
+        setFavIds(prev => [...prev, m.id]);
+      }
+    }}
+    onCardClick={(mat) => setTeaserMat(mat)}
+    onClose={() => setMaterialsModalOpen(false)}
+    onTabChange={(tabId) => setActiveTab(tabId)}
+    onOpenMyPage={() => setMyPageOpen(true)}
+  />
 )}
     </div>
   );
