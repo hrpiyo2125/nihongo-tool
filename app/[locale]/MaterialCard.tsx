@@ -140,12 +140,12 @@ export default function MaterialCard({
           </button>
         </div>
       )}
-      {mat.pdfFile && mat.pdfFile.length > 0 ? (
-        <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} />
-      ) : mat.thumbnail ? (
+      {mat.thumbnail ? (
         <div style={{ height: 135, overflow: "hidden", position: "relative" }}>
           <ThumbnailImage src={mat.thumbnail} alt={mat.title} />
         </div>
+      ) : mat.pdfFile && mat.pdfFile.length > 0 ? (
+        <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       )}
