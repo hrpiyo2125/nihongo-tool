@@ -29,7 +29,7 @@ type Material = {
   tagColor?: string;
 };
 
-function PdfPreview({ pdfUrl, bg }: { pdfUrl: string; bg: string }) {
+function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   const [pages, setPages] = useState<any[]>([]);
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState(0);
@@ -83,27 +83,31 @@ function PdfPreview({ pdfUrl, bg }: { pdfUrl: string; bg: string }) {
     });
   }, [pages]);
 
+  const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
-      {/* メインプレビューエリア（常に同じ大きさ） */}
+      {/* メインプレビューエリア */}
       <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
-        {!ready && (
-          <div style={{ width: "80%", aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 2.2s infinite", borderRadius: 8 }} />
-        )}
-        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: ready ? "block" : "none", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }} />
+        {/* スケルトン：ready になったら opacity 0 でフェードアウト */}
+        <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
+        {/* canvas は常に DOM に存在、ready でフェードイン */}
+        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }} />
       </div>
-      {/* サムネイル行（常に同じ高さを確保） */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72 }}>
-        {/* スケルトン：全描画完了まで表示 */}
-        {!ready && [0, 1, 2].map(i => (
-          <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: bg, opacity: 0.4, flexShrink: 0 }} />
-        ))}
-        {/* canvas は loaded 後すぐ DOM に置いて描画、ready になったら表示 */}
+      {/* サムネイル行 */}
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72, position: "relative" }}>
+        {/* スケルトン3枚：ready でフェードアウト */}
+        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 8, justifyContent: "center", opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
+          ))}
+        </div>
+        {/* canvas は loaded 後 DOM に配置、ready でフェードイン */}
         {loaded && pages.map((_, i) => (
           <div
             key={i}
             onClick={() => ready && setSelected(i)}
-            style={{ width: 52, cursor: ready ? "pointer" : "default", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0, display: ready ? "block" : "none" }}
+            style={{ width: 52, cursor: ready ? "pointer" : "default", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0, opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }}
           >
             <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
           </div>
@@ -137,7 +141,7 @@ type Props = {
 };
 
 export default function TeaserModal({
-  mat, bg, tag, tagBg, tagColor,
+  mat, tag, tagBg, tagColor,
   isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
   contentTabs, methodTabs, locale, tmm,
   onClose, onFavChange,
@@ -186,7 +190,7 @@ export default function TeaserModal({
         <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overflow: "hidden" }}>
           <style>{`@keyframes toolio-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
           {mat.pdfFile ? (
-            <PdfPreview pdfUrl={mat.pdfFile} bg={bg} />
+            <PdfPreview pdfUrl={mat.pdfFile} />
           ) : (
             <>
               <div style={{ width: "100%", aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 2.2s infinite", borderRadius: 12 }} />
