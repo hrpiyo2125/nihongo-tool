@@ -7,12 +7,12 @@ function ThumbnailImage({ src, alt }: { src: string; alt: string }) {
   const [loaded, setLoaded] = useState(false);
   return (
     <>
-      {!loaded && <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0 }} />}
+      <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: loaded ? 0 : 1, transition: "opacity 0.3s" }} />
       <img
         src={src}
         alt={alt}
         onLoad={() => setLoaded(true)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: loaded ? "block" : "none" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", opacity: loaded ? 1 : 0, transition: "opacity 0.3s" }}
       />
     </>
   );
