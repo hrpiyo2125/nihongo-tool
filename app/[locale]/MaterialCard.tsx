@@ -1,5 +1,5 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import PlanModal from "../../components/PlanModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
@@ -13,6 +13,7 @@ type Material = {
   ageGroup: string;
   requiredPlan: string;
   thumbnail: string;
+  pdfFile?: string;
   isPickup: boolean;
   isRecommended: boolean;
   ranking: number | null;
@@ -24,6 +25,50 @@ type Material = {
   tagBg?: string;
   tagColor?: string;
 };
+
+// レンダリング済みサムネイルのキャッシュ（同一PDFは再描画しない）
+const thumbCache = new Map<string, string>();
+
+function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
+  const [imgSrc, setImgSrc] = useState<string | null>(thumbCache.get(pdfUrl) ?? null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (imgSrc) return;
+    const observer = new IntersectionObserver(async (entries) => {
+      if (!entries[0].isIntersecting) return;
+      observer.disconnect();
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
+        const page = await doc.getPage(1);
+        const viewport = page.getViewport({ scale: 1.2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        await page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas } as any).promise;
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+        thumbCache.set(pdfUrl, dataUrl);
+        setImgSrc(dataUrl);
+      } catch {
+        // fallback to char
+      }
+    }, { rootMargin: "120px" });
+    if (wrapRef.current) observer.observe(wrapRef.current);
+    return () => observer.disconnect();
+  }, [pdfUrl, imgSrc]);
+
+  return (
+    <div ref={wrapRef} style={{ height: 135, background: bg, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {imgSrc ? (
+        <img src={imgSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+      ) : (
+        <span style={{ fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
+      )}
+    </div>
+  );
+}
 
 type Props = {
   mat: Material;
@@ -88,7 +133,15 @@ export default function MaterialCard({
           </button>
         </div>
       )}
-      <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
+      {mat.pdfFile ? (
+        <PdfCardThumbnail pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
+      ) : mat.thumbnail ? (
+        <div style={{ height: 135, overflow: "hidden" }}>
+          <img src={mat.thumbnail} alt={mat.title} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+        </div>
+      ) : (
+        <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
+      )}
       <div style={{ padding: "10px 12px 14px" }}>
         <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
         {(mat.level ?? []).length > 0 && (
