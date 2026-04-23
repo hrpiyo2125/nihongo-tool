@@ -26,48 +26,44 @@ type Material = {
   tagColor?: string;
 };
 
-// レンダリング済みサムネイルのキャッシュ（同一PDFは再描画しない）
-const thumbCache = new Map<string, string>();
-
 function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg: string; char: string; charColor: string }) {
-  const [imgSrc, setImgSrc] = useState<string | null>(thumbCache.get(pdfUrl) ?? null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [rendered, setRendered] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (imgSrc) return;
-    const observer = new IntersectionObserver(async (entries) => {
+    const observer = new IntersectionObserver((entries) => {
       if (!entries[0].isIntersecting) return;
       observer.disconnect();
-      try {
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
-        const page = await doc.getPage(1);
-        const viewport = page.getViewport({ scale: 1.2 });
-        const canvas = document.createElement("canvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext("2d")!;
-        const renderTask = page.render({ canvasContext: ctx, viewport, canvas });
-        await renderTask.promise;
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        thumbCache.set(pdfUrl, dataUrl);
-        setImgSrc(dataUrl);
-      } catch {
-        // fallback to char
-      }
+      (async () => {
+        try {
+          const pdfjsLib = await import("pdfjs-dist");
+          pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+          const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
+          const page = await doc.getPage(1);
+          const canvas = canvasRef.current;
+          if (!canvas) return;
+          const viewport = page.getViewport({ scale: 1.5 });
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas } as any);
+          setRendered(true);
+        } catch (e) {
+          console.error("PDF thumbnail error:", e);
+        }
+      })();
     }, { rootMargin: "120px" });
     if (wrapRef.current) observer.observe(wrapRef.current);
     return () => observer.disconnect();
-  }, [pdfUrl, imgSrc]);
+  }, [pdfUrl]);
 
   return (
     <div ref={wrapRef} style={{ height: 135, background: bg, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      {imgSrc ? (
-        <img src={imgSrc} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
-      ) : (
-        <span style={{ fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>
-      )}
+      <canvas
+        ref={canvasRef}
+        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block", opacity: rendered ? 1 : 0 }}
+      />
+      {!rendered && <span style={{ fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</span>}
     </div>
   );
 }
