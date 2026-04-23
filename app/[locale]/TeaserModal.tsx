@@ -176,11 +176,11 @@ export default function TeaserModal({
 
   return (
     <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", maxHeight: "88vh" }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 720, display: "grid", gridTemplateColumns: "1fr 1fr", overflow: "hidden", position: "relative", height: "min(88vh, 580px)" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
         {/* 左：プレビュー */}
-        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, height: "100%", boxSizing: "border-box" }}>
+        <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overflow: "hidden" }}>
           {mat.pdfFile ? (
             <PdfPreview pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
           ) : (
@@ -196,7 +196,7 @@ export default function TeaserModal({
         </div>
 
         {/* 右：情報 */}
-        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", alignSelf: "start" }}>
+        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
           {/* タグ・レベル */}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <div style={{ display: "flex", gap: 8 }}>
