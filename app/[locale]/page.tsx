@@ -7,14 +7,13 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
-import ToolioConceptSection from "./ToolioConceptSection"
 import TeaserModal from "./TeaserModal"
 import MaterialCard from "./MaterialCard"
 import MaterialsModal from "./MaterialsModal"
 import UserMenuPopup from "./UserMenuPopup"
 import GuestLoginPopup from "./GuestLoginPopup"
-import { contentTabLabels, methodTabLabels, getContentTabs, getMethodTabs } from "../../lib/tabs";
-import { getCardStyle, planRank, canDownload } from "../../lib/materialUtils";
+import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
+import { getCardStyle } from "../../lib/materialUtils";
 import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
 import { TroubleSection, GuideSection } from "./TroubleGuide";
@@ -50,88 +49,6 @@ type Material = {
 
 
 
-const cards = [
-  { img: "あ", bg: "linear-gradient(135deg,#dbe8ff,#c8d8ff)", color: "#4a72c4", tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44", title: "ひらがな練習シート", sub: "50音すべて収録・なぞり書き対応" },
-  { img: "🃏", bg: "linear-gradient(135deg,#ecdeff,#ddc8ff)", color: "#8a5cc4", tag: "PICK", tagBg: "#ecdeff", tagColor: "#7040b0", title: "かるたセット・春", sub: "春の語彙を楽しく覚えられる" },
-  { img: "字", bg: "linear-gradient(135deg,#ffd9ee,#ffc8e4)", color: "#c44a88", tag: "NEW", tagBg: "#ffd9ee", tagColor: "#a03070", title: "漢字テスト1年生", sub: "小1の漢字80字をテスト形式で" },
-  { img: "🎮", bg: "linear-gradient(135deg,#d6f5e5,#c0ecd4)", color: "#3a8a5a", tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44", title: "かずあそびゲーム", sub: "数字と量の対応を遊びながら学ぶ" },
-];
-
-const guideTabs = [
-  { id: "start",  label: "はじめての方へ",       emoji: "✦" },
-  { id: "find",   label: "教材の探し方",           emoji: "🔍" },
-  { id: "more",   label: "もっと活用したい",       emoji: "★" },
-  { id: "help",   label: "使っていてわからないとき", emoji: "❓" },
-];
-
-const guideStartSteps = [
-  { num: "01", title: "無料アカウントを作成する", desc: "メールアドレスだけで登録できます。30秒で完了します。", sub: "登録しなくても一部の教材は閲覧できますが、ダウンロードにはアカウントが必要です。" },
-  { num: "02", title: "教材一覧を開く", desc: "トップページの「教材一覧を見る」から、全教材をカテゴリ・方法別に絞り込んで探せます。" },
-  { num: "03", title: "気になる教材を選ぶ", desc: "教材をクリックするとプレビューと使い方が確認できます。まずは「無料」タグの教材からお試しください。" },
-  { num: "04", title: "ダウンロード・印刷する", desc: "PDFをダウンロードして、A4用紙に印刷するだけ。カラーでも白黒でも使えます。" },
-];
-const guideStartTips = [
-  { emoji: "💡", title: "最初におすすめの教材は？", desc: "「ひらがな練習シート」や「ひらがなかるた」は初めての方に人気です。まずここから試してみてください。" },
-  { emoji: "🖨", title: "印刷環境がなくても大丈夫？", desc: "コンビニのネットプリントでも印刷できます。PDFをそのまま持ち込むか、USBに入れてご利用ください。" },
-];
-const guideChooseCards = [
-  { emoji: "🎯", title: "目的から選ぶ", items: ["文字を覚えさせたい → ひらがな・カタカナ練習シート・なぞり書き", "楽しく学ばせたい → かるた・ゲーム・パズル", "定着を確認したい → テスト・ドリル系", "季節行事に合わせたい → 季節カテゴリの教材"] },
-  { emoji: "📊", title: "レベルから選ぶ", items: ["文字をまだ知らない → なぞり書き・絵カード系からスタート", "少し読める → かるた・読み物・絵本系", "ある程度読める → テスト・漢字・文法系", "日常会話ができる → 語彙・会話カード系"] },
-  { emoji: "🗓", title: "時間・場面から選ぶ", items: ["授業の最初の5分 → ゲーム・かるた（短時間で盛り上がる）", "宿題として → 練習シート・テスト系", "家族で楽しく → かるた・絵本・うた系", "すきま時間に → カード系・パズル"] },
-];
-const guideChooseTips = [
-  { emoji: "🔍", title: "迷ったときは「内容×方法」で絞り込む", desc: "教材一覧では「ひらがな × かるた」のように2軸で絞り込めます。" },
-  { emoji: "❤️", title: "お気に入りに保存しておく", desc: "「使いたいかも」と思った教材はハートボタンでお気に入りに保存できます（要ログイン）。" },
-];
-const guideUseCards = [
-  { emoji: "👩‍🏫", title: "先生の方へ", items: ["授業の導入にかるたやゲームを取り入れると子どもが集中しやすくなります", "練習シートは宿題として配布するのに最適です", "テスト系教材は単元の終わりの確認に活用できます", "「使い方ガイド」が各教材についているので、準備に迷いません"] },
-  { emoji: "👨‍👩‍👧", title: "保護者の方へ", items: ["週1〜2回、10〜15分の短い時間から始めるのがおすすめです", "かるたやゲームは親子で一緒に楽しめます", "なぞり書きシートは毎日の習慣づけに使いやすいです", "お子さんが好きな学習方法（ゲーム・ぬりえなど）から始めると続きやすいです"] },
-];
-const guideUseTips = [
-  { emoji: "🎮", title: "「楽しい」が一番の近道", desc: "かるた・ゲーム・うたなど楽しめる教材を混ぜることで、子どもが日本語を「好き」になるきっかけを作れます。" },
-  { emoji: "📅", title: "週のルーティンに組み込む", desc: "「月曜は練習シート、金曜はかるた」のように曜日で種類を変えると飽きにくく継続しやすくなります。" },
-];
-const guideMoreTips = [
-  { emoji: "📂", title: "ダウンロード履歴を活用する", desc: "過去にダウンロードした教材はマイページの履歴からすぐ再ダウンロードできます。" },
-  { emoji: "❤️", title: "お気に入りリストを整理する", desc: "学習テーマや季節ごとにお気に入りをまとめておくと、授業・学習の計画が立てやすくなります。" },
-  { emoji: "🔓", title: "サブスクプランで全教材を使い放題に", desc: "サブスクプランに登録すると体系的なカリキュラム・全教材が使い放題になります。" },
-  { emoji: "📬", title: "新着教材をチェックする", desc: "トップページの「新着」タブで最新の教材を確認できます。定期的に新しい教材が追加されます。" },
-];
-
-function GuideTipItem({ tip }: { tip: { emoji: string; title: string; desc: string } }) {
-  return (
-    <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 14, padding: "18px 22px" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#444", marginBottom: 6, display: "flex", alignItems: "center", gap: 8 }}><span>{tip.emoji}</span>{tip.title}</div>
-      <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8 }}>{tip.desc}</div>
-    </div>
-  );
-}
-
-function GuideCardItem({ card }: { card: { emoji: string; title: string; items: string[] } }) {
-  return (
-    <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 22px" }}>
-      <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0", marginBottom: 12, display: "flex", alignItems: "center", gap: 8 }}><span>{card.emoji}</span>{card.title}</div>
-      <div style={{ display: "flex", flexDirection: "column" as const, gap: 8 }}>
-        {card.items.map((item) => (
-          <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0, marginTop: 7 }} />
-            <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7 }}>{item}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-const troubleTabs = [
-  { id: "start",      label: "何から始める？" },
-  { id: "level",      label: "レベルがわからない" },
-  { id: "goal",       label: "何を目標にすればいい？" },
-  { id: "material",   label: "どの教材を使えばいい？" },
-  { id: "teach",      label: "どう教えればいい？" },
-  { id: "motivation", label: "やる気を出さない" },
-  { id: "bored",      label: "子どもが飽きてしまう" },
-  { id: "improve",    label: "できるようにならない" },
-];
 
 
 const ACTIVE_COLOR = "#7a50b0";
@@ -289,7 +206,6 @@ const methodItems = [
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [guestMenuOpen, setGuestMenuOpen] = useState(false);
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
-  const [topTeaserFavTooltip, setTopTeaserFavTooltip] = useState(false);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
   const [topDlIds, setTopDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
