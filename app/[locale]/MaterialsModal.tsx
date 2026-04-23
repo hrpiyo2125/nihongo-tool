@@ -178,44 +178,48 @@ export default function MaterialsModal({
             <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "4px 24px 40px" }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
-              ) : showSkeleton ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-                  {filtered.map((mat) => (
-                    <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
-                      <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
-                      <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                        <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
-                        <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
-                        <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
               ) : (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-                  {filtered.map((mat) => {
-                    const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                    return (
-                      <MaterialCard
-                        key={mat.id}
-                        mat={mat}
-                        onClick={() => setTeaserMat(mat)}
-                        locale={locale}
-                        isLoggedIn={isLoggedIn}
-                        userPlan={userPlan}
-                        favIds={favIds}
-                        purchasedIds={purchasedIds}
-                        onFavToggle={(m) => {
-                          if (favIds.includes(m.id)) setFavIds(prev => prev.filter(id => id !== m.id));
-                          else setFavIds(prev => [...prev, m.id]);
-                          onFavToggle(m);
-                        }}
-                        onReady={() => setReadyCount(prev => prev + 1)}
-                        bg={bg} char={char} charColor={charColor}
-                        tag={tag} tagBg={tagBg} tagColor={tagColor}
-                      />
-                    );
-                  })}
+                <div style={{ position: "relative" }}>
+                  {/* スケルトンオーバーレイ：カードが裏で読み込む間だけ表示 */}
+                  {showSkeleton && (
+                    <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "white", display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+                      {filtered.map((mat) => (
+                        <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
+                          <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
+                          <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                            <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
+                            <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
+                            <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
+                    {filtered.map((mat) => {
+                      const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
+                      return (
+                        <MaterialCard
+                          key={mat.id}
+                          mat={mat}
+                          onClick={() => setTeaserMat(mat)}
+                          locale={locale}
+                          isLoggedIn={isLoggedIn}
+                          userPlan={userPlan}
+                          favIds={favIds}
+                          purchasedIds={purchasedIds}
+                          onFavToggle={(m) => {
+                            if (favIds.includes(m.id)) setFavIds(prev => prev.filter(id => id !== m.id));
+                            else setFavIds(prev => [...prev, m.id]);
+                            onFavToggle(m);
+                          }}
+                          onReady={() => setReadyCount(prev => prev + 1)}
+                          bg={bg} char={char} charColor={charColor}
+                          tag={tag} tagBg={tagBg} tagColor={tagColor}
+                        />
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

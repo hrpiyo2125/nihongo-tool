@@ -125,20 +125,21 @@ export default function MobileMaterialsModal({
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
           <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>{filtered.length}件</div>
-          {showSkeleton ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-              {filtered.map((mat) => (
-                <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
-                  <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
-                  <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
-                    <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
-                    <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
-                    <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+          <div style={{ position: "relative" }}>
+            {showSkeleton && (
+              <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "white", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+                {filtered.map((mat) => (
+                  <div key={mat.id} style={{ borderRadius: 14, overflow: "hidden", border: "0.5px solid #eee" }}>
+                    <div className="skeleton" style={{ height: 135, borderRadius: 0 }} />
+                    <div style={{ padding: "10px 12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div className="skeleton" style={{ height: 12, width: "50%", borderRadius: 4 }} />
+                      <div className="skeleton" style={{ height: 14, width: "90%", borderRadius: 4 }} />
+                      <div className="skeleton" style={{ height: 12, width: "70%", borderRadius: 4 }} />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          ) : (
+                ))}
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
               {filtered.map((mat) => {
                 const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
@@ -160,7 +161,7 @@ export default function MobileMaterialsModal({
                 );
               })}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
