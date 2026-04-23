@@ -33,19 +33,25 @@ function PdfCardThumbnail({ pdfUrl, bg, char, charColor }: { pdfUrl: string; bg:
   useEffect(() => {
     (async () => {
       try {
+        console.log("[thumb] start", pdfUrl);
         const pdfjsLib = await import("pdfjs-dist");
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
+        const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
+        const doc = await pdfjsLib.getDocument({ url: proxyUrl, withCredentials: false }).promise;
+        console.log("[thumb] doc loaded, pages:", doc.numPages);
         const page = await doc.getPage(1);
         const canvas = canvasRef.current;
+        console.log("[thumb] canvas ref:", !!canvas);
         if (!canvas) return;
         const viewport = page.getViewport({ scale: 1.5 });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
-        page.render({ canvasContext: canvas.getContext("2d")!, viewport, canvas } as any);
+        // @ts-ignore
+        page.render({ canvasContext: canvas.getContext("2d"), viewport });
+        console.log("[thumb] render called");
         setRendered(true);
       } catch (e) {
-        console.error("PDF thumbnail error:", e);
+        console.error("[thumb] error:", e);
       }
     })();
   }, [pdfUrl]);
