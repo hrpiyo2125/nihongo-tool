@@ -88,6 +88,7 @@ export default function MaterialCard({
   mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
+  console.log("[card] title:", mat.title, "pdfFile:", mat.pdfFile);
   const isPurchased = purchasedIds.includes(mat.id);
   const uniqueFavCount = new Set(favIds ?? []).size;
   const isFreeUser = !userPlan || userPlan === "free";
