@@ -13,40 +13,6 @@ import PersonalizedSection from "./PersonalizedSection";
 
 
 
-function MobilePdfThumb({ pdfUrl, bg, char, charColor }: { pdfUrl?: string; bg: string; char: string; charColor: string }) {
-  const [pdfPage, setPdfPage] = useState<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    if (!pdfUrl) return;
-    (async () => {
-      try {
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
-        setPdfPage(await doc.getPage(1));
-      } catch (e) {
-        console.error("PDF thumb error:", e);
-      }
-    })();
-  }, [pdfUrl]);
-
-  useEffect(() => {
-    if (!pdfPage || !canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const viewport = pdfPage.getViewport({ scale: 1.5 });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
-  }, [pdfPage]);
-
-  return (
-    <div style={{ height: 100, background: bg, position: "relative", overflow: "hidden" }}>
-      <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, color: charColor, fontWeight: 700 }}>{char}</span>
-      {pdfPage && <canvas ref={canvasRef} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "auto", display: "block" }} />}
-    </div>
-  );
-}
 
 function MobileTroubleSection({ onOpenModal }: { onOpenModal: () => void }) {
   const [tab, setTab] = useState("start");
@@ -790,13 +756,30 @@ export default function MobileHome() {
           }).map((mat) => {
             const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
             return (
-              <div key={mat.id} onClick={() => setTeaserMat(mat)} style={{ borderRadius: 12, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer" }}>
-                <MobilePdfThumb pdfUrl={mat.pdfFile} bg={bg} char={char} charColor={charColor} />
-                <div style={{ padding: "8px 10px 10px" }}>
-                  <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 5, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 4 }}>{tag}</span>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
-                </div>
-              </div>
+              <MaterialCard
+                key={mat.id}
+                mat={mat}
+                onClick={() => setTeaserMat(mat)}
+                locale={locale}
+                isLoggedIn={isLoggedIn}
+                userPlan={profile.plan ?? "free"}
+                favIds={effectiveFavIds}
+                purchasedIds={purchasedIds}
+                onFavToggle={async (m) => {
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  if (favIds.includes(m.id)) {
+                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", m.id);
+                    setFavIds(prev => prev.filter(id => id !== m.id));
+                  } else {
+                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: m.id });
+                    setFavIds(prev => [...prev, m.id]);
+                  }
+                }}
+                bg={bg} char={char} charColor={charColor}
+                tag={tag} tagBg={tagBg} tagColor={tagColor}
+              />
             );
           })}
         </div>
