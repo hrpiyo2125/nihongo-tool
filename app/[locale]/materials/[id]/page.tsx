@@ -268,7 +268,6 @@ export default function MaterialDetailPage() {
   };
 
   const handleDownloadClick = async () => {
-  if (!isLoggedIn) { setActiveTooltip(activeTooltip === "download" ? null : "download"); return; }
   if (!material?.pdfFile) return;
 
   
@@ -533,7 +532,6 @@ export default function MaterialDetailPage() {
               <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
               
             </button>
-            <LockTooltip type="download" visible={activeTooltip === "download"} onClose={() => setActiveTooltip(null)} onOpenAuth={openAuth} />
               
   
           </div>
