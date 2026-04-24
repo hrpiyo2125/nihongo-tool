@@ -712,6 +712,7 @@ if (isMobile) return <MobileHome />;
               window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
             }
           }}
+          onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }}
         />
       )}
 

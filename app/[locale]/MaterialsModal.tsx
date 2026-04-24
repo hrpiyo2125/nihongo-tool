@@ -56,10 +56,11 @@ type Props = {
   onFavToggle: (mat: Material) => void;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
+  onOpenAuth?: (mode: "signup" | "login") => void;
 };
 
 export default function MaterialsModal({
-  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan, purchasedIds, onFavToggle,
+  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan, purchasedIds, onFavToggle, onOpenAuth,
 }: Props) {
   const [activeContent, setActiveContent] = useState(initContent);
   const [activeMethod, setActiveMethod] = useState(initMethod);
@@ -215,6 +216,7 @@ export default function MaterialsModal({
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
+            onOpenAuth={onOpenAuth}
           />
         );
       })()}
