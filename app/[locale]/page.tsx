@@ -12,6 +12,7 @@ import MaterialCard from "./MaterialCard"
 import MaterialsModal from "./MaterialsModal"
 import UserMenuPopup from "./UserMenuPopup"
 import GuestLoginPopup from "./GuestLoginPopup"
+import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { useIsMobile } from "./useIsMobile";
@@ -183,6 +184,8 @@ const methodItems = [
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [guestMenuOpen, setGuestMenuOpen] = useState(false);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
   const [topDlIds, setTopDlIds] = useState<string[]>([]);
@@ -359,7 +362,7 @@ if (isMobile) return <MobileHome />;
     <GuestLoginPopup
       userIconRef={userIconRef}
       onClose={() => setGuestMenuOpen(false)}
-      onRouterPush={(href) => { setGuestMenuOpen(false); router.push(href); }}
+      onOpenAuth={(mode) => { setGuestMenuOpen(false); setAuthModalMode(mode); setAuthModalOpen(true); }}
       sbOpen={sbOpen}
     />
   </>
@@ -448,8 +451,8 @@ if (isMobile) return <MobileHome />;
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成 →</div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
-                    <button onClick={() => router.push("/auth")} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
+                    <button onClick={() => { setAuthModalMode("login"); setAuthModalOpen(true); }} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                    <button onClick={() => { setAuthModalMode("signup"); setAuthModalOpen(true); }} style={{ fontSize: 12, padding: "7px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
                   </div>
                 </div>
               )}
@@ -675,6 +678,7 @@ if (isMobile) return <MobileHome />;
         if (isFav) setTopFavIds(prev => [...prev, materialId]);
         else setTopFavIds(prev => prev.filter(id => id !== materialId));
       }}
+      onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }}
     />
   );
 })()}
@@ -707,6 +711,14 @@ if (isMobile) return <MobileHome />;
               window.dispatchEvent(new CustomEvent("toolio:fav-change", { detail: { materialId: mat.id, isFav: true } }));
             }
           }}
+        />
+      )}
+
+      {authModalOpen && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={() => setAuthModalOpen(false)}
+          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
         />
       )}
     </div>

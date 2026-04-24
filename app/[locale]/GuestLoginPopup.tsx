@@ -1,14 +1,15 @@
 "use client";
 import { BrandIcon } from "../../components/BrandIcon";
+import { AuthModalMode } from "../../components/AuthModal";
 
 type Props = {
   userIconRef: React.RefObject<HTMLDivElement | null>;
   sbOpen: boolean;
   onClose: () => void;
-  onRouterPush: (href: string) => void;
+  onOpenAuth: (mode: AuthModalMode) => void;
 };
 
-export default function GuestLoginPopup({ userIconRef, onClose, onRouterPush, sbOpen }: Props) {
+export default function GuestLoginPopup({ userIconRef, onClose, onOpenAuth, sbOpen }: Props) {
   const el = userIconRef.current; if (!el) return null;
   const rect = el.getBoundingClientRect(); if (!rect) return null;
 
@@ -28,10 +29,10 @@ export default function GuestLoginPopup({ userIconRef, onClose, onRouterPush, sb
       <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)" }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
       </div>
-      <button onClick={() => { onClose(); onRouterPush("/auth?mode=login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+      <button onClick={() => { onClose(); onOpenAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
         <BrandIcon name="key" size={17} color="#c9a0f0" />ログイン
       </button>
-      <button onClick={() => { onClose(); onRouterPush("/auth"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#7040b0" }}>
+      <button onClick={() => { onClose(); onOpenAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#7040b0" }}>
         <BrandIcon name="sparkle" size={17} color="#9b6ed4" />会員でない方はこちらから新規登録
       </button>
     </div>

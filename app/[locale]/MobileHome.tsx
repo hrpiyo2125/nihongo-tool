@@ -11,6 +11,7 @@ import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
 import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
+import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 type Material = {
   id: string;
   title: string;
@@ -34,6 +35,9 @@ export default function MobileHome() {
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
 
   const [activeTab, setActiveTab] = useState("home");
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
+  const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); setAuthModalOpen(true); };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -220,8 +224,8 @@ export default function MobileHome() {
               </button>
               {!isLoggedIn && (
                 <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
-                  <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
-                  <button onClick={() => router.push("/auth")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
+                  <button onClick={() => openAuth("login")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                  <button onClick={() => openAuth("signup")} style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
                 </div>
               )}
             </section>
@@ -363,7 +367,7 @@ export default function MobileHome() {
               <div style={{ textAlign: "center", padding: "40px 0" }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
                 <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとお気に入りを保存できます</div>
-                <button onClick={() => router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -435,7 +439,7 @@ export default function MobileHome() {
                     <div style={{ textAlign: "center", padding: "60px 0" }}>
                       <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
                       <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
-                      <button onClick={() => router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                      <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
                     </div>
                   ) : (
                     <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
@@ -509,9 +513,18 @@ export default function MobileHome() {
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
+            onOpenAuth={openAuth}
           />
         );
       })()}
+
+      {authModalOpen && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={() => setAuthModalOpen(false)}
+          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
+        />
+      )}
 
       {/* マイページドロワー */}
       {myPageOpen && (
@@ -536,7 +549,7 @@ export default function MobileHome() {
             ))}
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
-                <button onClick={() => router.push("/auth")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                   ログイン / 新規登録
                 </button>
               ) : (

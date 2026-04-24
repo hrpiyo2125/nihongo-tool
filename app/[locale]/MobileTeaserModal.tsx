@@ -52,13 +52,14 @@ type Props = {
   tmm: (key: string) => string;
   onClose: () => void;
   onFavChange?: (materialId: string, isFav: boolean) => void;
+  onOpenAuth?: (mode: "signup" | "login") => void;
 };
 
 export default function TeaserModal({
   mat, bg, char, charColor, tag, tagBg, tagColor,
   isLoggedIn, userPlan, favIds: initialFavIds,
   contentTabs, methodTabs, locale, tmm,
-  onClose, onFavChange,
+  onClose, onFavChange, onOpenAuth,
 }: Props) {
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
@@ -153,8 +154,8 @@ export default function TeaserModal({
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5 }}>🔒 お気に入り機能</div>
                   <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>ログインするとお気に入りに保存できます。</div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => { window.location.href = "/auth"; }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
-                    <button onClick={() => { window.location.href = "/auth?mode=login"; }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
+                    <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/auth"); }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
+                    <button onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/auth?mode=login"); }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
                   </div>
                 </div>
               </>
@@ -183,8 +184,8 @@ export default function TeaserModal({
                   {!isLoggedIn ? (
                     <>
                       <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>登録するとすべての教材がダウンロードし放題になります。</div>
-                      <button onClick={() => { onClose(); window.location.href = "/auth"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
-                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={() => { onClose(); window.location.href = "/auth?mode=login"; }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
+                      <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/auth"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
+                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/auth?mode=login"); }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
                     </>
                   ) : (
                     <>
