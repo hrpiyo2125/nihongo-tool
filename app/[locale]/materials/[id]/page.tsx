@@ -9,6 +9,7 @@ import TeaserModal from "../../TeaserModal";
 import { getCardStyle, getTag } from "../../../../lib/materialUtils";
 import { BrandIcon } from "../../../../components/BrandIcon";
 import { contentTabsJa as contentTabs, methodTabsJa as methodTabs } from "../../../../lib/tabs";
+import AuthModal, { AuthModalMode } from "../../../../components/AuthModal";
 
 type Material = {
   id: string;
@@ -39,7 +40,7 @@ type Material = {
 
 type TooltipType = "favorite" | "download";
 
-function LockTooltip({ type, visible, onClose }: { type: TooltipType; visible: boolean; onClose: () => void }) {
+function LockTooltip({ type, visible, onClose, onOpenAuth }: { type: TooltipType; visible: boolean; onClose: () => void; onOpenAuth: (mode: "signup" | "login") => void }) {
   if (!visible) return null;
   const isFav = type === "favorite";
   return (
@@ -53,8 +54,8 @@ function LockTooltip({ type, visible, onClose }: { type: TooltipType; visible: b
           {isFav ? "ログインするとお気に入りに保存できます。" : "ログインするとPDFをダウンロードできます。"}
         </div>
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => { window.location.href = "/auth"; }} style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
-          <button onClick={() => { window.location.href = "/auth?mode=login"; }} style={{ flex: 1, fontSize: 11, fontWeight: 600, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
+          <button onClick={() => { onClose(); onOpenAuth("signup"); }} style={{ flex: 1, fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
+          <button onClick={() => { onClose(); onOpenAuth("login"); }} style={{ flex: 1, fontSize: 11, fontWeight: 600, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
         </div>
       </div>
     </>
@@ -195,6 +196,9 @@ export default function MaterialDetailPage() {
   const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
+  const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); setAuthModalOpen(true); };
   
   const [dlHover, setDlHover] = useState(false);
   const [favHover, setFavHover] = useState(false);
@@ -521,7 +525,7 @@ export default function MaterialDetailPage() {
               )}
               <span style={{ fontSize: 12, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>{isLoggedIn ? (isFav ? "保存済み" : "お気に入り") : "お気に入り"}</span>
             </button>
-            <LockTooltip type="favorite" visible={activeTooltip === "favorite"} onClose={() => setActiveTooltip(null)} />
+            <LockTooltip type="favorite" visible={activeTooltip === "favorite"} onClose={() => setActiveTooltip(null)} onOpenAuth={openAuth} />
           </div>
           <div style={{ position: "relative" }}>
             <button onClick={handleDownloadClick} onMouseEnter={() => setDlHover(true)} onMouseLeave={() => setDlHover(false)} style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 16px", borderRadius: 8, border: "none", background: dlHover ? "rgba(255,255,255,0.85)" : "white", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
@@ -529,7 +533,7 @@ export default function MaterialDetailPage() {
               <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
               
             </button>
-            <LockTooltip type="download" visible={activeTooltip === "download"} onClose={() => setActiveTooltip(null)} />
+            <LockTooltip type="download" visible={activeTooltip === "download"} onClose={() => setActiveTooltip(null)} onOpenAuth={openAuth} />
               
   
           </div>
@@ -589,6 +593,14 @@ export default function MaterialDetailPage() {
           )}
         </main>
       </div>
+
+      {authModalOpen && (
+        <AuthModal
+          initialMode={authModalMode}
+          onClose={() => setAuthModalOpen(false)}
+          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
+        />
+      )}
     </div>
   );
 }

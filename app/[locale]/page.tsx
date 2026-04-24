@@ -653,6 +653,7 @@ if (isMobile) return <MobileHome />;
       tm={tm}
       navItems={navItems}
       onPlanChanged={loadProfile}
+      onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }}
     />
   )
         )}

@@ -415,6 +415,7 @@ type MyPageProps = {
   tm: (key: string) => string;
   navItems: { id: string; label: string }[];
   onPlanChanged?: () => Promise<void>;
+  onOpenAuth?: (mode: "signup" | "login") => void;
 };
 
 export default function MyPage({
@@ -442,6 +443,7 @@ export default function MyPage({
   tm,
   navItems,
   onPlanChanged,
+  onOpenAuth,
 }: MyPageProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1182,8 +1184,8 @@ export default function MyPage({
             <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>この機能を使うには登録が必要です</div>
             <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>無料アカウントを作成すると<br />お気に入り保存・ダウンロード履歴などが使えます</div>
             <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-              <button onClick={() => router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>無料で登録する →</button>
-              <button onClick={() => router.push("/auth?mode=login")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+              <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>無料で登録する →</button>
+              <button onClick={() => onOpenAuth ? onOpenAuth("login") : router.push("/auth?mode=login")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
             </div>
           </div>
         ) : activePage === "fav" ? (
