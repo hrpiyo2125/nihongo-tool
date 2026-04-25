@@ -111,11 +111,11 @@ export default function AnnouncementModal({
   return (
     <div
       onClick={(e) => { e.stopPropagation(); onClose(); }}
-      style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0" }}
+      style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "white", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 640, height: "75vh", display: "flex", flexDirection: "column", position: "relative" }}
+        style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 560, maxHeight: "80vh", display: "flex", flexDirection: "column", position: "relative" }}
       >
         <button
           onClick={onClose}
@@ -124,12 +124,7 @@ export default function AnnouncementModal({
           ✕
         </button>
 
-        {/* ハンドル */}
-        <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 0" }}>
-          <div style={{ width: 36, height: 4, borderRadius: 2, background: "#e0e0e0" }} />
-        </div>
-
-        <div style={{ overflowY: "auto", padding: "20px 24px 40px" }}>
+        <div style={{ overflowY: "auto", padding: "28px 24px 32px" }}>
           <div style={{ fontSize: 11, color: "#bbb", marginBottom: 8 }}>{detail.date}</div>
           <h2 style={{ fontSize: 17, fontWeight: 700, color: "#222", margin: "0 0 20px", lineHeight: 1.5, paddingRight: 32 }}>
             {detail.title}
