@@ -115,7 +115,7 @@ export default function AnnouncementModal({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "white", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 640, maxHeight: "85vh", display: "flex", flexDirection: "column", position: "relative" }}
+        style={{ background: "white", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 640, height: "75vh", display: "flex", flexDirection: "column", position: "relative" }}
       >
         <button
           onClick={onClose}
