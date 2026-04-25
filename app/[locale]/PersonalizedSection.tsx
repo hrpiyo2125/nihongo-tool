@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import MaterialCard from "./MaterialCard";
 import { getCardStyle, planRank } from "../../lib/materialUtils";
 import PlanModal from "../../components/PlanModal";
@@ -64,14 +64,12 @@ function pickPersonalized(
     let score = 0;
     for (const c of mat.content) score += (contentFreq[c] ?? 0) * 2;
     for (const m of mat.method) score += (methodFreq[m] ?? 0);
-    // Small random jitter to avoid identical-score ties always picking same items
-    score += Math.random() * 0.5;
     const matRank = planRank[mat.requiredPlan] ?? 0;
     const accessible = matRank <= userRank;
     return { mat, score, accessible };
   });
 
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort((a, b) => b.score - a.score || a.mat.id.localeCompare(b.mat.id));
 
   const accessible = scored.filter((s) => s.accessible).map((s) => s.mat);
   const needUpgrade = scored.filter((s) => !s.accessible).map((s) => s.mat);
@@ -93,11 +91,11 @@ function pickPersonalized(
   // Fallback: 50/50 split from all materials (e.g. no history, or all materials already seen)
   const allAccessible = materials
     .filter((m) => (planRank[m.requiredPlan] ?? 0) <= userRank)
-    .sort(() => Math.random() - 0.5)
+    .sort((a, b) => a.id.localeCompare(b.id))
     .slice(0, 4);
   const allNeedUpgrade = materials
     .filter((m) => (planRank[m.requiredPlan] ?? 0) > userRank)
-    .sort(() => Math.random() - 0.5)
+    .sort((a, b) => a.id.localeCompare(b.id))
     .slice(0, 4);
   const fallback: Material[] = [];
   const fallbackLen = Math.max(allAccessible.length, allNeedUpgrade.length);
@@ -122,14 +120,30 @@ export default function PersonalizedSection({
   columns = 4,
 }: Props) {
   const [planModalOpen, setPlanModalOpen] = useState(false);
+  const [personalizedMats, setPersonalizedMats] = useState<Material[]>([]);
 
   const isFreeUser = !userPlan || userPlan === "free";
   const isPaidUser = !isFreeUser;
 
-  const personalizedMats = useMemo(() => {
-    if (!isPaidUser || materials.length === 0) return [];
-    return pickPersonalized(materials, favIds, dlIds, userPlan);
-  }, [materials, favIds, dlIds, userPlan, isPaidUser]);
+  // Compute recommendations only once when materials first load (or plan changes).
+  // favIds/dlIds are captured as a snapshot so favoriting an item mid-session
+  // doesn't cause the list to reshuffle or disappear.
+  const computedRef = useRef(false);
+  const prevPlanRef = useRef(userPlan);
+
+  useEffect(() => {
+    if (!isPaidUser || materials.length === 0) {
+      setPersonalizedMats([]);
+      computedRef.current = false;
+      return;
+    }
+    const planChanged = prevPlanRef.current !== userPlan;
+    if (computedRef.current && !planChanged) return;
+    prevPlanRef.current = userPlan;
+    computedRef.current = true;
+    setPersonalizedMats(pickPersonalized(materials, favIds, dlIds, userPlan));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [materials, userPlan, isPaidUser]);
 
   // Don't show if not logged in
   if (!isLoggedIn) return null;
