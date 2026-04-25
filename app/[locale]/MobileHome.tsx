@@ -12,6 +12,7 @@ import MobileMaterialsModal from "./MobileMaterialsModal";
 import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
+import AnnouncementModal from "./AnnouncementModal";
 type Material = {
   id: string;
   title: string;
@@ -44,7 +45,8 @@ export default function MobileHome() {
   const [scrolled, setScrolled] = useState(false);
   const [myPageOpen, setMyPageOpen] = useState(false);
   const [materials, setMaterials] = useState<Material[]>([]);
-  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
+  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
@@ -273,9 +275,10 @@ export default function MobileHome() {
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />お知らせ
                 </div>
                 {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} style={{ display: "flex", gap: 12, marginBottom: 10 }}>
+                  <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
-                    <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6 }}>{n.title}</span>
+                    <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
+                    <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
                   </div>
                 ))}
               </section>
@@ -517,6 +520,23 @@ export default function MobileHome() {
           />
         );
       })()}
+
+      {selectedAnnouncement && (
+        <AnnouncementModal
+          announcement={selectedAnnouncement}
+          isLoggedIn={isLoggedIn}
+          userPlan={profile.plan ?? "free"}
+          favIds={effectiveFavIds}
+          purchasedIds={purchasedIds}
+          locale={locale}
+          onClose={() => setSelectedAnnouncement(null)}
+          onFavChange={(materialId, isFav) => {
+            if (isFav) setFavIds(prev => [...prev, materialId]);
+            else setFavIds(prev => prev.filter(id => id !== materialId));
+          }}
+          onOpenAuth={openAuth}
+        />
+      )}
 
       {authModalOpen && (
         <AuthModal

@@ -8,6 +8,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
 import TeaserModal from "./TeaserModal"
+import AnnouncementModal from "./AnnouncementModal"
 import MaterialCard from "./MaterialCard"
 import MaterialsModal from "./MaterialsModal"
 import UserMenuPopup from "./UserMenuPopup"
@@ -181,7 +182,8 @@ const methodItems = [
   const [userEmail, setUserEmail] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
-  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string }[]>([]);
+  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [guestMenuOpen, setGuestMenuOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -492,9 +494,13 @@ if (isMobile) return <MobileHome />;
                 {announcements.length === 0 ? (
                  <div style={{ fontSize: 13, color: "#bbb" }}>お知らせはありません</div>
                  ) : announcements.map((n) => (
-                 <div key={n.id} style={{ display: "flex", gap: 16, marginBottom: 8 }}>
+                 <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 16, marginBottom: 8, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px", transition: "background 0.15s" }}
+                   onMouseEnter={e => (e.currentTarget.style.background = "#f5f0ff")}
+                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                 >
                    <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
-                   <span style={{ fontSize: 13, color: "#444" }}>{n.title}</span>
+                   <span style={{ fontSize: 13, color: "#444", flex: 1 }}>{n.title}</span>
+                   <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
                  </div>
                 ))}
               </div>
@@ -683,6 +689,23 @@ if (isMobile) return <MobileHome />;
     />
   );
 })()}
+
+      {selectedAnnouncement && (
+        <AnnouncementModal
+          announcement={selectedAnnouncement}
+          isLoggedIn={isLoggedIn}
+          userPlan={profile.plan ?? "free"}
+          favIds={topFavIds}
+          purchasedIds={purchasedIds}
+          locale={locale}
+          onClose={() => setSelectedAnnouncement(null)}
+          onFavChange={(materialId, isFav) => {
+            if (isFav) setTopFavIds(prev => [...prev, materialId]);
+            else setTopFavIds(prev => prev.filter(id => id !== materialId));
+          }}
+          onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }}
+        />
+      )}
   
 
       {modal && (
