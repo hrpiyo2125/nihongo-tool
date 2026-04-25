@@ -20,11 +20,12 @@ function blocksToText(blocks: any[]): string {
     .join("\n");
 }
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await context.params;
     const [page, blocksRes] = await Promise.all([
-      notion.pages.retrieve({ page_id: params.id }),
-      notion.blocks.children.list({ block_id: params.id }),
+      notion.pages.retrieve({ page_id: id }),
+      notion.blocks.children.list({ block_id: id }),
     ]);
 
     const p = page as any;
