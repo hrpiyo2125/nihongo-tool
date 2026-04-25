@@ -6,6 +6,6 @@ export default function robots(): MetadataRoute.Robots {
       userAgent: '*',
       allow: '/',
     },
-    sitemap: 'https://www.nihongo-tool.com/sitemap.xml',
+    sitemap: 'https://nihongo-tool.com/sitemap.xml',
   }
 }

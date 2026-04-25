@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useLocale } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
 import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
@@ -201,6 +202,14 @@ export default function MobileHome() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif", overflow: "hidden" }}>
+      <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
+        <Link href="/plan">料金プラン</Link>
+        <Link href="/faq">よくある質問</Link>
+        <Link href="/guide">使い方ガイド</Link>
+        <Link href="/terms">利用規約</Link>
+        <Link href="/privacy">プライバシーポリシー</Link>
+        <Link href="/tokushoho">特定商取引法に基づく表示</Link>
+      </nav>
 
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
