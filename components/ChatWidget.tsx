@@ -315,10 +315,27 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }),
     });
     const data = await res.json();
+    const newSid = data.sessionId ?? sessionId;
     if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
-    botMsg(data.confirmMsg ?? "担当者からご連絡します。チャットを閉じても大丈夫です。");
     setPhase("waiting");
+    // DBから全メッセージを取得して同期（ID無しローカルメッセージとの重複を防ぐ）
+    if (newSid) {
+      try {
+        const r = await fetch(`/api/chat/session?sessionId=${newSid}`);
+        if (r.ok) {
+          const json = await r.json();
+          const dbMsgs: Message[] = json.messages ?? [];
+          const hasStaff = dbMsgs.some((m) => m.role === "staff");
+          if (hasStaff) {
+            const idx = dbMsgs.findIndex((m) => m.role === "staff");
+            setMessages([...dbMsgs.slice(0, idx), { role: "separator", content: "ここから担当者との会話" }, ...dbMsgs.slice(idx)]);
+          } else {
+            setMessages(dbMsgs);
+          }
+        }
+      } catch { /* ignore */ }
+    }
   }
 
   function reset(clearStorage = false) {
