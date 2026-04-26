@@ -26,6 +26,7 @@ type Phase =
   | "chat"
   | "retry"
   | "materialRequest"
+  | "staffConfirm"
   | "resolved"
   | "email"
   | "waiting"
@@ -111,9 +112,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     // 担当者希望の検出（どのフェーズでも）
     if (wantsStaff(content)) {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      setPhase("chat"); // topicボタンを消す
-      addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
-      setPhase("email");
+      addBotMsg("担当者への連絡を希望されますか？ご連絡先のメールアドレスをお伝えいただくことで、担当者から折り返しご連絡いたします。");
+      setPhase("staffConfirm");
       return;
     }
 
@@ -205,8 +205,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   async function handleRequestStaff() {
-    addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
-    setPhase("email");
+    addBotMsg("担当者への連絡を希望されますか？ご連絡先のメールアドレスをお伝えいただくことで、担当者から折り返しご連絡いたします。");
+    setPhase("staffConfirm");
   }
 
   async function handleEmailSubmit() {
@@ -226,7 +226,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const showResolvedButtons = phase === "chat" && resolved === null && messages.some((m) => m.role === "bot" && m.content !== "少々お待ちください...");
   const showStaffButton = phase === "retry";
   const showEmailInput = phase === "email";
-  const showInput = phase !== "email" && phase !== "waiting" && phase !== "resolved" && phase !== "retry" && phase !== "materialRequest";
+  const showInput = phase !== "email" && phase !== "waiting" && phase !== "resolved" && phase !== "retry" && phase !== "materialRequest" && phase !== "staffConfirm";
   const showMaterialInput = phase === "materialRequest";
 
   const primaryBtn: React.CSSProperties = {
@@ -330,6 +330,25 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               <button style={outlineBtn("#7a50b0")} onClick={handleRequestStaff}>
                 👤 担当者に繋ぐ
               </button>
+            )}
+
+            {/* 担当者確認ボタン */}
+            {phase === "staffConfirm" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+                <button style={{ ...outlineBtn("#7a50b0") }} onClick={() => {
+                  addBotMsg("メールアドレスを入力してください。担当者からご連絡します。");
+                  setPhase("email");
+                }}>
+                  📧 メールアドレスを教える
+                </button>
+                <button style={outlineBtn("#aaa")} onClick={() => {
+                  addBotMsg("わかりました。引き続きチャットでお気軽にご質問ください。");
+                  setPhase("chat");
+                  setResolved(null);
+                }}>
+                  引き続き自分で解決する
+                </button>
+              </div>
             )}
 
             {/* メール入力 */}
