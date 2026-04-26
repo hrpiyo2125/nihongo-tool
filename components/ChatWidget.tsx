@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { createClient } from "@/lib/supabase";
 
 const TOPICS = [
@@ -80,8 +81,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   function clearInput() {
-    setInput("");
-    if (inputRef.current) inputRef.current.style.height = "auto";
+    flushSync(() => setInput(""));
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      inputRef.current.style.height = "auto";
+    }
   }
 
   async function askAI(topic: string, userMessage: string, isFreeText = false) {
@@ -314,7 +318,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                   e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+                  if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); handleSend(); }
                 }}
                 style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.5, overflow: "hidden", maxHeight: 96 }}
               />
