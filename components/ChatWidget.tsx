@@ -95,7 +95,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const seenStaffIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
-    seenStaffIdsRef.current = new Set();
     const timer = setInterval(async () => {
       try {
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
@@ -257,6 +256,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     clearInput();
 
     if (phase === "live" || phase === "waiting") {
+      setMessages((prev) => [...prev, { role: "user", content }]);
       await fetch("/api/chat/live-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -337,6 +337,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       sessionStorage.removeItem(MESSAGES_KEY);
       sessionStorage.removeItem(PHASE_KEY);
     }
+    seenStaffIdsRef.current = new Set();
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
