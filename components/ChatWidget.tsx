@@ -23,7 +23,6 @@ type Message = {
 type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
-  const pendingIdRef = useRef(initialSessionId);
   const [open, setOpen] = useState(!!initialSessionId);
   const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -41,33 +40,20 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const SESSION_KEY = "chat_session_id";
   const MESSAGES_KEY = "chat_messages";
   const PHASE_KEY = "chat_phase";
-  const PENDING_SESSION_KEY = "chat_pending_session_id";
 
   async function init() {
     setPhase("loading");
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setAuthUser(user ?? null);
-      console.log("[ChatWidget] init: user=", user?.id, "pendingId=", pendingIdRef.current);
 
-      if (!user) {
-        if (pendingIdRef.current) {
-          sessionStorage.setItem(PENDING_SESSION_KEY, pendingIdRef.current);
-        }
-        console.log("[ChatWidget] not logged in, pending=", sessionStorage.getItem(PENDING_SESSION_KEY));
-        setPhase("requireLogin");
+      // メール通知リンク経由（ログイン不要で履歴を読み込む）
+      if (initialSessionId) {
+        await loadMessages(initialSessionId);
         return;
       }
 
-      const pendingSessionId = pendingIdRef.current ?? sessionStorage.getItem(PENDING_SESSION_KEY) ?? undefined;
-      sessionStorage.removeItem(PENDING_SESSION_KEY);
-      console.log("[ChatWidget] logged in, pendingSessionId=", pendingSessionId);
-
-      if (pendingSessionId) {
-        await loadMessages(pendingSessionId);
-        setOpen(true);
-        return;
-      }
+      if (!user) { setPhase("requireLogin"); return; }
 
       // sessionStorageから直接復元（APIなし・RLS無関係）
       const savedSessionId = sessionStorage.getItem(SESSION_KEY);
@@ -88,16 +74,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   useEffect(() => { init(); }, []);
-
-  // どんな方法でログインしても（モーダル・ページ遷移・OAuth）チャットを再開する
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        init();
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // sessionId・messages・phaseをsessionStorageに保存
   useEffect(() => {
@@ -150,9 +126,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   async function loadMessages(sid: string) {
     try {
-      console.log("[ChatWidget] loadMessages: fetching sid=", sid);
       const res = await fetch(`/api/chat/session?sessionId=${sid}`);
-      console.log("[ChatWidget] loadMessages: status=", res.status);
       if (!res.ok) {
         sessionStorage.removeItem(SESSION_KEY);
         sessionStorage.removeItem(MESSAGES_KEY);
@@ -162,8 +136,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }
       const json = await res.json();
       const { status, messages: data } = json;
-      console.log("[ChatWidget] loadMessages: session status=", status, "messages count=", data?.length);
-
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
         sessionStorage.removeItem(SESSION_KEY);

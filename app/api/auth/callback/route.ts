@@ -30,11 +30,7 @@ export async function GET(req: NextRequest) {
         })
       }
 
-      const returnTo = req.cookies.get('auth_return_to')?.value;
-      const redirectUrl = returnTo ? `${origin}${decodeURIComponent(returnTo)}` : `${origin}/${locale}`;
-      const response = NextResponse.redirect(redirectUrl);
-      response.cookies.delete('auth_return_to');
-      return response;
+      return NextResponse.redirect(`${origin}/${locale}`)
     }
   }
 
