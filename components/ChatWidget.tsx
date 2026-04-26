@@ -91,39 +91,35 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase, open]);
 
-  // Realtime購読
+  // waiting/liveフェーズ中はポーリングで新着メッセージ・ステータスを確認
   useEffect(() => {
-    if (!sessionId || (phase !== "live" && phase !== "waiting" && phase !== "done")) return;
-    const channel = supabase
-      .channel(`chat:${sessionId}`)
-      .on("postgres_changes", {
-        event: "INSERT", schema: "public", table: "chat_messages",
-        filter: `session_id=eq.${sessionId}`,
-      }, (payload) => {
-        const msg = payload.new as { role: string; content: string; id: string };
+    if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
+        if (!res.ok) return;
+        const json = await res.json();
+        const { status, messages: fetched } = json;
+
         setMessages((prev) => {
-          if (prev.some((m) => m.id === msg.id)) return prev;
-          if (msg.role === "staff") {
+          const prevIds = new Set(prev.map((m) => m.id));
+          const newMsgs = (fetched as Message[]).filter((m) => m.id && !prevIds.has(m.id));
+          if (newMsgs.length === 0) return prev;
+
+          const hasNewStaff = newMsgs.some((m) => m.role === "staff");
+          if (hasNewStaff) {
             setPhase((cur) => cur === "waiting" ? "live" : cur);
             const withSeparator = prev.some((m) => m.role === "separator")
               ? prev
               : [...prev, { role: "separator" as const, content: "ここから担当者との会話" }];
-            return [...withSeparator, { id: msg.id, role: "staff", content: msg.content }];
+            return [...withSeparator, ...newMsgs];
           }
-          return [...prev, { id: msg.id, role: msg.role as Message["role"], content: msg.content }];
+          return [...prev, ...newMsgs];
         });
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [sessionId, phase]);
 
-  // doneポーリング
-  useEffect(() => {
-    if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
-    const timer = setInterval(async () => {
-      const { data } = await supabase.from("chat_sessions").select("status").eq("id", sessionId).single();
-      if (data?.status === "done") setPhase("done");
-    }, 5000);
+        if (status === "done") setPhase("done");
+      } catch { /* ignore */ }
+    }, 3000);
     return () => clearInterval(timer);
   }, [sessionId, phase]);
 
