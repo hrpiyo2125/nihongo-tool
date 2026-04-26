@@ -463,9 +463,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
             {phase !== "loading" && phase !== "requireLogin" && (
               <>
-                {messages.length === 0 && (
-                  <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
-                )}
+                <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
 
                 {messages.map((m, i) =>
                   m.role === "separator" ? (
