@@ -85,7 +85,23 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
     const timer = setInterval(async () => {
       const { data } = await supabase.from("chat_sessions").select("status").eq("id", sessionId).single();
-      if (data?.status === "done") setPhase("done");
+      if (data?.status === "done") {
+        // doneに切り替える前に最新メッセージを取得
+        const { data: msgs } = await supabase
+          .from("chat_messages")
+          .select("id, role, content")
+          .eq("session_id", sessionId)
+          .order("created_at");
+        if (msgs) {
+          setMessages((prev) => {
+            const existingIds = new Set(prev.filter((m) => m.id).map((m) => m.id));
+            const newMsgs = msgs.filter((m) => !existingIds.has(m.id));
+            if (newMsgs.length === 0) return prev;
+            return [...prev, ...newMsgs.map((m) => ({ id: m.id, role: m.role as Message["role"], content: m.content }))];
+          });
+        }
+        setPhase("done");
+      }
     }, 5000);
     return () => clearInterval(timer);
   }, [sessionId, phase]);
