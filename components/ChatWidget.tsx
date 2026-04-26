@@ -96,14 +96,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!content || sending) return;
     setInput("");
 
-    // 担当者希望の検出
-    if (phase === "chat" && wantsStaff(content)) {
-      setMessages((prev) => [...prev, { role: "user", content }]);
-      addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
-      setPhase("email");
-      return;
-    }
-
     // liveフェーズ（担当者チャット）
     if (phase === "live") {
       setMessages((prev) => [...prev, { role: "user", content }]);
@@ -115,8 +107,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       return;
     }
 
-    // 通常のAI返答
+    // 担当者希望の検出（どのフェーズでも）
+    if (wantsStaff(content)) {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      setPhase("chat"); // topicボタンを消す
+      addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
+      setPhase("email");
+      return;
+    }
+
+    // 通常のAI返答（topicボタンをすぐ消すためにphaseを先に変更）
     setMessages((prev) => [...prev, { role: "user", content }]);
+    setPhase("chat");
     setSending(true);
     addBotMsg("少々お待ちください...");
 
@@ -138,6 +140,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   async function handleTopic(topic: string) {
     setMessages((prev) => [...prev, { role: "user", content: topic }]);
+    setPhase("chat");
     setSending(true);
     addBotMsg("少々お待ちください...");
 
