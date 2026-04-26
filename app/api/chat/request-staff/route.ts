@@ -54,5 +54,15 @@ export async function POST(req: NextRequest) {
     `,
   });
 
-  return NextResponse.json({ ok: true, sessionId: sid });
+  // 担当者連絡確定メッセージをDBに保存
+  const confirmMsg = resolvedEmail
+    ? `${resolvedEmail} に担当者からご連絡します。チャットを閉じても大丈夫です。`
+    : "担当者からご連絡します。チャットを閉じても大丈夫です。";
+  await supabase.from("chat_messages").insert({
+    session_id: sid,
+    role: "bot",
+    content: confirmMsg,
+  });
+
+  return NextResponse.json({ ok: true, sessionId: sid, confirmMsg });
 }

@@ -188,6 +188,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     }
   }
 
+  function saveUserMsg(content: string, sid?: string) {
+    const targetId = sid ?? sessionId;
+    if (!targetId) return;
+    fetch("/api/chat/bot-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId: targetId, content, role: "user" }),
+    });
+  }
+
   function clearInput() {
     flushSync(() => setInput(""));
     if (inputRef.current) {
@@ -307,10 +317,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }),
     });
     const data = await res.json();
-    const newSid = data.sessionId ?? sessionId;
     if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
-    botMsg(`${authUser?.email} に担当者からご連絡します。チャットを閉じても大丈夫です。`, true, newSid);
+    botMsg(data.confirmMsg ?? "担当者からご連絡します。チャットを閉じても大丈夫です。");
     setPhase("waiting");
   }
 
@@ -422,11 +431,13 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                     <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
+                        saveUserMsg("✅ はい（解決しました）");
                         botMsg("お役に立てて良かったです！またいつでもご相談ください。", true);
                         setAiReplied(false);
                         setPhase("done");
                       }}>✅ はい</button>
                       <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
+                        saveUserMsg("❌ いいえ（解決しませんでした）");
                         botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。", true);
                         setAiReplied(false);
                         setPhase("retry");
@@ -441,6 +452,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                       {loading ? "送信中..." : "📧 担当者とのチャットを希望する"}
                     </button>
                     <button style={outlineBtn("#9b6ed4")} onClick={() => {
+                      saveUserMsg("💬 AIチャットに戻る");
                       botMsg("AIチャットに戻ります。他にご質問があればどうぞ。", true);
                       setPhase("retry");
                     }}>💬 AIチャットに戻る</button>
@@ -453,6 +465,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                       <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
                     ))}
                     <button style={outlineBtn("#7a50b0")} onClick={() => {
+                      saveUserMsg("👤 担当者に繋ぐ");
                       botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
                       setPhase("staffConfirm");
                     }}>👤 担当者に繋ぐ</button>

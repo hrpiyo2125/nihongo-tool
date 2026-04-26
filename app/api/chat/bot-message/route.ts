@@ -7,12 +7,12 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { sessionId, content } = await req.json();
+  const { sessionId, content, role = "bot" } = await req.json();
   if (!sessionId || !content) return NextResponse.json({ ok: false }, { status: 400 });
 
   await supabase.from("chat_messages").insert({
     session_id: sessionId,
-    role: "bot",
+    role,
     content,
   });
 
