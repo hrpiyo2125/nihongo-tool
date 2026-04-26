@@ -232,16 +232,41 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setTimeout(() => setAiReplied(true), 1500);
   }
 
+  async function saveTopicMessage(topic: string, botReply: string) {
+    if (sessionId) {
+      saveUserMsg(topic);
+      botMsg(botReply, true);
+    } else {
+      // セッション未作成 → create-sessionでユーザーメッセージ保存
+      const res = await fetch("/api/chat/create-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic, userMessage: topic, userId: authUser?.id, userEmail: authUser?.email }),
+      });
+      const d = await res.json();
+      if (d.sessionId) {
+        setSessionId(d.sessionId);
+        // botの質問プロンプトも保存
+        await fetch("/api/chat/bot-message", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: d.sessionId, content: botReply }),
+        });
+      }
+      botMsg(botReply);
+    }
+  }
+
   async function handleTopic(topic: string) {
     if (topic === "教材のリクエスト") {
       setMessages((prev) => [...prev, { role: "user", content: topic }]);
-      botMsg("どのような教材をご希望ですか？内容を入力してください。");
+      await saveTopicMessage(topic, "どのような教材をご希望ですか？内容を入力してください。");
       setPhase("materialRequest");
       return;
     }
     if (topic === "その他") {
       setMessages((prev) => [...prev, { role: "user", content: topic }]);
-      botMsg("どのようなことでしょうか？下の入力欄に自由にご記入ください。");
+      await saveTopicMessage(topic, "どのようなことでしょうか？下の入力欄に自由にご記入ください。");
       setPhase("ai");
       return;
     }
