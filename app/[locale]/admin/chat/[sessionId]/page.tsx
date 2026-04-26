@@ -10,6 +10,7 @@ export default function AdminChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const [notifying, setNotifying] = useState(false);
   const [session, setSession] = useState<{ user_email: string; status: string } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -55,13 +56,25 @@ export default function AdminChatPage() {
     setSending(false);
   }
 
-  async function handleClose() {
-    if (!confirm("対応を終了しますか？ユーザーに終了メッセージが送信されます。")) return;
+  async function handleNotify() {
+    if (!confirm(`${session?.user_email} にチャット開始メールを送信しますか？`)) return;
+    setNotifying(true);
+    await fetch("/api/chat/notify-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    setNotifying(false);
+    alert("メールを送信しました。");
+  }
+
+  async function handleComplete() {
+    if (!confirm("対応を完了しますか？ユーザーにお礼メッセージが送信されます。")) return;
     setSending(true);
     await fetch("/api/chat/staff-reply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, message: "担当者との対応を終了しました。またお気軽にご相談ください。", close: true }),
+      body: JSON.stringify({ sessionId, message: "ご利用ありがとうございました。またいつでもお気軽にご相談ください。" }),
     });
     await supabase.from("chat_sessions").update({ status: "done" }).eq("id", sessionId);
     setSession((s) => s ? { ...s, status: "done" } : s);
@@ -83,7 +96,25 @@ export default function AdminChatPage() {
           {session && <p style={{ fontSize: 12, margin: "4px 0 0", opacity: 0.85 }}>ユーザー: {session.user_email} · ステータス: {session.status}</p>}
         </div>
 
-        <div style={{ height: 420, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
+        {/* アクションボタン */}
+        <div style={{ padding: "12px 20px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 10 }}>
+          <button
+            onClick={handleNotify}
+            disabled={notifying}
+            style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "1.5px solid #9b6ed4", background: "white", color: "#9b6ed4", fontWeight: 700, cursor: "pointer", fontSize: 13 }}
+          >
+            {notifying ? "送信中..." : "📧 チャット開始メールを送る"}
+          </button>
+          <button
+            onClick={handleComplete}
+            disabled={sending || session?.status === "done"}
+            style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", background: session?.status === "done" ? "#e5e5e5" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: session?.status === "done" ? "#bbb" : "white", fontWeight: 700, cursor: session?.status === "done" ? "default" : "pointer", fontSize: 13 }}
+          >
+            {session?.status === "done" ? "対応完了済み" : "✅ 対応完了"}
+          </button>
+        </div>
+
+        <div style={{ height: 380, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 12 }}>
           {messages.map((m) => (
             <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
               <span style={{ fontSize: 10, color: "#bbb", marginBottom: 2 }}>{roleLabel[m.role] ?? m.role}</span>
@@ -105,37 +136,22 @@ export default function AdminChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        <div style={{ padding: "12px 20px 20px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 8 }}>
-          <div style={{ display: "flex", gap: 10 }}>
-            <textarea
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-              placeholder={session?.status === "done" ? "対応終了済み" : "返信を入力..."}
-              disabled={session?.status === "done"}
-              rows={3}
-              style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", background: session?.status === "done" ? "#f5f5f5" : "white" }}
-            />
-            <button
-              onClick={handleSend}
-              disabled={sending || session?.status === "done"}
-              style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: session?.status === "done" ? "#e5e5e5" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: session?.status === "done" ? "#bbb" : "white", fontWeight: 700, cursor: session?.status === "done" ? "default" : "pointer", fontSize: 13, alignSelf: "flex-end" }}
-            >
-              {sending ? "送信中" : "送信"}
-            </button>
-          </div>
-          {session?.status !== "done" && (
-            <button
-              onClick={handleClose}
-              disabled={sending}
-              style={{ padding: "9px 0", borderRadius: 12, border: "1.5px solid #f43f5e", background: "white", color: "#f43f5e", fontWeight: 700, cursor: "pointer", fontSize: 13 }}
-            >
-              ✅ 対応終了
-            </button>
-          )}
-          {session?.status === "done" && (
-            <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", margin: 0 }}>この対応は終了しました</p>
-          )}
+        <div style={{ padding: "12px 20px 20px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 10 }}>
+          <textarea
+            value={reply}
+            onChange={(e) => setReply(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            placeholder="返信を入力..."
+            rows={3}
+            style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none" }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending}
+            style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13, alignSelf: "flex-end" }}
+          >
+            {sending ? "送信中" : "送信"}
+          </button>
         </div>
       </div>
     </div>
