@@ -51,9 +51,12 @@ export default function ChatResumePage() {
         <AuthModal
           initialMode="login"
           reason="chat"
-          onClose={() => { window.location.href = `/${locale}`; }}
+          onClose={() => {}}
           onLoggedIn={() => loadChat()}
         />
+        <div style={{ position: "fixed", top: 16, left: 16, zIndex: 10000 }}>
+          <button onClick={() => { window.location.href = `/${locale}`; }} style={{ background: "none", border: "none", color: "#9b6ed4", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>← トップへ戻る</button>
+        </div>
       </div>
     );
   }
