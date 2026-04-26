@@ -50,6 +50,7 @@ export default function MobileHome() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+  const [userId, setUserId] = useState("");
   const [favIds, setFavIds] = useState<string[]>([]);
   const [favIdsLoaded, setFavIdsLoaded] = useState(false);
   const [dlIds, setDlIds] = useState<string[]>([]);
@@ -68,6 +69,7 @@ export default function MobileHome() {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
+        setUserId(session.user.id);
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) {
@@ -302,6 +304,7 @@ export default function MobileHome() {
                 favIds={effectiveFavIds}
                 dlIds={dlIds}
                 favIdsLoaded={favIdsLoaded}
+                userId={userId}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
                 purchasedIds={purchasedIds}

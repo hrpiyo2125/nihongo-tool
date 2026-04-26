@@ -180,6 +180,7 @@ const methodItems = [
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [userName, setUserName] = useState("ゲスト");
   const [userEmail, setUserEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
@@ -290,6 +291,7 @@ const methodItems = [
       if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
       }
       if (session?.user?.email) {
+        setUserId(session.user.id);
         setUserEmail(session.user.email);
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
@@ -519,6 +521,7 @@ if (isMobile) return <MobileHome />;
                 favIds={effectiveFavIds}
                 dlIds={topDlIds}
                 favIdsLoaded={topFavIdsLoaded}
+                userId={userId}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
                 purchasedIds={purchasedIds}

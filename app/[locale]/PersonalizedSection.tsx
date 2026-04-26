@@ -4,6 +4,9 @@ import MaterialCard from "./MaterialCard";
 import { getCardStyle, planRank } from "../../lib/materialUtils";
 import PlanModal from "../../components/PlanModal";
 
+const CACHE_DAYS = 7;
+const CACHE_KEY_PREFIX = "toolio_recs_";
+
 type Material = {
   id: string;
   title: string;
@@ -26,11 +29,18 @@ type Material = {
   tagColor?: string;
 };
 
+type CacheEntry = {
+  ids: string[];
+  computedAt: number;
+  userPlan: string;
+};
+
 type Props = {
   materials: Material[];
   favIds: string[];
   dlIds: string[];
   favIdsLoaded: boolean;
+  userId: string;
   userPlan: string;
   isLoggedIn: boolean;
   purchasedIds: string[];
@@ -51,7 +61,6 @@ function pickPersonalized(
   const historyIds = new Set([...favIds, ...dlIds]);
   const historyMats = materials.filter((m) => historyIds.has(m.id));
 
-  // Count content/method affinities from user's history
   const contentFreq: Record<string, number> = {};
   const methodFreq: Record<string, number> = {};
   for (const mat of historyMats) {
@@ -75,8 +84,6 @@ function pickPersonalized(
   const accessible = scored.filter((s) => s.accessible).map((s) => s.mat);
   const needUpgrade = scored.filter((s) => !s.accessible).map((s) => s.mat);
 
-  // Target: 4 accessible + 4 requiring upgrade (50/50)
-  // If no upgrade materials exist (e.g. premium user), fill with accessible
   const accessiblePick = accessible.slice(0, 4);
   const upgradePick = needUpgrade.slice(0, 4);
 
@@ -89,7 +96,6 @@ function pickPersonalized(
 
   if (result.length > 0) return result.slice(0, 8);
 
-  // Fallback: 50/50 split from all materials (e.g. no history, or all materials already seen)
   const allAccessible = materials
     .filter((m) => (planRank[m.requiredPlan] ?? 0) <= userRank)
     .sort((a, b) => a.id.localeCompare(b.id))
@@ -107,11 +113,47 @@ function pickPersonalized(
   return fallback.slice(0, 8);
 }
 
+function loadCache(userId: string, userPlan: string): string[] | null {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY_PREFIX + userId);
+    if (!raw) return null;
+    const entry: CacheEntry = JSON.parse(raw);
+    if (entry.userPlan !== userPlan) return null;
+    const ageMs = Date.now() - entry.computedAt;
+    if (ageMs > CACHE_DAYS * 24 * 60 * 60 * 1000) return null;
+    return entry.ids;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(userId: string, mats: Material[], userPlan: string) {
+  try {
+    const entry: CacheEntry = {
+      ids: mats.map((m) => m.id),
+      computedAt: Date.now(),
+      userPlan,
+    };
+    localStorage.setItem(CACHE_KEY_PREFIX + userId, JSON.stringify(entry));
+  } catch {
+    // localStorage unavailable (e.g. private browsing storage full)
+  }
+}
+
+function clearCache(userId: string) {
+  try {
+    localStorage.removeItem(CACHE_KEY_PREFIX + userId);
+  } catch {
+    // ignore
+  }
+}
+
 export default function PersonalizedSection({
   materials,
   favIds,
   dlIds,
   favIdsLoaded,
+  userId,
   userPlan,
   isLoggedIn,
   purchasedIds,
@@ -127,26 +169,44 @@ export default function PersonalizedSection({
   const isFreeUser = !userPlan || userPlan === "free";
   const isPaidUser = !isFreeUser;
 
-  // Compute once when both materials and favIds are ready.
-  // After that, never recompute from fav/unfav actions — only recompute on plan change.
-  const computedPlanRef = useRef<string | null>(null);
+  const computedRef = useRef(false);
+
+  function computeAndCache(force = false) {
+    if (!userId || materials.length === 0) return;
+
+    if (!force) {
+      const cachedIds = loadCache(userId, userPlan);
+      if (cachedIds) {
+        const resolved = cachedIds
+          .map((id) => materials.find((m) => m.id === id))
+          .filter((m): m is Material => m !== undefined);
+        if (resolved.length > 0) {
+          setPersonalizedMats(resolved);
+          return;
+        }
+      }
+    }
+
+    const fresh = pickPersonalized(materials, favIds, dlIds, userPlan);
+    saveCache(userId, fresh, userPlan);
+    setPersonalizedMats(fresh);
+  }
 
   useEffect(() => {
-    if (!isPaidUser || materials.length === 0 || !favIdsLoaded) {
+    if (!isPaidUser || materials.length === 0 || !favIdsLoaded || !userId) {
       if (!isPaidUser) {
         setPersonalizedMats([]);
-        computedPlanRef.current = null;
+        computedRef.current = false;
       }
       return;
     }
-    if (computedPlanRef.current === userPlan) return;
-    computedPlanRef.current = userPlan;
-    setPersonalizedMats(pickPersonalized(materials, favIds, dlIds, userPlan));
-  // favIds/dlIds intentionally excluded: we snapshot them at first compute only
+    if (computedRef.current) return;
+    computedRef.current = true;
+    computeAndCache(false);
+  // favIds/dlIds intentionally excluded: snapshotted at first compute only
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [materials, userPlan, isPaidUser, favIdsLoaded]);
+  }, [materials, userPlan, isPaidUser, favIdsLoaded, userId]);
 
-  // Don't show if not logged in
   if (!isLoggedIn) return null;
 
   return (
@@ -156,10 +216,31 @@ export default function PersonalizedSection({
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0 }} />
           <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>あなたへのおすすめ</span>
           <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: "#bbb", marginLeft: 4 }}>Recommended for you</span>
+          {isPaidUser && personalizedMats.length > 0 && (
+            <button
+              onClick={() => {
+                clearCache(userId);
+                computedRef.current = false;
+                computeAndCache(true);
+              }}
+              style={{
+                marginLeft: "auto",
+                fontSize: 12,
+                color: "#b48be8",
+                background: "none",
+                border: "0.5px solid #e0d0f8",
+                borderRadius: 999,
+                padding: "3px 12px",
+                cursor: "pointer",
+                fontWeight: 600,
+              }}
+            >
+              更新する
+            </button>
+          )}
         </div>
 
         {isFreeUser ? (
-          // Free user: show locked state
           <div style={{
             border: "0.5px solid #eee",
             borderRadius: 14,
