@@ -49,19 +49,20 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setAuthUser(user ?? null);
+      console.log("[ChatWidget] init: user=", user?.id, "initialSessionId=", initialSessionId);
 
       if (!user) {
-        // メールリンク経由のsessionIdをログイン後も復元できるよう保存
         if (initialSessionId) {
           sessionStorage.setItem(PENDING_SESSION_KEY, initialSessionId);
         }
+        console.log("[ChatWidget] not logged in, pending=", sessionStorage.getItem(PENDING_SESSION_KEY));
         setPhase("requireLogin");
         return;
       }
 
-      // ログイン後: propまたはsessionStorageのpending IDを使って履歴復元
       const pendingSessionId = initialSessionId ?? sessionStorage.getItem(PENDING_SESSION_KEY) ?? undefined;
       sessionStorage.removeItem(PENDING_SESSION_KEY);
+      console.log("[ChatWidget] logged in, pendingSessionId=", pendingSessionId);
 
       if (pendingSessionId) {
         await loadMessages(pendingSessionId);
@@ -150,8 +151,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   async function loadMessages(sid: string) {
     try {
-      // service role経由でRLSをバイパスして読み込み
+      console.log("[ChatWidget] loadMessages: fetching sid=", sid);
       const res = await fetch(`/api/chat/session?sessionId=${sid}`);
+      console.log("[ChatWidget] loadMessages: status=", res.status);
       if (!res.ok) {
         sessionStorage.removeItem(SESSION_KEY);
         sessionStorage.removeItem(MESSAGES_KEY);
@@ -161,6 +163,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }
       const json = await res.json();
       const { status, messages: data } = json;
+      console.log("[ChatWidget] loadMessages: session status=", status, "messages count=", data?.length);
 
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
