@@ -30,7 +30,8 @@ type Material = {
 };
 
 type CacheEntry = {
-  ids: string[];
+  allIds: string[];  // full ranked candidate list
+  page: number;      // which batch of 4 is currently shown
   computedAt: number;
   userPlan: string;
 };
@@ -51,7 +52,8 @@ type Props = {
   columns?: number;
 };
 
-function pickPersonalized(
+// Returns all candidates ranked by affinity (not sliced to 4)
+function rankCandidates(
   materials: Material[],
   favIds: string[],
   dlIds: string[],
@@ -70,28 +72,30 @@ function pickPersonalized(
 
   const candidates = materials.filter((m) => !historyIds.has(m.id));
 
+  if (candidates.length === 0) {
+    // Fallback: all materials sorted by id
+    return [...materials].sort((a, b) => a.id.localeCompare(b.id));
+  }
+
   const scored = candidates.map((mat) => {
     let score = 0;
     for (const c of mat.content) score += (contentFreq[c] ?? 0) * 2;
     for (const m of mat.method) score += (methodFreq[m] ?? 0);
-    const matRank = planRank[mat.requiredPlan] ?? 0;
-    const accessible = matRank <= userRank;
-    return { mat, score, accessible };
+    return { mat, score };
   });
 
   scored.sort((a, b) => b.score - a.score || a.mat.id.localeCompare(b.mat.id));
-
-  const sorted = scored.map((s) => s.mat);
-
-  if (sorted.length >= 4) return sorted.slice(0, 4);
-
-  // Fallback when history is empty or all materials already seen
-  return materials
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .slice(0, 4);
+  return scored.map((s) => s.mat);
 }
 
-function loadCache(userId: string, userPlan: string): string[] | null {
+function pageOf(allMats: Material[], page: number): Material[] {
+  const total = allMats.length;
+  if (total === 0) return [];
+  const safePage = page % Math.ceil(total / 4);
+  return allMats.slice(safePage * 4, safePage * 4 + 4);
+}
+
+function loadCache(userId: string, userPlan: string): CacheEntry | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY_PREFIX + userId);
     if (!raw) return null;
@@ -99,22 +103,23 @@ function loadCache(userId: string, userPlan: string): string[] | null {
     if (entry.userPlan !== userPlan) return null;
     const ageMs = Date.now() - entry.computedAt;
     if (ageMs > CACHE_DAYS * 24 * 60 * 60 * 1000) return null;
-    return entry.ids;
+    return entry;
   } catch {
     return null;
   }
 }
 
-function saveCache(userId: string, mats: Material[], userPlan: string) {
+function saveCache(userId: string, allMats: Material[], page: number, userPlan: string) {
   try {
     const entry: CacheEntry = {
-      ids: mats.map((m) => m.id),
+      allIds: allMats.map((m) => m.id),
+      page,
       computedAt: Date.now(),
       userPlan,
     };
     localStorage.setItem(CACHE_KEY_PREFIX + userId, JSON.stringify(entry));
   } catch {
-    // localStorage unavailable (e.g. private browsing storage full)
+    // localStorage unavailable
   }
 }
 
@@ -143,31 +148,52 @@ export default function PersonalizedSection({
 }: Props) {
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [personalizedMats, setPersonalizedMats] = useState<Material[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
 
   const isFreeUser = !userPlan || userPlan === "free";
   const isPaidUser = !isFreeUser;
 
   const computedRef = useRef(false);
 
-  function computeAndCache(force = false) {
+  function computeAndCache(nextPage?: number) {
     if (!userId || materials.length === 0) return;
 
-    if (!force) {
-      const cachedIds = loadCache(userId, userPlan);
-      if (cachedIds) {
-        const resolved = cachedIds
+    if (nextPage === undefined) {
+      // Initial load: try cache first
+      const cached = loadCache(userId, userPlan);
+      if (cached) {
+        const allMats = cached.allIds
           .map((id) => materials.find((m) => m.id === id))
           .filter((m): m is Material => m !== undefined);
-        if (resolved.length > 0) {
-          setPersonalizedMats(resolved);
+        if (allMats.length > 0) {
+          setPersonalizedMats(pageOf(allMats, cached.page));
           return;
         }
       }
+      // No valid cache: compute fresh at page 0
+      const all = rankCandidates(materials, favIds, dlIds, userPlan);
+      saveCache(userId, all, 0, userPlan);
+      setPersonalizedMats(pageOf(all, 0));
+    } else {
+      // Manual refresh: advance to next page
+      const cached = loadCache(userId, userPlan);
+      let all: Material[];
+      if (cached && cached.allIds.length > 0) {
+        all = cached.allIds
+          .map((id) => materials.find((m) => m.id === id))
+          .filter((m): m is Material => m !== undefined);
+        if (all.length < 4) {
+          // allIds may have stale/deleted materials; recompute
+          all = rankCandidates(materials, favIds, dlIds, userPlan);
+        }
+      } else {
+        all = rankCandidates(materials, favIds, dlIds, userPlan);
+      }
+      const totalPages = Math.ceil(all.length / 4);
+      const page = totalPages > 1 ? nextPage % totalPages : 0;
+      saveCache(userId, all, page, userPlan);
+      setPersonalizedMats(pageOf(all, page));
     }
-
-    const fresh = pickPersonalized(materials, favIds, dlIds, userPlan);
-    saveCache(userId, fresh, userPlan);
-    setPersonalizedMats(fresh);
   }
 
   useEffect(() => {
@@ -180,7 +206,7 @@ export default function PersonalizedSection({
     }
     if (computedRef.current) return;
     computedRef.current = true;
-    computeAndCache(false);
+    computeAndCache();
   // favIds/dlIds intentionally excluded: snapshotted at first compute only
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [materials, userPlan, isPaidUser, favIdsLoaded, userId]);
@@ -197,9 +223,9 @@ export default function PersonalizedSection({
           {isPaidUser && personalizedMats.length > 0 && (
             <button
               onClick={() => {
-                clearCache(userId);
-                computedRef.current = false;
-                computeAndCache(true);
+                const next = currentPage + 1;
+                setCurrentPage(next);
+                computeAndCache(next);
               }}
               style={{
                 marginLeft: "auto",
