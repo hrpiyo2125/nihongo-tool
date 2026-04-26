@@ -37,7 +37,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createClient();
 
-  // 初期化：ログイン確認 → アクティブセッション検索
+  const SESSION_KEY = "chat_session_id";
+
   async function init() {
     setPhase("loading");
     try {
@@ -45,36 +46,21 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       if (!user) { setPhase("requireLogin"); return; }
       setAuthUser(user);
 
-      const sid = initialSessionId ?? null;
-      if (sid) {
-        setSessionId(sid);
-        await loadMessages(sid);
+      // メール通知リンク経由
+      if (initialSessionId) {
+        setSessionId(initialSessionId);
+        await loadMessages(initialSessionId);
         return;
       }
 
-      // user_idでwaitingまたはactiveなセッションを検索（24時間以内のみ）
-      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      const { data: sessions } = await supabase
-        .from("chat_sessions")
-        .select("id, status")
-        .eq("user_id", user.id)
-        .or("status.eq.waiting,status.eq.active")
-        .gte("created_at", since)
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (sessions?.[0]) {
-        // メッセージがある場合のみ継続、なければtopicへ
-        const { count } = await supabase
-          .from("chat_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("session_id", sessions[0].id);
-        if (count && count > 0) {
-          setSessionId(sessions[0].id);
-          await loadMessages(sessions[0].id);
-          return;
-        }
+      // sessionStorage に保存された前回のセッションを再開
+      const savedSessionId = sessionStorage.getItem(SESSION_KEY);
+      if (savedSessionId) {
+        setSessionId(savedSessionId);
+        await loadMessages(savedSessionId);
+        return;
       }
+
       setPhase("topic");
     } catch {
       setPhase("topic");
@@ -82,6 +68,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   useEffect(() => { init(); }, []);
+
+  // sessionIdが決まったらsessionStorageに保存
+  useEffect(() => {
+    if (sessionId) sessionStorage.setItem(SESSION_KEY, sessionId);
+  }, [sessionId]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -278,7 +269,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setPhase("waiting");
   }
 
-  function reset() {
+  function reset(clearStorage = false) {
+    if (clearStorage) sessionStorage.removeItem(SESSION_KEY);
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
@@ -420,8 +412,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
                 {phase === "done" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(); setOpen(false); }}>チャットを閉じる</button>
-                    <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={reset}>新しい質問をする</button>
+                    <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(true); setOpen(false); }}>チャットを閉じる</button>
+                    <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(true)}>新しい質問をする</button>
                   </div>
                 )}
               </>
