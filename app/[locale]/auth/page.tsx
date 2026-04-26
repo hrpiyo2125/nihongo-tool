@@ -120,7 +120,8 @@ function AuthPageInner() {
         }
         // pending_deletion は期間満了まで通常利用継続
       }
-      window.location.href = `/${locale}`;
+      const chatSession = searchParams.get("chatSession");
+      window.location.href = chatSession ? `/${locale}?chatSession=${chatSession}` : `/${locale}`;
     } else {
       const { data: signUpData, error } = await supabase.auth.signUp({
         email,

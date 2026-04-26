@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { useLocale } from "next-intl";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/components/AuthModal";
@@ -23,6 +24,7 @@ type Message = {
 type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
+  const locale = useLocale();
   const [open, setOpen] = useState(!!initialSessionId);
   const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -465,7 +467,13 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                   チャットをご利用いただくには<br />ログイン・新規登録が必要です。
                 </p>
                 <button
-                  onClick={() => setShowAuthModal(true)}
+                  onClick={() => {
+                    if (initialSessionId) {
+                      window.location.href = `/${locale}/auth?chatSession=${initialSessionId}`;
+                    } else {
+                      setShowAuthModal(true);
+                    }
+                  }}
                   style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}
                 >
                   ログイン / 新規登録
