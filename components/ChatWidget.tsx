@@ -48,7 +48,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
       // メール通知リンク経由
       if (initialSessionId) {
-        setSessionId(initialSessionId);
         await loadMessages(initialSessionId);
         return;
       }
@@ -56,7 +55,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       // sessionStorage に保存された前回のセッションを再開
       const savedSessionId = sessionStorage.getItem(SESSION_KEY);
       if (savedSessionId) {
-        setSessionId(savedSessionId);
         await loadMessages(savedSessionId);
         return;
       }
@@ -68,11 +66,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   useEffect(() => { init(); }, []);
-
-  // sessionIdが決まったらsessionStorageに保存
-  useEffect(() => {
-    if (sessionId) sessionStorage.setItem(SESSION_KEY, sessionId);
-  }, [sessionId]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -121,12 +114,15 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
       const status = sess?.status;
 
-      // セッションが存在しない・botのみ・メッセージなし → トピック選択へ
+      // セッションが存在しない・botのみ・メッセージなし → トピック選択（sessionIdはセットしない）
       if (!sess || status === "bot" || !data || data.length === 0) {
         sessionStorage.removeItem(SESSION_KEY);
         setPhase("topic");
         return;
       }
+
+      // 有効なセッションのみsessionIdをセット（これによりsessionStorageも保存される）
+      setSessionId(sid);
 
       const hasStaff = data.some((m) => m.role === "staff");
       if (hasStaff) {
