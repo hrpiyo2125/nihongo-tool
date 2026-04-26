@@ -102,14 +102,22 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       { role: "bot", content: data.reply },
     ]);
     setLoading(false);
-    setAiReplied(true); // 返答完了後にのみフラグを立てる
+    // 返答完了から1.5秒後に「解決しましたか？」を表示
+    setTimeout(() => setAiReplied(true), 1500);
   }
 
   async function handleTopic(topic: string) {
     if (topic === "教材のリクエスト") {
       setMessages((prev) => [...prev, { role: "user", content: topic }]);
-      botMsg("どのような教材をご希望ですか？内容を入力してください（15文字以上）。");
+      botMsg("どのような教材をご希望ですか？内容を入力してください。");
       setPhase("materialRequest");
+      return;
+    }
+    // 「その他」はAIに送らず入力を促す
+    if (topic === "その他") {
+      setMessages((prev) => [...prev, { role: "user", content: topic }]);
+      botMsg("どのようなことでしょうか？下の入力欄に自由にご記入ください。");
+      setPhase("ai"); // 入力バーを表示するためaiフェーズへ（aiRepliedはfalseのまま）
       return;
     }
     await askAI(topic, topic);
