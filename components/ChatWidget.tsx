@@ -23,8 +23,9 @@ type Message = {
 
 type Phase =
   | "topic"
-  | "loading"
   | "chat"
+  | "retry"
+  | "materialRequest"
   | "resolved"
   | "email"
   | "waiting"
@@ -139,6 +140,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   async function handleTopic(topic: string) {
+    // 教材リクエストは専用フロー
+    if (topic === "教材のリクエスト") {
+      setMessages((prev) => [...prev, { role: "user", content: topic }]);
+      setPhase("materialRequest");
+      addBotMsg("どのような教材をご希望ですか？内容を入力して「送信する」を押してください。");
+      return;
+    }
+
     setMessages((prev) => [...prev, { role: "user", content: topic }]);
     setPhase("chat");
     setSending(true);
@@ -160,14 +169,38 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setSending(false);
   }
 
+  async function handleMaterialRequestSend() {
+    const content = input.trim();
+    if (!content || sending) return;
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content }]);
+    setSending(true);
+
+    // セッション作成してリクエスト内容を保存
+    const res = await fetch("/api/chat/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, topic: "教材のリクエスト", userMessage: content }),
+    });
+    const data = await res.json();
+    setSessionId(data.sessionId);
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "bot", content: "リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸" },
+    ]);
+    setPhase("resolved");
+    setSending(false);
+  }
+
   async function handleResolved(yes: boolean) {
     setResolved(yes);
     if (yes) {
       addBotMsg("お役に立てて良かったです！またいつでもご相談ください。");
       setPhase("resolved");
     } else {
-      addBotMsg("解決しなかった場合は、引き続き質問するか、担当者に繋ぐこともできます。");
-      setPhase("chat");
+      addBotMsg("別のカテゴリで再度お調べするか、担当者に直接お繋ぎすることもできます。");
+      setPhase("retry");
     }
   }
 
@@ -189,11 +222,12 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setPhase("waiting");
   }
 
-  const showTopicButtons = phase === "topic";
+  const showTopicButtons = phase === "topic" || phase === "retry";
   const showResolvedButtons = phase === "chat" && resolved === null && messages.some((m) => m.role === "bot" && m.content !== "少々お待ちください...");
-  const showStaffButton = phase === "chat";
+  const showStaffButton = phase === "retry";
   const showEmailInput = phase === "email";
-  const showInput = phase !== "email" && phase !== "waiting" && phase !== "resolved";
+  const showInput = phase !== "email" && phase !== "waiting" && phase !== "resolved" && phase !== "retry" && phase !== "materialRequest";
+  const showMaterialInput = phase === "materialRequest";
 
   const primaryBtn: React.CSSProperties = {
     padding: "10px 20px",
@@ -325,12 +359,47 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             <div ref={bottomRef} />
           </div>
 
-          {/* Topic buttons (topicフェーズのみ) */}
+          {/* Topic buttons */}
           {showTopicButtons && (
             <div style={{ padding: "8px 14px", display: "flex", flexDirection: "column", gap: 6, borderTop: "0.5px solid rgba(200,170,240,0.15)", flexShrink: 0 }}>
               {TOPICS.map((t) => (
                 <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
               ))}
+              {showStaffButton && (
+                <button style={outlineBtn("#7a50b0")} onClick={handleRequestStaff}>
+                  👤 担当者に繋ぐ
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 教材リクエスト入力 */}
+          {showMaterialInput && (
+            <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
+              <textarea
+                rows={1}
+                placeholder="リクエスト内容を入力..."
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleMaterialRequestSend();
+                  }
+                }}
+                style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.5, overflow: "hidden", maxHeight: 96 }}
+              />
+              <button
+                onClick={handleMaterialRequestSend}
+                disabled={!input.trim() || sending}
+                style={{ padding: "9px 16px", borderRadius: 20, border: "none", background: input.trim() ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: input.trim() ? "white" : "#bbb", cursor: input.trim() ? "pointer" : "default", fontSize: 13, fontWeight: 700, flexShrink: 0 }}
+              >
+                送信する
+              </button>
             </div>
           )}
 
