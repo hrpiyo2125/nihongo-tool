@@ -31,10 +31,13 @@ type Message = {
 type Phase = "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "email" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
+  const storedSessionId = typeof window !== "undefined" ? sessionStorage.getItem("toolio_chat_session") : null;
+  const resolvedSessionId = initialSessionId ?? storedSessionId ?? null;
+
   const [open, setOpen] = useState(false);
-  const [phase, setPhase] = useState<Phase>(initialSessionId ? "live" : "topic");
+  const [phase, setPhase] = useState<Phase>(resolvedSessionId ? "live" : "topic");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(initialSessionId ?? null);
+  const [sessionId, setSessionId] = useState<string | null>(resolvedSessionId);
   const [email, setEmail] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -45,8 +48,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const supabase = createClient();
 
   useEffect(() => {
-    if (initialSessionId) { setOpen(true); loadMessages(initialSessionId); }
-  }, [initialSessionId]);
+    if (resolvedSessionId) { setOpen(true); loadMessages(resolvedSessionId); }
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -86,9 +89,24 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }, [sessionId, phase]);
 
   async function loadMessages(sid: string) {
+    const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
     const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
-    if (data) setMessages(data as Message[]);
-    setPhase("live");
+    if (data) {
+      // separatorを復元：staffメッセージが存在する場合は区切りを挿入
+      const hasStaff = data.some((m) => m.role === "staff");
+      if (hasStaff) {
+        const firstStaffIdx = data.findIndex((m) => m.role === "staff");
+        const withSeparator = [
+          ...data.slice(0, firstStaffIdx),
+          { role: "separator" as const, content: "ここから担当者との会話" },
+          ...data.slice(firstStaffIdx),
+        ];
+        setMessages(withSeparator as Message[]);
+      } else {
+        setMessages(data as Message[]);
+      }
+    }
+    setPhase(sess?.status === "done" ? "done" : "live");
   }
 
   function botMsg(content: string) {
@@ -118,6 +136,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     });
     const data = await res.json();
     setSessionId(data.sessionId);
+    sessionStorage.setItem("toolio_chat_session", data.sessionId);
     setMessages((prev) => [
       ...prev.filter((m) => m.content !== "少々お待ちください..."),
       { role: "bot", content: data.reply },
@@ -200,13 +219,17 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       body: JSON.stringify({ sessionId, userEmail: email }),
     });
     const data = await res.json();
-    if (data.sessionId) setSessionId(data.sessionId);
+    if (data.sessionId) {
+      setSessionId(data.sessionId);
+      sessionStorage.setItem("toolio_chat_session", data.sessionId);
+    }
     setLoading(false);
     botMsg(`ありがとうございます。${email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
     setPhase("waiting");
   }
 
   function reset() {
+    sessionStorage.removeItem("toolio_chat_session");
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
