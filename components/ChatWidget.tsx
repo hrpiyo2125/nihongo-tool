@@ -263,7 +263,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   async function handleMaterialSend() {
     const content = input.trim();
     if (!content || loading) return;
-    clearInput();
     setLoading(true);
 
     await fetch("/api/chat/message", {
@@ -281,6 +280,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setMessages((prev) => [...prev, { role: "user", content }]);
     botMsg("リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸");
     setPhase("done");
+    clearInput();
     setLoading(false);
   }
 
