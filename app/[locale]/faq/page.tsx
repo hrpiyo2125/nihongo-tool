@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link";
 
 type FAQ = { q: string; a: string };
@@ -17,7 +18,7 @@ const categories: Category[] = [
     faqs: [
       { q: "アカウント登録は必要ですか？", a: "一部の教材は登録なしでご覧いただけますが、ダウンロード・お気に入り保存などの機能にはアカウント登録（無料）が必要です。メールアドレスだけで簡単に登録できます。" },
       { q: "登録に費用はかかりますか？", a: "無料アカウントの登録は完全無料です。有料のサブスクリプションプランへの加入は任意です。" },
-      { q: "アカウントを削除したい場合はどうすればいいですか？", a: "マイページのアカウント設定、またはsupport@nihongo-tool.comまでご連絡ください。削除の際、保存したお気に入りやダウンロード履歴はすべて削除されます。" },
+      { q: "アカウントを削除したい場合はどうすればいいですか？", a: "マイページのアカウント設定から削除できます。削除の際、保存したお気に入りやダウンロード履歴はすべて削除されます。ご不明な点はチャットよりお問い合わせください。" },
     ],
   },
   {
@@ -34,7 +35,7 @@ const categories: Category[] = [
     faqs: [
       { q: "サブスクリプションプランの違いは何ですか？", a: "無料プランでは一部の教材をご利用いただけます。ライトプラン（月額500円）では単品購入・ライト教材が利用可能になります。スタンダードプラン（月額980円）ではスタンダード教材まで、プレミアムプラン（月額1,480円）では全教材・全機能がご利用いただけます。" },
       { q: "いつでも無料プランに変更できますか？", a: "はい、いつでもマイページから無料プランに変更できます。変更後も次回更新日までは引き続きサービスをご利用いただけます。" },
-      { q: "返金はできますか？", a: "サービスの性質上、原則として返金はいたしかねます。ご不明な点は事前にsupport@nihongo-tool.comまでお問い合わせください。" },
+      { q: "返金はできますか？", a: "サービスの性質上、原則として返金はいたしかねます。ご不明な点は事前にチャットよりお問い合わせください。" },
     ],
   },
   {
@@ -82,13 +83,13 @@ export default function FAQPage() {
 
         <div style={{ marginTop: 40, background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px", textAlign: "center" }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 8 }}>解決しない場合はお気軽にご連絡ください</div>
-          <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>お問い合わせフォームからご連絡いただくと、通常2〜3営業日以内にご返信します。</div>
-          <a
-            href="mailto:support@nihongo-tool.com"
-            style={{ display: "inline-block", fontSize: 13, padding: "10px 32px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", textDecoration: "none", fontWeight: 700 }}
+          <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>画面右下のチャットからお気軽にご連絡ください。</div>
+          <button
+            onClick={() => { (window as any).$crisp?.push(['do', 'chat:open']) }}
+            style={{ display: "inline-block", fontSize: 13, padding: "10px 32px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", border: "none", cursor: "pointer", fontWeight: 700 }}
           >
-            お問い合わせする →
-          </a>
+            チャットで問い合わせる →
+          </button>
         </div>
       </div>
     </div>
