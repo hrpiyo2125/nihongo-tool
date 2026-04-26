@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase";
+import AuthModal from "@/components/AuthModal";
 
 type Message = { id?: string; role: string; content: string };
 
@@ -13,10 +14,6 @@ export default function ChatResumePage() {
   const [phase, setPhase] = useState<"loading" | "login" | "chat">("loading");
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionStatus, setSessionStatus] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [loggingIn, setLoggingIn] = useState(false);
 
   const supabase = createClient();
 
@@ -40,19 +37,6 @@ export default function ChatResumePage() {
 
   useEffect(() => { checkAuth(); }, []);
 
-  async function handleLogin(e: React.FormEvent) {
-    e.preventDefault();
-    setLoginError("");
-    setLoggingIn(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      setLoginError("メールアドレスまたはパスワードが間違っています");
-      setLoggingIn(false);
-      return;
-    }
-    await loadChat();
-  }
-
   if (phase === "loading") {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)" }}>
@@ -63,36 +47,13 @@ export default function ChatResumePage() {
 
   if (phase === "login") {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)", padding: "24px 16px", fontFamily: "'Hiragino Sans','Yu Gothic',sans-serif" }}>
-        <div style={{ width: "100%", maxWidth: 400, background: "white", borderRadius: 20, padding: "40px 32px", boxShadow: "0 8px 32px rgba(155,110,212,0.15)" }}>
-          <div style={{ fontSize: 32, textAlign: "center", marginBottom: 12 }}>💬</div>
-          <h2 style={{ textAlign: "center", fontSize: 18, fontWeight: 800, color: "#7a50b0", marginBottom: 8 }}>チャットを再開する</h2>
-          <p style={{ textAlign: "center", fontSize: 13, color: "#999", marginBottom: 28 }}>ログインしてチャット履歴を確認してください</p>
-          <form onSubmit={handleLogin}>
-            <input
-              type="email"
-              placeholder="メールアドレス"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              style={{ width: "100%", height: 44, borderRadius: 10, border: "1px solid #ddd", padding: "0 14px", fontSize: 13, marginBottom: 10, boxSizing: "border-box" as const }}
-            />
-            <input
-              type="password"
-              placeholder="パスワード"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              style={{ width: "100%", height: 44, borderRadius: 10, border: "1px solid #ddd", padding: "0 14px", fontSize: 13, marginBottom: 10, boxSizing: "border-box" as const }}
-            />
-            {loginError && <p style={{ fontSize: 12, color: "#e05", marginBottom: 10 }}>{loginError}</p>}
-            <button
-              type="submit"
-              disabled={loggingIn}
-              style={{ width: "100%", height: 46, borderRadius: 23, border: "none", background: loggingIn ? "#ddd" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 14, cursor: loggingIn ? "default" : "pointer" }}
-            >
-              {loggingIn ? "ログイン中..." : "ログインしてチャットを見る"}
-            </button>
-          </form>
-        </div>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)" }}>
+        <AuthModal
+          initialMode="login"
+          reason="chat"
+          onClose={() => { window.location.href = `/${locale}`; }}
+          onLoggedIn={() => loadChat()}
+        />
       </div>
     );
   }
