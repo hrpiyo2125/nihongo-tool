@@ -99,11 +99,13 @@ function loadCache(userId: string, userPlan: string): CacheEntry | null {
   try {
     const raw = localStorage.getItem(CACHE_KEY_PREFIX + userId);
     if (!raw) return null;
-    const entry: CacheEntry = JSON.parse(raw);
+    const entry = JSON.parse(raw);
     if (entry.userPlan !== userPlan) return null;
     const ageMs = Date.now() - entry.computedAt;
     if (ageMs > CACHE_DAYS * 24 * 60 * 60 * 1000) return null;
-    return entry;
+    // Old cache format used 'ids' instead of 'allIds' — treat as invalid
+    if (!Array.isArray(entry.allIds)) return null;
+    return entry as CacheEntry;
   } catch {
     return null;
   }
