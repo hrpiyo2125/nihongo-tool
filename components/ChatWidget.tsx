@@ -104,8 +104,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       { role: "bot", content: data.reply },
     ]);
     setLoading(false);
-    // 自由入力の返答のみ、1.5秒後に「解決しましたか？」を表示
-    if (isFreeText) setTimeout(() => setAiReplied(true), 1500);
+    setTimeout(() => setAiReplied(true), 1500);
   }
 
   async function handleTopic(topic: string) {
