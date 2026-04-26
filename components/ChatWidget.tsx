@@ -280,13 +280,31 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!content || loading) return;
     clearInput();
 
-    if (phase === "live" || phase === "waiting") {
+    if (phase === "live") {
       setMessages((prev) => [...prev, { role: "user", content }]);
       await fetch("/api/chat/live-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, userMessage: content }),
       });
+      return;
+    }
+
+    if (phase === "waiting") {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      setLoading(true);
+      setMessages((prev) => [...prev, { role: "bot", content: "少々お待ちください..." }]);
+      const res = await fetch("/api/chat/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, topic: "その他", userMessage: content, userId: authUser?.id, userEmail: authUser?.email }),
+      });
+      const data = await res.json();
+      setMessages((prev) => [
+        ...prev.filter((m) => m.content !== "少々お待ちください..."),
+        { role: "bot", content: data.reply },
+      ]);
+      setLoading(false);
       return;
     }
 
@@ -491,6 +509,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                       setPhase("retry");
                     }}>💬 AIチャットに戻る</button>
                   </div>
+                )}
+
+                {phase === "waiting" && (
+                  <>
+                    <style>{`@keyframes toolio-pulse{0%,100%{opacity:1}50%{opacity:0.45}}`}</style>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 12, background: "#f5f0ff", border: "1.5px solid #c4a0f5", animation: "toolio-pulse 2s ease-in-out infinite" }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#9b6ed4", flexShrink: 0 }} />
+                      <span style={{ fontSize: 12, color: "#7a50b0", fontWeight: 600 }}>担当者への接続を予約済み — 引き続き質問できます</span>
+                    </div>
+                  </>
                 )}
 
                 {phase === "retry" && (
