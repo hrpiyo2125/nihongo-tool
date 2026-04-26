@@ -11,6 +11,16 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "toolio <noreply@nihongo-tool.com>";
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nihongo-tool.com";
 
+const CORS_HEADERS = {
+  "Access-Control-Allow-Origin": "https://admin.nihongo-tool.com",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function POST(req: NextRequest) {
   const { sessionId, message } = await req.json();
 
@@ -20,7 +30,7 @@ export async function POST(req: NextRequest) {
     .eq("id", sessionId)
     .single();
 
-  if (!session) return NextResponse.json({ error: "session not found" }, { status: 404 });
+  if (!session) return NextResponse.json({ error: "session not found" }, { status: 404, headers: CORS_HEADERS });
 
   await supabase.from("chat_messages").insert({
     session_id: sessionId,
@@ -49,5 +59,5 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true }, { headers: CORS_HEADERS });
 }

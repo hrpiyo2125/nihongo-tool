@@ -10,7 +10,7 @@ const supabase = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = "toolio <noreply@nihongo-tool.com>";
 const ADMIN_EMAIL = "support@nihongo-tool.com";
-const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://nihongo-tool.com";
+const ADMIN_SITE_URL = process.env.ADMIN_SITE_URL ?? "https://admin.nihongo-tool.com";
 
 export async function POST(req: NextRequest) {
   const { sessionId, userEmail } = await req.json();
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     content: `担当者への連絡を受け付けました。${userEmail} にご連絡します。チャットを閉じても大丈夫です。`,
   });
 
-  const adminUrl = `${BASE_URL}/ja/admin/chat/${sessionId}`;
+  const adminUrl = `${ADMIN_SITE_URL}/chat/${sessionId}`;
 
   await resend.emails.send({
     from: FROM,
