@@ -255,16 +255,32 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="チャットを開く"
-        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}
+        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
-        {open ? "✕" : "💬"}
+        {open ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        ) : (
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <path d="M8 10h8M8 14h5" strokeWidth="1.6"/>
+          </svg>
+        )}
       </button>
 
       {open && (
         <div style={{ position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }}>
 
-          <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "14px 20px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
-            toolio サポート
+          <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "12px 16px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/toolio_logo.png" alt="toolio" style={{ width: 22, height: 22, objectFit: "contain" }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>toolio サポート</div>
+              <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.9, letterSpacing: 0.3 }}>お気軽にご相談ください</div>
+            </div>
           </div>
 
           {/* メッセージエリア */}
@@ -432,10 +448,23 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 function Bubble({ role, children }: { role: Message["role"]; children: React.ReactNode }) {
   const isUser = role === "user";
   const isStaff = role === "staff";
+  const isBot = role === "bot";
   return (
-    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start" }}>
+    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 6 }}>
+      {!isUser && (
+        <div style={{ width: 26, height: 26, borderRadius: "50%", background: isStaff ? "linear-gradient(135deg,#a3c0ff,#7aadff)" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 2 }}>
+          {isStaff ? (
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          ) : (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img src="/toolio_logo.png" alt="toolio" style={{ width: 16, height: 16, objectFit: "contain" }} />
+          )}
+        </div>
+      )}
       <div style={{
-        maxWidth: "82%", padding: "9px 13px",
+        maxWidth: "78%", padding: "9px 13px",
         borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
         background: isUser ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : isStaff ? "#f0f7ff" : "#f5f0ff",
         color: isUser ? "white" : "#333", fontSize: 13, lineHeight: 1.6,
