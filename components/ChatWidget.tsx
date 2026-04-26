@@ -194,20 +194,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     });
   }
 
-  async function ensureSessionAndSaveUserMsg(content: string) {
-    if (sessionId) {
-      saveUserMsg(content);
-      return;
-    }
-    // セッション未作成の場合、新規セッションを作ってユーザーメッセージを保存
-    const res = await fetch("/api/chat/message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic: "その他", userMessage: content, userId: authUser?.id, userEmail: authUser?.email }),
-    });
-    const d = await res.json();
-    if (d.sessionId) setSessionId(d.sessionId);
-  }
 
   function clearInput() {
     flushSync(() => setInput(""));
@@ -280,7 +266,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      ensureSessionAndSaveUserMsg(content);
+      saveUserMsg(content);
       botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
       setPhase("staffConfirm");
       return;
