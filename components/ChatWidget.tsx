@@ -52,21 +52,30 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         return;
       }
 
-      // user_idでwaitingまたはactiveなセッションを検索
+      // user_idでwaitingまたはactiveなセッションを検索（24時間以内のみ）
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { data: sessions } = await supabase
         .from("chat_sessions")
         .select("id, status")
         .eq("user_id", user.id)
         .or("status.eq.waiting,status.eq.active")
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(1);
 
       if (sessions?.[0]) {
-        setSessionId(sessions[0].id);
-        await loadMessages(sessions[0].id);
-      } else {
-        setPhase("topic");
+        // メッセージがある場合のみ継続、なければtopicへ
+        const { count } = await supabase
+          .from("chat_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("session_id", sessions[0].id);
+        if (count && count > 0) {
+          setSessionId(sessions[0].id);
+          await loadMessages(sessions[0].id);
+          return;
+        }
       }
+      setPhase("topic");
     } catch {
       setPhase("topic");
     }
