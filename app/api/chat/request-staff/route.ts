@@ -30,12 +30,6 @@ export async function POST(req: NextRequest) {
       .eq("id", sid);
   }
 
-  await supabase.from("chat_messages").insert({
-    session_id: sid,
-    role: "bot",
-    content: `担当者への連絡を受け付けました。${userEmail} にご連絡します。チャットを閉じても大丈夫です。`,
-  });
-
   const adminUrl = `${ADMIN_SITE_URL}/chat/${sid}`;
 
   await resend.emails.send({
