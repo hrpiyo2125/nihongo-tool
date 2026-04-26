@@ -64,12 +64,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         setMessages((prev) => {
           if (prev.some((m) => m.id === msg.id)) return prev;
           if (msg.role === "staff") {
-            setPhase((cur) => {
-              if (cur === "waiting") {
-                return "live";
-              }
-              return cur;
-            });
+            setPhase((cur) => cur === "waiting" ? "live" : cur);
             const withSeparator = prev.some((m) => m.role === "separator")
               ? prev
               : [...prev, { role: "separator" as const, content: "ここから担当者との会話" }];
@@ -77,6 +72,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
           }
           return [...prev, { id: msg.id, role: msg.role as Message["role"], content: msg.content }];
         });
+      })
+      .on("postgres_changes", {
+        event: "UPDATE", schema: "public", table: "chat_sessions",
+        filter: `id=eq.${sessionId}`,
+      }, (payload) => {
+        if (payload.new.status === "done") {
+          setPhase("done");
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };

@@ -38,12 +38,15 @@ export async function POST(req: NextRequest) {
     content: message,
   });
 
+  const isFirstReply = session.status === "waiting";
+
   await supabase
     .from("chat_sessions")
     .update({ status: "active" })
     .eq("id", sessionId);
 
-  if (session.user_email) {
+  // 初回返信時のみメール通知
+  if (isFirstReply && session.user_email) {
     const chatUrl = `${BASE_URL}/ja/chat/${sessionId}`;
     await resend.emails.send({
       from: FROM,

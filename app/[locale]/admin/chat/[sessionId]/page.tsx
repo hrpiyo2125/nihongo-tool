@@ -55,6 +55,19 @@ export default function AdminChatPage() {
     setSending(false);
   }
 
+  async function handleClose() {
+    if (!confirm("対応を終了しますか？ユーザーに終了メッセージが送信されます。")) return;
+    setSending(true);
+    await fetch("/api/chat/staff-reply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId, message: "担当者との対応を終了しました。またお気軽にご相談ください。", close: true }),
+    });
+    await supabase.from("chat_sessions").update({ status: "done" }).eq("id", sessionId);
+    setSession((s) => s ? { ...s, status: "done" } : s);
+    setSending(false);
+  }
+
   const roleLabel: Record<string, string> = { bot: "Bot", user: "ユーザー", staff: "担当者（あなた）" };
   const roleBg: Record<string, string> = {
     bot: "#f5f0ff",
@@ -92,22 +105,37 @@ export default function AdminChatPage() {
           <div ref={bottomRef} />
         </div>
 
-        <div style={{ padding: "12px 20px 20px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 10 }}>
-          <textarea
-            value={reply}
-            onChange={(e) => setReply(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="返信を入力..."
-            rows={3}
-            style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none" }}
-          />
-          <button
-            onClick={handleSend}
-            disabled={sending}
-            style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13, alignSelf: "flex-end" }}
-          >
-            {sending ? "送信中" : "送信"}
-          </button>
+        <div style={{ padding: "12px 20px 20px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", gap: 10 }}>
+            <textarea
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+              placeholder={session?.status === "done" ? "対応終了済み" : "返信を入力..."}
+              disabled={session?.status === "done"}
+              rows={3}
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", background: session?.status === "done" ? "#f5f5f5" : "white" }}
+            />
+            <button
+              onClick={handleSend}
+              disabled={sending || session?.status === "done"}
+              style={{ padding: "10px 20px", borderRadius: 12, border: "none", background: session?.status === "done" ? "#e5e5e5" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: session?.status === "done" ? "#bbb" : "white", fontWeight: 700, cursor: session?.status === "done" ? "default" : "pointer", fontSize: 13, alignSelf: "flex-end" }}
+            >
+              {sending ? "送信中" : "送信"}
+            </button>
+          </div>
+          {session?.status !== "done" && (
+            <button
+              onClick={handleClose}
+              disabled={sending}
+              style={{ padding: "9px 0", borderRadius: 12, border: "1.5px solid #f43f5e", background: "white", color: "#f43f5e", fontWeight: 700, cursor: "pointer", fontSize: 13 }}
+            >
+              ✅ 対応終了
+            </button>
+          )}
+          {session?.status === "done" && (
+            <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", margin: 0 }}>この対応は終了しました</p>
+          )}
         </div>
       </div>
     </div>
