@@ -80,10 +80,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   function clearInput() {
     setInput("");
-    if (inputRef.current) {
-      inputRef.current.value = "";
-      inputRef.current.style.height = "auto";
-    }
+    if (inputRef.current) inputRef.current.style.height = "auto";
   }
 
   async function askAI(topic: string, userMessage: string) {
@@ -140,9 +137,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   async function handleMaterialSend() {
     const content = input.trim();
-    if (content.length < 15 || loading) return;
-    clearInput();
-    setMessages((prev) => [...prev, { role: "user", content }]);
+    if (!content || loading) return;
     setLoading(true);
 
     await fetch("/api/chat/message", {
@@ -151,6 +146,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       body: JSON.stringify({ sessionId, topic: "教材のリクエスト", userMessage: content }),
     });
 
+    clearInput(); // 送信完了後にクリア
+    setMessages((prev) => [...prev, { role: "user", content }]);
     botMsg("リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸");
     setPhase("done");
     setLoading(false);
