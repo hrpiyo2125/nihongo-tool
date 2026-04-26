@@ -11,18 +11,22 @@ const TOPICS = [
   "その他",
 ];
 
+// retryフェーズでは「その他」を除外し担当者ボタンを1箇所のみに
+const RETRY_TOPICS = [
+  "料金について",
+  "解約について",
+  "退会について",
+  "使い方について",
+  "教材のリクエスト",
+  "その他",
+];
+
 type Message = {
   id?: string;
   role: "bot" | "user" | "staff";
   content: string;
 };
 
-// フロー:
-// topic → (ボタン/自由入力) → ai → (はい) → done
-//                                 → (いいえ) → retry → (ボタン/自由入力) → ai
-//                                                    → (担当者に繋ぐ) → email → waiting
-// topic → (教材リクエスト) → materialRequest → done
-// live: 担当者とのリアルタイムチャット
 type Phase = "topic" | "ai" | "retry" | "materialRequest" | "email" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
@@ -33,6 +37,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const [email, setEmail] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [aiReplied, setAiReplied] = useState(false); // AIが返答済みかどうか
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createClient();
@@ -45,7 +50,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase]);
 
-  // Realtimeサブスクリプション（liveフェーズのみ）
   useEffect(() => {
     if (!sessionId || phase !== "live") return;
     const channel = supabase
@@ -55,7 +59,10 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         filter: `session_id=eq.${sessionId}`,
       }, (payload) => {
         const msg = payload.new as { role: string; content: string; id: string };
-        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [...prev, { id: msg.id, role: msg.role as Message["role"], content: msg.content }]);
+        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [
+          ...prev,
+          { id: msg.id, role: msg.role as Message["role"], content: msg.content },
+        ]);
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -71,21 +78,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setMessages((prev) => [...prev, { role: "bot", content }]);
   }
 
-  // トピックボタンを押したとき
-  async function handleTopic(topic: string) {
-    if (topic === "教材のリクエスト") {
-      setMessages((prev) => [...prev, { role: "user", content: topic }]);
-      botMsg("どのような教材をご希望ですか？内容を自由にご入力ください。");
-      setPhase("materialRequest");
-      return;
+  function clearInput() {
+    setInput("");
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      inputRef.current.style.height = "auto";
     }
-    await askAI(topic, topic);
   }
 
-  // AI問い合わせ共通処理
   async function askAI(topic: string, userMessage: string) {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setPhase("ai");
+    setAiReplied(false);
     setLoading(true);
     botMsg("少々お待ちください...");
 
@@ -96,16 +100,28 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     });
     const data = await res.json();
     setSessionId(data.sessionId);
-    setMessages((prev) => [...prev.filter((m) => m.content !== "少々お待ちください..."), { role: "bot", content: data.reply }]);
+    setMessages((prev) => [
+      ...prev.filter((m) => m.content !== "少々お待ちください..."),
+      { role: "bot", content: data.reply },
+    ]);
     setLoading(false);
+    setAiReplied(true); // 返答完了後にのみフラグを立てる
   }
 
-  // 自由入力の送信
+  async function handleTopic(topic: string) {
+    if (topic === "教材のリクエスト") {
+      setMessages((prev) => [...prev, { role: "user", content: topic }]);
+      botMsg("どのような教材をご希望ですか？内容を入力してください（15文字以上）。");
+      setPhase("materialRequest");
+      return;
+    }
+    await askAI(topic, topic);
+  }
+
   async function handleSend() {
     const content = input.trim();
     if (!content || loading) return;
-    setInput("");
-    resetInputHeight();
+    clearInput();
 
     if (phase === "live") {
       setMessages((prev) => [...prev, { role: "user", content }]);
@@ -117,15 +133,15 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       return;
     }
 
+    // aiフェーズで追加質問 → 解決確認をリセット
+    setAiReplied(false);
     await askAI("その他", content);
   }
 
-  // 教材リクエスト送信
   async function handleMaterialSend() {
     const content = input.trim();
-    if (!content || loading) return;
-    setInput("");
-    resetInputHeight();
+    if (content.length < 15 || loading) return;
+    clearInput();
     setMessages((prev) => [...prev, { role: "user", content }]);
     setLoading(true);
 
@@ -140,7 +156,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setLoading(false);
   }
 
-  // メール送信
   async function handleEmailSubmit() {
     if (!email || !sessionId) return;
     setLoading(true);
@@ -154,61 +169,25 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setPhase("waiting");
   }
 
-  function resetInputHeight() {
-    if (inputRef.current) inputRef.current.style.height = "auto";
-  }
-
   function reset() {
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
     setEmail("");
-    setInput("");
+    clearInput();
+    setAiReplied(false);
   }
 
-  // スタイル
   const outlineBtn = (color = "#9b6ed4"): React.CSSProperties => ({
     padding: "9px 14px", borderRadius: 20, border: `1.5px solid ${color}`,
     background: "white", color, cursor: "pointer", fontSize: 13,
     fontWeight: 600, textAlign: "left" as const, width: "100%",
   });
 
-  const sendBtn = (active: boolean): React.CSSProperties => ({
-    padding: "9px 16px", borderRadius: 20, border: "none",
-    background: active ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5",
-    color: active ? "white" : "#bbb", cursor: active ? "pointer" : "default",
-    fontSize: 13, fontWeight: 700, flexShrink: 0, transition: "background 0.2s",
-  });
-
-  const inputBar = (
-    placeholder: string,
-    onSend: () => void,
-  ) => (
-    <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
-      <textarea
-        ref={inputRef}
-        rows={1}
-        placeholder={placeholder}
-        value={input}
-        onChange={(e) => {
-          setInput(e.target.value);
-          e.target.style.height = "auto";
-          e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); onSend(); }
-        }}
-        style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.5, overflow: "hidden", maxHeight: 96 }}
-      />
-      <button onClick={onSend} disabled={!input.trim() || loading} style={sendBtn(!!input.trim() && !loading)}>
-        送信
-      </button>
-    </div>
-  );
+  const isInputActive = input.trim().length > 0 && !loading;
 
   return (
     <>
-      {/* フローティングボタン */}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="チャットを開く"
@@ -217,46 +196,44 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         {open ? "✕" : "💬"}
       </button>
 
-      {/* チャットウィンドウ */}
       {open && (
         <div style={{ position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }}>
 
-          {/* ヘッダー */}
           <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "14px 20px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
             toolio サポート
           </div>
 
           {/* メッセージエリア */}
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-
-            {/* 最初の挨拶 */}
             {messages.length === 0 && (
               <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
             )}
 
             {messages.map((m, i) => <Bubble key={i} role={m.role}>{m.content}</Bubble>)}
 
-            {/* aiフェーズ: 解決確認 */}
-            {phase === "ai" && !loading && (
+            {/* ① AIが返答済みのときだけ解決確認を表示 */}
+            {phase === "ai" && aiReplied && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
                     botMsg("お役に立てて良かったです！またいつでもご相談ください。");
+                    setAiReplied(false);
                     setPhase("done");
                   }}>✅ はい</button>
                   <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
                     botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。");
+                    setAiReplied(false);
                     setPhase("retry");
                   }}>❌ いいえ</button>
                 </div>
               </div>
             )}
 
-            {/* retryフェーズ: カテゴリ再選択 + 担当者ボタン */}
+            {/* ② retryフェーズ: 主要カテゴリ + 担当者ボタン（その他は除外） */}
             {phase === "retry" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {TOPICS.map((t) => (
+                {RETRY_TOPICS.map((t) => (
                   <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
                 ))}
                 <button style={outlineBtn("#7a50b0")} onClick={() => {
@@ -266,7 +243,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               </div>
             )}
 
-            {/* emailフェーズ: メール入力 */}
+            {/* ③ emailフェーズ: チャットに戻るボタン追加 */}
             {phase === "email" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <input
@@ -276,18 +253,21 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleEmailSubmit()}
                   style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, outline: "none" }}
+                  autoFocus
                 />
                 <button
                   onClick={handleEmailSubmit}
                   disabled={!email || loading}
-                  style={{ padding: "10px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+                  style={{ padding: "10px 20px", borderRadius: 20, border: "none", background: email ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: email ? "white" : "#bbb", cursor: email ? "pointer" : "default", fontSize: 13, fontWeight: 700 }}
                 >
                   {loading ? "送信中..." : "送信する"}
+                </button>
+                <button onClick={() => setPhase("retry")} style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }}>
+                  ← チャットに戻る
                 </button>
               </div>
             )}
 
-            {/* doneフェーズ: 最初に戻る */}
             {phase === "done" && (
               <button style={outlineBtn()} onClick={reset}>最初に戻る</button>
             )}
@@ -304,14 +284,54 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             </div>
           )}
 
-          {/* 入力バー: topic/ai/liveフェーズで表示 */}
-          {(phase === "topic" || phase === "ai" || phase === "live") && inputBar(
-            phase === "live" ? "メッセージを入力..." : "自由に質問できます...",
-            handleSend,
+          {/* 自由入力バー（topic / ai / live） */}
+          {(phase === "topic" || phase === "ai" || phase === "live") && (
+            <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
+              <textarea
+                ref={inputRef}
+                rows={1}
+                placeholder={phase === "live" ? "メッセージを入力..." : "自由に質問できます..."}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+                }}
+                style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.5, overflow: "hidden", maxHeight: 96 }}
+              />
+              <button
+                onClick={handleSend}
+                disabled={!isInputActive}
+                style={{ padding: "9px 16px", borderRadius: 20, border: "none", background: isInputActive ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: isInputActive ? "white" : "#bbb", cursor: isInputActive ? "pointer" : "default", fontSize: 13, fontWeight: 700, flexShrink: 0, transition: "background 0.2s" }}
+              >
+                送信
+              </button>
+            </div>
           )}
 
-          {/* 教材リクエスト入力バー */}
-          {phase === "materialRequest" && inputBar("リクエスト内容を入力...", handleMaterialSend)}
+          {/* 教材リクエスト専用フォーム */}
+          {phase === "materialRequest" && (
+            <div style={{ padding: "12px 14px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, background: "#fdf8ff" }}>
+              <p style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, margin: 0 }}>📝 リクエスト内容を記入してください</p>
+              <textarea
+                rows={3}
+                placeholder="例：ひらがな練習プリント（年長向け）"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                style={{ padding: "10px 13px", borderRadius: 12, border: "1.5px solid rgba(155,110,212,0.4)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.6, background: "white" }}
+              />
+              <button
+                onClick={handleMaterialSend}
+                disabled={!input.trim() || loading}
+                style={{ padding: "10px 0", borderRadius: 20, border: "none", background: input.trim() ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: input.trim() ? "white" : "#bbb", cursor: input.trim() ? "pointer" : "default", fontSize: 13, fontWeight: 700, transition: "background 0.2s" }}
+              >
+                {loading ? "送信中..." : "送信する"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
