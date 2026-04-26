@@ -24,7 +24,7 @@ const RETRY_TOPICS = [
 
 type Message = {
   id?: string;
-  role: "bot" | "user" | "staff";
+  role: "bot" | "user" | "staff" | "separator";
   content: string;
 };
 
@@ -53,7 +53,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }, [messages, phase]);
 
   useEffect(() => {
-    if (!sessionId || phase !== "live") return;
+    if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
     const channel = supabase
       .channel(`chat:${sessionId}`)
       .on("postgres_changes", {
@@ -61,10 +61,22 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         filter: `session_id=eq.${sessionId}`,
       }, (payload) => {
         const msg = payload.new as { role: string; content: string; id: string };
-        setMessages((prev) => prev.some((m) => m.id === msg.id) ? prev : [
-          ...prev,
-          { id: msg.id, role: msg.role as Message["role"], content: msg.content },
-        ]);
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === msg.id)) return prev;
+          if (msg.role === "staff") {
+            setPhase((cur) => {
+              if (cur === "waiting") {
+                return "live";
+              }
+              return cur;
+            });
+            const withSeparator = prev.some((m) => m.role === "separator")
+              ? prev
+              : [...prev, { role: "separator" as const, content: "ここから担当者との会話" }];
+            return [...withSeparator, { id: msg.id, role: "staff", content: msg.content }];
+          }
+          return [...prev, { id: msg.id, role: msg.role as Message["role"], content: msg.content }];
+        });
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
@@ -135,7 +147,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!content || loading) return;
     clearInput();
 
-    if (phase === "live") {
+    if (phase === "live" || phase === "waiting") {
       setMessages((prev) => [...prev, { role: "user", content }]);
       await fetch("/api/chat/message", {
         method: "POST",
@@ -229,7 +241,17 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
             )}
 
-            {messages.map((m, i) => <Bubble key={i} role={m.role}>{m.content}</Bubble>)}
+            {messages.map((m, i) =>
+              m.role === "separator" ? (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
+                  <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
+                  <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>👤 {m.content}</span>
+                  <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
+                </div>
+              ) : (
+                <Bubble key={i} role={m.role}>{m.content}</Bubble>
+              )
+            )}
 
             {/* ① AIが返答済みのときだけ解決確認を表示 */}
             {phase === "ai" && aiReplied && (
@@ -318,13 +340,13 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             </div>
           )}
 
-          {/* 自由入力バー（topic / ai / retry / live） */}
-          {(phase === "topic" || phase === "ai" || phase === "retry" || phase === "live") && (
+          {/* 自由入力バー（topic / ai / retry / waiting / live） */}
+          {(phase === "topic" || phase === "ai" || phase === "retry" || phase === "waiting" || phase === "live") && (
             <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
               <textarea
                 ref={inputRef}
                 rows={1}
-                placeholder={phase === "live" ? "メッセージを入力..." : "自由に質問できます..."}
+                placeholder={phase === "live" || phase === "waiting" ? "メッセージを入力..." : "自由に質問できます..."}
                 value={input}
                 onChange={(e) => {
                   setInput(e.target.value);
