@@ -32,13 +32,20 @@ export async function POST(req: NextRequest) {
 
   if (!session) return NextResponse.json({ error: "session not found" }, { status: 404, headers: CORS_HEADERS });
 
+  // 既存のstaffメッセージ数を確認（二重チェック）
+  const { count: staffCount } = await supabase
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("session_id", sessionId)
+    .eq("role", "staff");
+
   await supabase.from("chat_messages").insert({
     session_id: sessionId,
     role: "staff",
     content: message,
   });
 
-  const isFirstReply = session.status === "waiting";
+  const isFirstReply = session.status === "waiting" && (staffCount ?? 0) === 0;
 
   await supabase
     .from("chat_sessions")

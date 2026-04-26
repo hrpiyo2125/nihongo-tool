@@ -76,16 +76,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
           return [...prev, { id: msg.id, role: msg.role as Message["role"], content: msg.content }];
         });
       })
-      .on("postgres_changes", {
-        event: "UPDATE", schema: "public", table: "chat_sessions",
-        filter: `id=eq.${sessionId}`,
-      }, (payload) => {
-        if (payload.new.status === "done") {
-          setPhase("done");
-        }
-      })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
+  }, [sessionId, phase]);
+
+  // セッションのdone状態をポーリングで検知（chat_sessionsはRealtime非対応のため）
+  useEffect(() => {
+    if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
+    const timer = setInterval(async () => {
+      const { data } = await supabase.from("chat_sessions").select("status").eq("id", sessionId).single();
+      if (data?.status === "done") setPhase("done");
+    }, 5000);
+    return () => clearInterval(timer);
   }, [sessionId, phase]);
 
   async function loadMessages(sid: string) {
