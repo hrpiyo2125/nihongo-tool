@@ -28,7 +28,7 @@ type Message = {
   content: string;
 };
 
-type Phase = "topic" | "ai" | "retry" | "materialRequest" | "email" | "waiting" | "done" | "live";
+type Phase = "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "email" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
   const [open, setOpen] = useState(false);
@@ -148,8 +148,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     // 担当者希望キーワードが含まれる場合はボタンと同じ処理
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      botMsg("メールアドレスを入力してください。担当者からご連絡します。");
-      setPhase("email");
+      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
+      setPhase("staffConfirm");
       return;
     }
 
@@ -250,20 +250,34 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               </div>
             )}
 
-            {/* ② retryフェーズ: 主要カテゴリ + 担当者ボタン（その他は除外） */}
+            {/* ② staffConfirmフェーズ: 担当者チャット or AIチャットに戻る */}
+            {phase === "staffConfirm" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button style={outlineBtn("#7a50b0")} onClick={() => {
+                  botMsg("メールアドレスを入力してください。担当者からご連絡します。");
+                  setPhase("email");
+                }}>📧 担当者とのチャットを希望する方はこちら</button>
+                <button style={outlineBtn("#9b6ed4")} onClick={() => {
+                  botMsg("AIチャットに戻ります。他にご質問があればどうぞ。");
+                  setPhase("retry");
+                }}>💬 AIチャットに戻る方はこちら</button>
+              </div>
+            )}
+
+            {/* ④ retryフェーズ: 主要カテゴリ + 担当者ボタン（その他は除外） */}
             {phase === "retry" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {RETRY_TOPICS.map((t) => (
                   <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
                 ))}
                 <button style={outlineBtn("#7a50b0")} onClick={() => {
-                  botMsg("メールアドレスを入力してください。担当者からご連絡します。");
-                  setPhase("email");
+                  botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
+                  setPhase("staffConfirm");
                 }}>👤 担当者に繋ぐ</button>
               </div>
             )}
 
-            {/* ③ emailフェーズ: チャットに戻るボタン追加 */}
+            {/* ⑤ emailフェーズ: チャットに戻るボタン追加 */}
             {phase === "email" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <input
@@ -282,8 +296,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                 >
                   {loading ? "送信中..." : "送信する"}
                 </button>
-                <button onClick={() => setPhase("retry")} style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }}>
-                  ← チャットに戻る
+                <button onClick={() => setPhase("staffConfirm")} style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }}>
+                  ← 戻る
                 </button>
               </div>
             )}
