@@ -81,36 +81,14 @@ function pickPersonalized(
 
   scored.sort((a, b) => b.score - a.score || a.mat.id.localeCompare(b.mat.id));
 
-  const accessible = scored.filter((s) => s.accessible).map((s) => s.mat);
-  const needUpgrade = scored.filter((s) => !s.accessible).map((s) => s.mat);
+  const sorted = scored.map((s) => s.mat);
 
-  const accessiblePick = accessible.slice(0, 4);
-  const upgradePick = needUpgrade.slice(0, 4);
+  if (sorted.length >= 4) return sorted.slice(0, 4);
 
-  const result: Material[] = [];
-  const maxLen = Math.max(accessiblePick.length, upgradePick.length);
-  for (let i = 0; i < maxLen; i++) {
-    if (accessiblePick[i]) result.push(accessiblePick[i]);
-    if (upgradePick[i]) result.push(upgradePick[i]);
-  }
-
-  if (result.length > 0) return result.slice(0, 8);
-
-  const allAccessible = materials
-    .filter((m) => (planRank[m.requiredPlan] ?? 0) <= userRank)
+  // Fallback when history is empty or all materials already seen
+  return materials
     .sort((a, b) => a.id.localeCompare(b.id))
     .slice(0, 4);
-  const allNeedUpgrade = materials
-    .filter((m) => (planRank[m.requiredPlan] ?? 0) > userRank)
-    .sort((a, b) => a.id.localeCompare(b.id))
-    .slice(0, 4);
-  const fallback: Material[] = [];
-  const fallbackLen = Math.max(allAccessible.length, allNeedUpgrade.length);
-  for (let i = 0; i < fallbackLen; i++) {
-    if (allAccessible[i]) fallback.push(allAccessible[i]);
-    if (allNeedUpgrade[i]) fallback.push(allNeedUpgrade[i]);
-  }
-  return fallback.slice(0, 8);
 }
 
 function loadCache(userId: string, userPlan: string): string[] | null {
