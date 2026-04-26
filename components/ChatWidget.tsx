@@ -92,10 +92,10 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }, [messages, phase, open]);
 
   // waiting/liveフェーズ中はポーリングで担当者メッセージ・ステータスを確認
-  const lastStaffIdRef = useRef<string | null>(null);
+  const seenStaffIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
-    lastStaffIdRef.current = null;
+    seenStaffIdsRef.current = new Set();
     const timer = setInterval(async () => {
       try {
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
@@ -103,15 +103,12 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         const json = await res.json();
         const { status, messages: fetched } = json as { status: string; messages: Message[] };
 
-        // 担当者メッセージのみ追跡して追加
-        const staffMsgs = fetched.filter((m) => m.role === "staff");
-        const knownId = lastStaffIdRef.current;
-        const newStaff = knownId
-          ? staffMsgs.filter((m) => m.id && m.id > knownId)
-          : staffMsgs;
+        const newStaff = (fetched as Message[]).filter(
+          (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
+        );
 
         if (newStaff.length > 0) {
-          lastStaffIdRef.current = newStaff[newStaff.length - 1].id ?? knownId;
+          newStaff.forEach((m) => m.id && seenStaffIdsRef.current.add(m.id));
           setPhase((cur) => cur === "waiting" ? "live" : cur);
           setMessages((prev) => {
             const withSeparator = prev.some((m) => m.role === "separator")
