@@ -37,7 +37,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const [email, setEmail] = useState("");
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [aiReplied, setAiReplied] = useState(false); // AIが返答済みかどうか
+  const [aiReplied, setAiReplied] = useState(false);
+  const [fromFreeText, setFromFreeText] = useState(false); // 自由入力からの返答かどうか
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createClient();
@@ -83,10 +84,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (inputRef.current) inputRef.current.style.height = "auto";
   }
 
-  async function askAI(topic: string, userMessage: string) {
+  async function askAI(topic: string, userMessage: string, isFreeText = false) {
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setPhase("ai");
     setAiReplied(false);
+    setFromFreeText(isFreeText);
     setLoading(true);
     botMsg("少々お待ちください...");
 
@@ -102,8 +104,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       { role: "bot", content: data.reply },
     ]);
     setLoading(false);
-    // 返答完了から1.5秒後に「解決しましたか？」を表示
-    setTimeout(() => setAiReplied(true), 1500);
+    // 自由入力の返答のみ、1.5秒後に「解決しましたか？」を表示
+    if (isFreeText) setTimeout(() => setAiReplied(true), 1500);
   }
 
   async function handleTopic(topic: string) {
@@ -113,14 +115,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       setPhase("materialRequest");
       return;
     }
-    // 「その他」はAIに送らず入力を促す
     if (topic === "その他") {
       setMessages((prev) => [...prev, { role: "user", content: topic }]);
       botMsg("どのようなことでしょうか？下の入力欄に自由にご記入ください。");
-      setPhase("ai"); // 入力バーを表示するためaiフェーズへ（aiRepliedはfalseのまま）
+      setPhase("ai");
       return;
     }
-    await askAI(topic, topic);
+    // トピックボタンからはfreeText=false（解決確認を出さない）
+    await askAI(topic, topic, false);
   }
 
   async function handleSend() {
@@ -138,9 +140,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       return;
     }
 
-    // aiフェーズで追加質問 → 解決確認をリセット
     setAiReplied(false);
-    await askAI("その他", content);
+    await askAI("その他", content, true); // 自由入力なのでisFreeText=true
   }
 
   async function handleMaterialSend() {
@@ -181,6 +182,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setEmail("");
     clearInput();
     setAiReplied(false);
+    setFromFreeText(false);
   }
 
   const outlineBtn = (color = "#9b6ed4"): React.CSSProperties => ({
@@ -289,8 +291,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             </div>
           )}
 
-          {/* 自由入力バー（topic / ai / live） */}
-          {(phase === "topic" || phase === "ai" || phase === "live") && (
+          {/* 自由入力バー（topic / ai / retry / live） */}
+          {(phase === "topic" || phase === "ai" || phase === "retry" || phase === "live") && (
             <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
               <textarea
                 ref={inputRef}
