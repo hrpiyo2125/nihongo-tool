@@ -11,14 +11,14 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { sessionId, topic, userMessage } = await req.json();
+  const { sessionId, topic, userMessage, userId, userEmail } = await req.json();
 
   let sid = sessionId;
 
   if (!sid) {
     const { data, error } = await supabase
       .from("chat_sessions")
-      .insert({ topic, status: "bot" })
+      .insert({ topic, status: "bot", user_id: userId ?? null, user_email: userEmail ?? null })
       .select("id")
       .single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });

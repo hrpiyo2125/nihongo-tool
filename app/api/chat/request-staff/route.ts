@@ -13,20 +13,27 @@ const ADMIN_EMAIL = "support@nihongo-tool.com";
 const ADMIN_SITE_URL = process.env.ADMIN_SITE_URL ?? "https://admin.nihongo-tool.com";
 
 export async function POST(req: NextRequest) {
-  const { sessionId, userEmail } = await req.json();
+  const { sessionId, userEmail, userId } = await req.json();
+
+  // userIdがあればauth.usersからemailを補完
+  let resolvedEmail = userEmail;
+  if (!resolvedEmail && userId) {
+    const { data: { user } } = await supabase.auth.admin.getUserById(userId);
+    resolvedEmail = user?.email ?? null;
+  }
 
   let sid = sessionId;
   if (!sid) {
     const { data } = await supabase
       .from("chat_sessions")
-      .insert({ topic: "担当者チャット", status: "waiting", user_email: userEmail })
+      .insert({ topic: "担当者チャット", status: "waiting", user_email: resolvedEmail, user_id: userId ?? null })
       .select("id")
       .single();
     sid = data?.id;
   } else {
     await supabase
       .from("chat_sessions")
-      .update({ status: "waiting", user_email: userEmail })
+      .update({ status: "waiting", user_email: resolvedEmail, user_id: userId ?? null })
       .eq("id", sid);
   }
 

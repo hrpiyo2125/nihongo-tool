@@ -2,18 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createClient } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 const TOPICS = [
-  "料金について",
-  "解約について",
-  "退会について",
-  "使い方について",
-  "教材のリクエスト",
-  "その他",
-];
-
-// retryフェーズでは「その他」を除外し担当者ボタンを1箇所のみに
-const RETRY_TOPICS = [
   "料金について",
   "解約について",
   "退会について",
@@ -28,34 +19,61 @@ type Message = {
   content: string;
 };
 
-type Phase = "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "email" | "waiting" | "done" | "live";
+type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
-  const storedSessionId = typeof window !== "undefined" ? sessionStorage.getItem("toolio_chat_session") : null;
-  const resolvedSessionId = initialSessionId ?? storedSessionId ?? null;
-
   const [open, setOpen] = useState(false);
-  const [phase, setPhase] = useState<Phase>(resolvedSessionId ? "live" : "topic");
+  const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sessionId, setSessionId] = useState<string | null>(resolvedSessionId);
-  const [email, setEmail] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [authUser, setAuthUser] = useState<User | null>(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [aiReplied, setAiReplied] = useState(false);
-  const [fromFreeText, setFromFreeText] = useState(false); // 自由入力からの返答かどうか
+  const [fromFreeText, setFromFreeText] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createClient();
 
+  // 初期化：ログイン確認 → アクティブセッション検索
   useEffect(() => {
-    if (resolvedSessionId) { setOpen(true); loadMessages(resolvedSessionId); }
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setPhase("requireLogin"); return; }
+      setAuthUser(user);
+
+      // initialSessionId優先（メールリンクからの直接遷移）
+      const sid = initialSessionId ?? null;
+      if (sid) {
+        setSessionId(sid);
+        await loadMessages(sid);
+        return;
+      }
+
+      // user_idでアクティブセッションを検索
+      const { data: sessions } = await supabase
+        .from("chat_sessions")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .not("status", "in", '("done","bot")')
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      if (sessions?.[0]) {
+        setSessionId(sessions[0].id);
+        await loadMessages(sessions[0].id);
+      } else {
+        setPhase("topic");
+      }
+    }
+    init();
   }, []);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, phase]);
+    if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, phase, open]);
 
-  // waiting/live/doneでRealtime購読（doneも含めて最後のメッセージを受け取れるようにする）
+  // Realtime購読
   useEffect(() => {
     if (!sessionId || (phase !== "live" && phase !== "waiting" && phase !== "done")) return;
     const channel = supabase
@@ -81,7 +99,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     return () => { supabase.removeChannel(channel); };
   }, [sessionId, phase]);
 
-  // セッションのdone状態をポーリングで検知（フェーズ切り替えのみ、メッセージはRealtimeに任せる）
+  // doneポーリング
   useEffect(() => {
     if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
     const timer = setInterval(async () => {
@@ -95,7 +113,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
     const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
     if (data) {
-      // separatorを復元：staffメッセージが存在する場合は区切りを挿入
       const hasStaff = data.some((m) => m.role === "staff");
       if (hasStaff) {
         const firstStaffIdx = data.findIndex((m) => m.role === "staff");
@@ -109,7 +126,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         setMessages(data as Message[]);
       }
     }
-    setPhase(sess?.status === "done" ? "done" : "live");
+    const status = sess?.status;
+    if (status === "done") setPhase("done");
+    else if (status === "waiting") setPhase("waiting");
+    else if (status === "active") setPhase("live");
+    else setPhase("live");
   }
 
   function botMsg(content: string) {
@@ -135,11 +156,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     const res = await fetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, topic, userMessage }),
+      body: JSON.stringify({
+        sessionId,
+        topic,
+        userMessage,
+        userId: authUser?.id,
+        userEmail: authUser?.email,
+      }),
     });
     const data = await res.json();
     setSessionId(data.sessionId);
-    sessionStorage.setItem("toolio_chat_session", data.sessionId);
     setMessages((prev) => [
       ...prev.filter((m) => m.content !== "少々お待ちください..."),
       { role: "bot", content: data.reply },
@@ -161,7 +187,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       setPhase("ai");
       return;
     }
-    // トピックボタンからはfreeText=false（解決確認を出さない）
     await askAI(topic, topic, false);
   }
 
@@ -173,7 +198,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     clearInput();
 
     if (phase === "live" || phase === "waiting") {
-      // ローカル追加しない（Realtimeで反映）、AIも呼ばない
       await fetch("/api/chat/live-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -182,7 +206,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       return;
     }
 
-    // 担当者希望キーワードが含まれる場合はボタンと同じ処理
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
       botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
@@ -191,7 +214,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     }
 
     setAiReplied(false);
-    await askAI("その他", content, true); // 自由入力なのでisFreeText=true
+    await askAI("その他", content, true);
   }
 
   async function handleMaterialSend() {
@@ -203,7 +226,13 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     await fetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, topic: "教材のリクエスト", userMessage: content }),
+      body: JSON.stringify({
+        sessionId,
+        topic: "教材のリクエスト",
+        userMessage: content,
+        userId: authUser?.id,
+        userEmail: authUser?.email,
+      }),
     });
 
     setMessages((prev) => [...prev, { role: "user", content }]);
@@ -212,31 +241,29 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setLoading(false);
   }
 
-  async function handleEmailSubmit() {
-    if (!email) return;
+  // メール入力不要 - ログイン済みのemailを自動使用
+  async function handleRequestStaff() {
     setLoading(true);
-
     const res = await fetch("/api/chat/request-staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, userEmail: email }),
+      body: JSON.stringify({
+        sessionId,
+        userId: authUser?.id,
+        userEmail: authUser?.email,
+      }),
     });
     const data = await res.json();
-    if (data.sessionId) {
-      setSessionId(data.sessionId);
-      sessionStorage.setItem("toolio_chat_session", data.sessionId);
-    }
+    if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
-    botMsg(`ありがとうございます。${email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
+    botMsg(`${authUser?.email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
     setPhase("waiting");
   }
 
   function reset() {
-    sessionStorage.removeItem("toolio_chat_session");
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
-    setEmail("");
     clearInput();
     setAiReplied(false);
     setFromFreeText(false);
@@ -283,98 +310,95 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
           {/* メッセージエリア */}
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-            {messages.length === 0 && (
-              <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
+
+            {/* ローディング */}
+            {phase === "loading" && (
+              <p style={{ textAlign: "center", color: "#bbb", fontSize: 13, marginTop: 40 }}>読み込み中...</p>
             )}
 
-            {messages.map((m, i) =>
-              m.role === "separator" ? (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
-                  <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
-                  <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>👤 {m.content}</span>
-                  <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
-                </div>
-              ) : (
-                <Bubble key={i} role={m.role}>{m.content}</Bubble>
-              )
-            )}
-
-            {/* ① AIが返答済みのときだけ解決確認を表示 */}
-            {phase === "ai" && aiReplied && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
-                    botMsg("お役に立てて良かったです！またいつでもご相談ください。チャットを閉じても大丈夫です。");
-                    setAiReplied(false);
-                    setPhase("done");
-                  }}>✅ はい</button>
-                  <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
-                    botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。");
-                    setAiReplied(false);
-                    setPhase("retry");
-                  }}>❌ いいえ</button>
-                </div>
-              </div>
-            )}
-
-            {/* ② staffConfirmフェーズ: 担当者チャット or AIチャットに戻る */}
-            {phase === "staffConfirm" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button style={outlineBtn("#7a50b0")} onClick={() => {
-                  botMsg("メールアドレスを入力してください。担当者からご連絡します。");
-                  setPhase("email");
-                }}>📧 担当者とのチャットを希望する方はこちら</button>
-                <button style={outlineBtn("#9b6ed4")} onClick={() => {
-                  botMsg("AIチャットに戻ります。他にご質問があればどうぞ。");
-                  setPhase("retry");
-                }}>💬 AIチャットに戻る方はこちら</button>
-              </div>
-            )}
-
-            {/* ④ retryフェーズ: 主要カテゴリ + 担当者ボタン（その他は除外） */}
-            {phase === "retry" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {RETRY_TOPICS.map((t) => (
-                  <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
-                ))}
-                <button style={outlineBtn("#7a50b0")} onClick={() => {
-                  botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
-                  setPhase("staffConfirm");
-                }}>👤 担当者に繋ぐ</button>
-              </div>
-            )}
-
-            {/* ⑤ emailフェーズ: チャットに戻るボタン追加 */}
-            {phase === "email" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <input
-                  type="email"
-                  placeholder="example@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleEmailSubmit()}
-                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, outline: "none" }}
-                  autoFocus
-                />
-                <button
-                  onClick={handleEmailSubmit}
-                  disabled={!email || loading}
-                  style={{ padding: "10px 20px", borderRadius: 20, border: "none", background: email ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: email ? "white" : "#bbb", cursor: email ? "pointer" : "default", fontSize: 13, fontWeight: 700 }}
+            {/* ログイン未済 */}
+            {phase === "requireLogin" && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 40, padding: "0 8px" }}>
+                <div style={{ fontSize: 32 }}>🔒</div>
+                <p style={{ fontSize: 13, color: "#555", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
+                  チャットをご利用いただくには<br />ログインが必要です。
+                </p>
+                <a
+                  href="/ja/auth"
+                  style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textDecoration: "none", display: "inline-block" }}
                 >
-                  {loading ? "送信中..." : "送信する"}
-                </button>
-                <button onClick={() => setPhase("staffConfirm")} style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }}>
-                  ← 戻る
-                </button>
+                  ログインする
+                </a>
               </div>
             )}
 
-            {phase === "done" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(); setOpen(false); }}>チャットを閉じる</button>
-                <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={reset}>最初に戻る</button>
-              </div>
+            {phase !== "loading" && phase !== "requireLogin" && (
+              <>
+                {messages.length === 0 && (
+                  <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
+                )}
+
+                {messages.map((m, i) =>
+                  m.role === "separator" ? (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
+                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
+                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>👤 {m.content}</span>
+                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
+                    </div>
+                  ) : (
+                    <Bubble key={i} role={m.role}>{m.content}</Bubble>
+                  )
+                )}
+
+                {phase === "ai" && aiReplied && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
+                        botMsg("お役に立てて良かったです！またいつでもご相談ください。");
+                        setAiReplied(false);
+                        setPhase("done");
+                      }}>✅ はい</button>
+                      <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
+                        botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。");
+                        setAiReplied(false);
+                        setPhase("retry");
+                      }}>❌ いいえ</button>
+                    </div>
+                  </div>
+                )}
+
+                {phase === "staffConfirm" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button style={outlineBtn("#7a50b0")} onClick={handleRequestStaff} disabled={loading}>
+                      {loading ? "送信中..." : "📧 担当者とのチャットを希望する"}
+                    </button>
+                    <button style={outlineBtn("#9b6ed4")} onClick={() => {
+                      botMsg("AIチャットに戻ります。他にご質問があればどうぞ。");
+                      setPhase("retry");
+                    }}>💬 AIチャットに戻る</button>
+                  </div>
+                )}
+
+                {phase === "retry" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    {TOPICS.map((t) => (
+                      <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
+                    ))}
+                    <button style={outlineBtn("#7a50b0")} onClick={() => {
+                      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
+                      setPhase("staffConfirm");
+                    }}>👤 担当者に繋ぐ</button>
+                  </div>
+                )}
+
+                {phase === "done" && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(); setOpen(false); }}>チャットを閉じる</button>
+                    <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={reset}>新しい質問をする</button>
+                  </div>
+                )}
+              </>
             )}
 
             <div ref={bottomRef} />
@@ -389,7 +413,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             </div>
           )}
 
-          {/* 自由入力バー（topic / ai / retry / waiting / live） */}
+          {/* 入力バー */}
           {(phase === "topic" || phase === "ai" || phase === "retry" || phase === "waiting" || phase === "live") && (
             <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
               <textarea
@@ -446,7 +470,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 function Bubble({ role, children }: { role: Message["role"]; children: React.ReactNode }) {
   const isUser = role === "user";
   const isStaff = role === "staff";
-  const isBot = role === "bot";
   return (
     <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 6 }}>
       {!isUser && (isStaff ? (
