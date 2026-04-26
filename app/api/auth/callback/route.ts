@@ -20,7 +20,6 @@ export async function GET(req: NextRequest) {
       if (profile?.status === 'deleted') {
         return NextResponse.redirect(`${origin}/${locale}/welcome-back`)
       }
-      // pending_deletion は期間満了まで通常利用継続
 
       if (!profile) {
         await supabase.from('profiles').upsert({
@@ -30,9 +29,7 @@ export async function GET(req: NextRequest) {
         })
       }
 
-      const returnTo = searchParams.get('returnTo');
-      const redirectUrl = returnTo ? `${origin}${returnTo}` : `${origin}/${locale}`;
-      return NextResponse.redirect(redirectUrl);
+      return NextResponse.redirect(`${origin}/${locale}`)
     }
   }
 
