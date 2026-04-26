@@ -4,6 +4,7 @@ import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import ChatWidgetLoader from "@/components/ChatWidgetLoader";
+import DeployWatcher from "@/components/DeployWatcher";
 
 
 
@@ -44,6 +45,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
           <ChatWidgetLoader />
+          <DeployWatcher />
         </NextIntlClientProvider>
       </body>
     </html>
