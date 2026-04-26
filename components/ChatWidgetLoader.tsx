@@ -14,17 +14,15 @@ function ChatWidgetWithSession() {
 
   // Googleログイン後にチャットページへ戻す
   useEffect(() => {
+    const returnTo = localStorage.getItem("auth_return_to");
+    if (!returnTo) return;
     const supabase = createClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        const returnTo = localStorage.getItem("auth_return_to");
-        if (returnTo) {
-          localStorage.removeItem("auth_return_to");
-          window.location.href = returnTo;
-        }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        localStorage.removeItem("auth_return_to");
+        window.location.href = returnTo;
       }
     });
-    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
