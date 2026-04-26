@@ -12,9 +12,10 @@ type Props = {
   reason?: string;
   onClose: () => void;
   onLoggedIn?: () => void;
+  googleReturnTo?: string;
 };
 
-export default function AuthModal({ initialMode = "signup", reason, onClose, onLoggedIn }: Props) {
+export default function AuthModal({ initialMode = "signup", reason, onClose, onLoggedIn, googleReturnTo }: Props) {
   const locale = useLocale();
   const [view, setView] = useState<"signup" | "login" | "reset-request">(initialMode);
   const [step, setStep] = useState<1 | 2>(1);
@@ -114,9 +115,10 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
   const handleGoogle = async () => {
     setLoading(true);
+    const returnParam = googleReturnTo ? `&returnTo=${encodeURIComponent(googleReturnTo)}` : "";
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}` },
+      options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}${returnParam}` },
     });
   };
 
