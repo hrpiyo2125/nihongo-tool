@@ -91,31 +91,35 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase, open]);
 
-  // waiting/liveフェーズ中はポーリングで新着メッセージ・ステータスを確認
+  // waiting/liveフェーズ中はポーリングで担当者メッセージ・ステータスを確認
+  const lastStaffIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
+    lastStaffIdRef.current = null;
     const timer = setInterval(async () => {
       try {
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
         if (!res.ok) return;
         const json = await res.json();
-        const { status, messages: fetched } = json;
+        const { status, messages: fetched } = json as { status: string; messages: Message[] };
 
-        setMessages((prev) => {
-          const prevIds = new Set(prev.map((m) => m.id));
-          const newMsgs = (fetched as Message[]).filter((m) => m.id && !prevIds.has(m.id));
-          if (newMsgs.length === 0) return prev;
+        // 担当者メッセージのみ追跡して追加
+        const staffMsgs = fetched.filter((m) => m.role === "staff");
+        const knownId = lastStaffIdRef.current;
+        const newStaff = knownId
+          ? staffMsgs.filter((m) => m.id && m.id > knownId)
+          : staffMsgs;
 
-          const hasNewStaff = newMsgs.some((m) => m.role === "staff");
-          if (hasNewStaff) {
-            setPhase((cur) => cur === "waiting" ? "live" : cur);
+        if (newStaff.length > 0) {
+          lastStaffIdRef.current = newStaff[newStaff.length - 1].id ?? knownId;
+          setPhase((cur) => cur === "waiting" ? "live" : cur);
+          setMessages((prev) => {
             const withSeparator = prev.some((m) => m.role === "separator")
               ? prev
               : [...prev, { role: "separator" as const, content: "ここから担当者との会話" }];
-            return [...withSeparator, ...newMsgs];
-          }
-          return [...prev, ...newMsgs];
-        });
+            return [...withSeparator, ...newStaff];
+          });
+        }
 
         if (status === "done") setPhase("done");
       } catch { /* ignore */ }
@@ -266,7 +270,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      saveUserMsg(content);
+      if (!sessionId) {
+        // セッション未作成の場合、OpenAIなしでセッションとユーザーメッセージだけ保存
+        fetch("/api/chat/create-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic: "担当者リクエスト", userMessage: content, userId: authUser?.id, userEmail: authUser?.email }),
+        }).then((r) => r.json()).then((d) => { if (d.sessionId) setSessionId(d.sessionId); });
+      } else {
+        saveUserMsg(content);
+      }
       botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
       setPhase("staffConfirm");
       return;
@@ -315,27 +328,10 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }),
     });
     const data = await res.json();
-    const newSid = data.sessionId ?? sessionId;
     if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
+    botMsg(data.confirmMsg ?? "担当者からご連絡します。チャットを閉じても大丈夫です。");
     setPhase("waiting");
-    // DBから全メッセージを取得して同期（ID無しローカルメッセージとの重複を防ぐ）
-    if (newSid) {
-      try {
-        const r = await fetch(`/api/chat/session?sessionId=${newSid}`);
-        if (r.ok) {
-          const json = await r.json();
-          const dbMsgs: Message[] = json.messages ?? [];
-          const hasStaff = dbMsgs.some((m) => m.role === "staff");
-          if (hasStaff) {
-            const idx = dbMsgs.findIndex((m) => m.role === "staff");
-            setMessages([...dbMsgs.slice(0, idx), { role: "separator", content: "ここから担当者との会話" }, ...dbMsgs.slice(idx)]);
-          } else {
-            setMessages(dbMsgs);
-          }
-        }
-      } catch { /* ignore */ }
-    }
   }
 
   function reset(clearStorage = false) {
