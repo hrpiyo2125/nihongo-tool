@@ -114,8 +114,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
       const status = sess?.status;
 
-      // セッションが存在しない・botのみ・メッセージなし → トピック選択（sessionIdはセットしない）
-      if (!sess || status === "bot" || !data || data.length === 0) {
+      // セッションが存在しない・メッセージなし → トピック選択（sessionIdはセットしない）
+      if (!sess || !data || data.length === 0) {
         sessionStorage.removeItem(SESSION_KEY);
         setPhase("topic");
         return;
