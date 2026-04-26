@@ -124,6 +124,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     await askAI(topic, topic, false);
   }
 
+  const STAFF_KEYWORDS = ["担当者", "人と話したい", "スタッフ", "オペレーター", "直接話", "電話", "人に聞きたい", "人に相談", "サポート担当", "担当に"];
+
   async function handleSend() {
     const content = input.trim();
     if (!content || loading) return;
@@ -139,6 +141,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       return;
     }
 
+    // 担当者希望キーワードが含まれる場合はボタンと同じ処理
+    if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      botMsg("メールアドレスを入力してください。担当者からご連絡します。");
+      setPhase("email");
+      return;
+    }
+
     setAiReplied(false);
     await askAI("その他", content, true); // 自由入力なのでisFreeText=true
   }
@@ -146,6 +156,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   async function handleMaterialSend() {
     const content = input.trim();
     if (!content || loading) return;
+    clearInput();
     setLoading(true);
 
     await fetch("/api/chat/message", {
@@ -154,7 +165,6 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       body: JSON.stringify({ sessionId, topic: "教材のリクエスト", userMessage: content }),
     });
 
-    clearInput(); // 送信完了後にクリア
     setMessages((prev) => [...prev, { role: "user", content }]);
     botMsg("リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸");
     setPhase("done");

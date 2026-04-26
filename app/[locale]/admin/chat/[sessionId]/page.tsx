@@ -43,14 +43,15 @@ export default function AdminChatPage() {
   }
 
   async function handleSend() {
-    if (!reply.trim()) return;
+    const content = reply.trim();
+    if (!content || sending) return;
+    setReply("");
     setSending(true);
     await fetch("/api/chat/staff-reply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, message: reply.trim() }),
+      body: JSON.stringify({ sessionId, message: content }),
     });
-    setReply("");
     setSending(false);
   }
 
@@ -95,6 +96,7 @@ export default function AdminChatPage() {
           <textarea
             value={reply}
             onChange={(e) => setReply(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
             placeholder="返信を入力..."
             rows={3}
             style={{ flex: 1, padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none" }}
