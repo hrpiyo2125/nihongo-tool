@@ -118,26 +118,35 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     try {
       const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
       const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
-      if (data) {
-        const hasStaff = data.some((m) => m.role === "staff");
-        if (hasStaff) {
-          const firstStaffIdx = data.findIndex((m) => m.role === "staff");
-          const withSeparator = [
-            ...data.slice(0, firstStaffIdx),
-            { role: "separator" as const, content: "ここから担当者との会話" },
-            ...data.slice(firstStaffIdx),
-          ];
-          setMessages(withSeparator as Message[]);
-        } else {
-          setMessages(data as Message[]);
-        }
-      }
+
       const status = sess?.status;
+
+      // セッションが存在しない・botのみ・メッセージなし → トピック選択へ
+      if (!sess || status === "bot" || !data || data.length === 0) {
+        sessionStorage.removeItem(SESSION_KEY);
+        setPhase("topic");
+        return;
+      }
+
+      const hasStaff = data.some((m) => m.role === "staff");
+      if (hasStaff) {
+        const firstStaffIdx = data.findIndex((m) => m.role === "staff");
+        const withSeparator = [
+          ...data.slice(0, firstStaffIdx),
+          { role: "separator" as const, content: "ここから担当者との会話" },
+          ...data.slice(firstStaffIdx),
+        ];
+        setMessages(withSeparator as Message[]);
+      } else {
+        setMessages(data as Message[]);
+      }
+
       if (status === "done") setPhase("done");
       else if (status === "waiting") setPhase("waiting");
       else if (status === "active") setPhase("live");
-      else setPhase("live");
+      else setPhase("ai");
     } catch {
+      sessionStorage.removeItem(SESSION_KEY);
       setPhase("topic");
     }
   }
