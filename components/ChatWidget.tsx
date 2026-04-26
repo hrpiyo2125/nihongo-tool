@@ -191,23 +191,13 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!email) return;
     setLoading(true);
 
-    let sid = sessionId;
-    if (!sid) {
-      const res = await fetch("/api/chat/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: null, topic: "担当者チャット", userMessage: "担当者への連絡を希望" }),
-      });
-      const data = await res.json();
-      sid = data.sessionId;
-      setSessionId(sid);
-    }
-
-    await fetch("/api/chat/request-staff", {
+    const res = await fetch("/api/chat/request-staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId: sid, userEmail: email }),
+      body: JSON.stringify({ sessionId, userEmail: email }),
     });
+    const data = await res.json();
+    if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
     botMsg(`ありがとうございます。${email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
     setPhase("waiting");

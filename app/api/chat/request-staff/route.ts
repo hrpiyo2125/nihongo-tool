@@ -15,18 +15,28 @@ const ADMIN_SITE_URL = process.env.ADMIN_SITE_URL ?? "https://admin.nihongo-tool
 export async function POST(req: NextRequest) {
   const { sessionId, userEmail } = await req.json();
 
-  await supabase
-    .from("chat_sessions")
-    .update({ status: "waiting", user_email: userEmail })
-    .eq("id", sessionId);
+  let sid = sessionId;
+  if (!sid) {
+    const { data } = await supabase
+      .from("chat_sessions")
+      .insert({ topic: "担当者チャット", status: "waiting", user_email: userEmail })
+      .select("id")
+      .single();
+    sid = data?.id;
+  } else {
+    await supabase
+      .from("chat_sessions")
+      .update({ status: "waiting", user_email: userEmail })
+      .eq("id", sid);
+  }
 
   await supabase.from("chat_messages").insert({
-    session_id: sessionId,
+    session_id: sid,
     role: "bot",
     content: `担当者への連絡を受け付けました。${userEmail} にご連絡します。チャットを閉じても大丈夫です。`,
   });
 
-  const adminUrl = `${ADMIN_SITE_URL}/chat/${sessionId}`;
+  const adminUrl = `${ADMIN_SITE_URL}/chat/${sid}`;
 
   await resend.emails.send({
     from: FROM,
@@ -35,7 +45,7 @@ export async function POST(req: NextRequest) {
     html: `
       <p>ユーザーから担当者への連絡依頼がありました。</p>
       <p><strong>ユーザーメールアドレス：</strong>${userEmail}</p>
-      <p><strong>セッションID：</strong>${sessionId}</p>
+      <p><strong>セッションID：</strong>${sid}</p>
       <p>以下のリンクからチャット履歴を確認して返信してください。</p>
       <a href="${adminUrl}" style="display:inline-block;margin-top:16px;padding:10px 24px;background:linear-gradient(135deg,#f4b9b9,#e49bfd);color:white;border-radius:20px;text-decoration:none;font-weight:700;">チャットに返信する</a>
       <br /><br />
@@ -43,5 +53,5 @@ export async function POST(req: NextRequest) {
     `,
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, sessionId: sid });
 }
