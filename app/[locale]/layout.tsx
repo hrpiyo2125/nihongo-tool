@@ -42,11 +42,9 @@ export default async function RootLayout({
    <html lang={locale} className={`${libreBaskerville.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Script
-          id="crisp-widget"
+          id="tidio-widget"
+          src="//code.tidio.co/zp9r8sfhwymgrwrv5sua0jqxx11lhha2.js"
           strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `window.$crisp=[];window.CRISP_WEBSITE_ID="91bdd2db-58e4-4d15-8c66-da12df95907e";(function(){d=document;s=d.createElement("script");s.src="https://client.crisp.chat/l.js";s.async=1;d.getElementsByTagName("head")[0].appendChild(s);})();`,
-          }}
         />
         <NextIntlClientProvider messages={messages}>
           {children}

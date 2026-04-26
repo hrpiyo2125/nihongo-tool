@@ -85,7 +85,7 @@ export default function FAQPage() {
           <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 8 }}>解決しない場合はお気軽にご連絡ください</div>
           <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>画面右下のチャットからお気軽にご連絡ください。</div>
           <button
-            onClick={() => { (window as any).$crisp?.push(['do', 'chat:open']) }}
+            onClick={() => { (window as any).tidioChatApi?.open() }}
             style={{ display: "inline-block", fontSize: 13, padding: "10px 32px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", border: "none", cursor: "pointer", fontWeight: 700 }}
           >
             チャットで問い合わせる →
