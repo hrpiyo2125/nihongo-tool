@@ -23,7 +23,7 @@ type Message = {
 type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
-  const locale = useLocale();
+  const pendingIdRef = useRef(initialSessionId);
   const [open, setOpen] = useState(!!initialSessionId);
   const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -48,18 +48,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     try {
       const { data: { user } } = await supabase.auth.getUser();
       setAuthUser(user ?? null);
-      console.log("[ChatWidget] init: user=", user?.id, "initialSessionId=", initialSessionId);
+      console.log("[ChatWidget] init: user=", user?.id, "pendingId=", pendingIdRef.current);
 
       if (!user) {
-        if (initialSessionId) {
-          sessionStorage.setItem(PENDING_SESSION_KEY, initialSessionId);
+        if (pendingIdRef.current) {
+          sessionStorage.setItem(PENDING_SESSION_KEY, pendingIdRef.current);
         }
         console.log("[ChatWidget] not logged in, pending=", sessionStorage.getItem(PENDING_SESSION_KEY));
         setPhase("requireLogin");
         return;
       }
 
-      const pendingSessionId = initialSessionId ?? sessionStorage.getItem(PENDING_SESSION_KEY) ?? undefined;
+      const pendingSessionId = pendingIdRef.current ?? sessionStorage.getItem(PENDING_SESSION_KEY) ?? undefined;
       sessionStorage.removeItem(PENDING_SESSION_KEY);
       console.log("[ChatWidget] logged in, pendingSessionId=", pendingSessionId);
 
