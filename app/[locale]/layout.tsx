@@ -3,9 +3,7 @@ import { Libre_Baskerville, Josefin_Sans } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
-import dynamic from "next/dynamic";
-
-const ChatWidget = dynamic(() => import("@/components/ChatWidget"), { ssr: false });
+import ChatWidgetLoader from "@/components/ChatWidgetLoader";
 
 
 
@@ -45,7 +43,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           {children}
-          <ChatWidget />
+          <ChatWidgetLoader />
         </NextIntlClientProvider>
       </body>
     </html>
