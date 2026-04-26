@@ -38,6 +38,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const supabase = createClient();
 
   const SESSION_KEY = "chat_session_id";
+  const MESSAGES_KEY = "chat_messages";
+  const PHASE_KEY = "chat_phase";
 
   async function init() {
     setPhase("loading");
@@ -52,10 +54,15 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         return;
       }
 
-      // sessionStorage に保存された前回のセッションを再開
+      // sessionStorageから直接復元（APIなし・RLS無関係）
       const savedSessionId = sessionStorage.getItem(SESSION_KEY);
-      if (savedSessionId) {
-        await loadMessages(savedSessionId);
+      const savedMessages = sessionStorage.getItem(MESSAGES_KEY);
+      const savedPhase = sessionStorage.getItem(PHASE_KEY) as Phase | null;
+
+      if (savedSessionId && savedMessages) {
+        setSessionId(savedSessionId);
+        setMessages(JSON.parse(savedMessages));
+        setPhase(savedPhase ?? "ai");
         return;
       }
 
@@ -66,6 +73,19 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   useEffect(() => { init(); }, []);
+
+  // sessionId・messages・phaseをsessionStorageに保存
+  useEffect(() => {
+    if (sessionId) sessionStorage.setItem(SESSION_KEY, sessionId);
+  }, [sessionId]);
+
+  useEffect(() => {
+    const saveablePhases: Phase[] = ["ai", "retry", "staffConfirm", "waiting", "live", "done", "materialRequest"];
+    if (messages.length > 0 && saveablePhases.includes(phase)) {
+      sessionStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+      sessionStorage.setItem(PHASE_KEY, phase);
+    }
+  }, [messages, phase]);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -113,6 +133,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       const res = await fetch(`/api/chat/session?sessionId=${sid}`);
       if (!res.ok) {
         sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(MESSAGES_KEY);
+        sessionStorage.removeItem(PHASE_KEY);
         setPhase("topic");
         return;
       }
@@ -122,6 +144,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
         sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(MESSAGES_KEY);
+        sessionStorage.removeItem(PHASE_KEY);
         setPhase("topic");
         return;
       }
@@ -280,7 +304,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   function reset(clearStorage = false) {
-    if (clearStorage) sessionStorage.removeItem(SESSION_KEY);
+    if (clearStorage) {
+      sessionStorage.removeItem(SESSION_KEY);
+      sessionStorage.removeItem(MESSAGES_KEY);
+      sessionStorage.removeItem(PHASE_KEY);
+    }
     setPhase("topic");
     setMessages([]);
     setSessionId(null);
