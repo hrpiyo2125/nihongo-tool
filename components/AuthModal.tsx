@@ -116,7 +116,9 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
   const handleGoogle = async () => {
     setLoading(true);
-    if (googleReturnTo) localStorage.setItem("auth_return_to", googleReturnTo);
+    if (googleReturnTo) {
+      document.cookie = `auth_return_to=${encodeURIComponent(googleReturnTo)}; path=/; max-age=300; SameSite=Lax`;
+    }
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}` },
