@@ -33,6 +33,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
       ? "お気に入り保存に登録が必要です"
       : reason === "history"
       ? "ダウンロード履歴に登録が必要です"
+      : reason === "chat"
+      ? "サポートチャットのご利用に登録が必要です"
       : "お気に入り保存・ダウンロード履歴が使えます";
 
   const switchView = (v: "signup" | "login" | "reset-request") => {

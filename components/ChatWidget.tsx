@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
+import AuthModal from "@/components/AuthModal";
 
 const TOPICS = [
   "料金について",
@@ -27,6 +28,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [authUser, setAuthUser] = useState<User | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [aiReplied, setAiReplied] = useState(false);
@@ -36,38 +38,36 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const supabase = createClient();
 
   // 初期化：ログイン確認 → アクティブセッション検索
-  useEffect(() => {
-    async function init() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setPhase("requireLogin"); return; }
-      setAuthUser(user);
+  async function init() {
+    setPhase("loading");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setPhase("requireLogin"); return; }
+    setAuthUser(user);
 
-      // initialSessionId優先（メールリンクからの直接遷移）
-      const sid = initialSessionId ?? null;
-      if (sid) {
-        setSessionId(sid);
-        await loadMessages(sid);
-        return;
-      }
-
-      // user_idでアクティブセッションを検索
-      const { data: sessions } = await supabase
-        .from("chat_sessions")
-        .select("id, status")
-        .eq("user_id", user.id)
-        .not("status", "in", '("done","bot")')
-        .order("created_at", { ascending: false })
-        .limit(1);
-
-      if (sessions?.[0]) {
-        setSessionId(sessions[0].id);
-        await loadMessages(sessions[0].id);
-      } else {
-        setPhase("topic");
-      }
+    const sid = initialSessionId ?? null;
+    if (sid) {
+      setSessionId(sid);
+      await loadMessages(sid);
+      return;
     }
-    init();
-  }, []);
+
+    const { data: sessions } = await supabase
+      .from("chat_sessions")
+      .select("id, status")
+      .eq("user_id", user.id)
+      .not("status", "in", '("done","bot")')
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    if (sessions?.[0]) {
+      setSessionId(sessions[0].id);
+      await loadMessages(sessions[0].id);
+    } else {
+      setPhase("topic");
+    }
+  }
+
+  useEffect(() => { init(); }, []);
 
   useEffect(() => {
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -279,6 +279,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   return (
     <>
+      {showAuthModal && (
+        <AuthModal
+          initialMode="login"
+          reason="chat"
+          onClose={() => setShowAuthModal(false)}
+          onLoggedIn={() => { setShowAuthModal(false); init(); }}
+        />
+      )}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="チャットを開く"
@@ -321,14 +329,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 40, padding: "0 8px" }}>
                 <div style={{ fontSize: 32 }}>🔒</div>
                 <p style={{ fontSize: 13, color: "#555", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
-                  チャットをご利用いただくには<br />ログインが必要です。
+                  チャットをご利用いただくには<br />ログイン・新規登録が必要です。
                 </p>
-                <a
-                  href="/ja/auth"
-                  style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textDecoration: "none", display: "inline-block" }}
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}
                 >
-                  ログインする
-                </a>
+                  ログイン / 新規登録
+                </button>
               </div>
             )}
 
