@@ -40,6 +40,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const SESSION_KEY = "chat_session_id";
   const MESSAGES_KEY = "chat_messages";
   const PHASE_KEY = "chat_phase";
+  const PENDING_SESSION_KEY = "chat_pending_session_id";
 
   async function init() {
     setPhase("loading");
@@ -47,10 +48,21 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       const { data: { user } } = await supabase.auth.getUser();
       setAuthUser(user ?? null);
 
-      if (!user) { setPhase("requireLogin"); return; }
+      if (!user) {
+        // メールリンク経由のsessionIdをログイン後も復元できるよう保存
+        if (initialSessionId) {
+          sessionStorage.setItem(PENDING_SESSION_KEY, initialSessionId);
+        }
+        setPhase("requireLogin");
+        return;
+      }
 
-      if (initialSessionId) {
-        await loadMessages(initialSessionId);
+      // ログイン後: propまたはsessionStorageのpending IDを使って履歴復元
+      const pendingSessionId = initialSessionId ?? sessionStorage.getItem(PENDING_SESSION_KEY) ?? undefined;
+      sessionStorage.removeItem(PENDING_SESSION_KEY);
+
+      if (pendingSessionId) {
+        await loadMessages(pendingSessionId);
         return;
       }
 
