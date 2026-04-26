@@ -40,29 +40,34 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   // 初期化：ログイン確認 → アクティブセッション検索
   async function init() {
     setPhase("loading");
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setPhase("requireLogin"); return; }
-    setAuthUser(user);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setPhase("requireLogin"); return; }
+      setAuthUser(user);
 
-    const sid = initialSessionId ?? null;
-    if (sid) {
-      setSessionId(sid);
-      await loadMessages(sid);
-      return;
-    }
+      const sid = initialSessionId ?? null;
+      if (sid) {
+        setSessionId(sid);
+        await loadMessages(sid);
+        return;
+      }
 
-    const { data: sessions } = await supabase
-      .from("chat_sessions")
-      .select("id, status")
-      .eq("user_id", user.id)
-      .not("status", "in", '("done","bot")')
-      .order("created_at", { ascending: false })
-      .limit(1);
+      // user_idでwaitingまたはactiveなセッションを検索
+      const { data: sessions } = await supabase
+        .from("chat_sessions")
+        .select("id, status")
+        .eq("user_id", user.id)
+        .or("status.eq.waiting,status.eq.active")
+        .order("created_at", { ascending: false })
+        .limit(1);
 
-    if (sessions?.[0]) {
-      setSessionId(sessions[0].id);
-      await loadMessages(sessions[0].id);
-    } else {
+      if (sessions?.[0]) {
+        setSessionId(sessions[0].id);
+        await loadMessages(sessions[0].id);
+      } else {
+        setPhase("topic");
+      }
+    } catch {
       setPhase("topic");
     }
   }
@@ -110,27 +115,31 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }, [sessionId, phase]);
 
   async function loadMessages(sid: string) {
-    const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
-    const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
-    if (data) {
-      const hasStaff = data.some((m) => m.role === "staff");
-      if (hasStaff) {
-        const firstStaffIdx = data.findIndex((m) => m.role === "staff");
-        const withSeparator = [
-          ...data.slice(0, firstStaffIdx),
-          { role: "separator" as const, content: "ここから担当者との会話" },
-          ...data.slice(firstStaffIdx),
-        ];
-        setMessages(withSeparator as Message[]);
-      } else {
-        setMessages(data as Message[]);
+    try {
+      const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
+      const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
+      if (data) {
+        const hasStaff = data.some((m) => m.role === "staff");
+        if (hasStaff) {
+          const firstStaffIdx = data.findIndex((m) => m.role === "staff");
+          const withSeparator = [
+            ...data.slice(0, firstStaffIdx),
+            { role: "separator" as const, content: "ここから担当者との会話" },
+            ...data.slice(firstStaffIdx),
+          ];
+          setMessages(withSeparator as Message[]);
+        } else {
+          setMessages(data as Message[]);
+        }
       }
+      const status = sess?.status;
+      if (status === "done") setPhase("done");
+      else if (status === "waiting") setPhase("waiting");
+      else if (status === "active") setPhase("live");
+      else setPhase("live");
+    } catch {
+      setPhase("topic");
     }
-    const status = sess?.status;
-    if (status === "done") setPhase("done");
-    else if (status === "waiting") setPhase("waiting");
-    else if (status === "active") setPhase("live");
-    else setPhase("live");
   }
 
   function botMsg(content: string) {
