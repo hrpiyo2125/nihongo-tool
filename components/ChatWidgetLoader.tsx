@@ -9,20 +9,25 @@ function ChatWidgetWithSession() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const [chatSessionId, setChatSessionId] = useState<string | undefined>(undefined);
+  const [initialSessionId, setInitialSessionId] = useState<string | undefined>(undefined);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const chatSession = searchParams.get("chatSession");
     if (chatSession) {
-      setChatSessionId(chatSession);
+      setInitialSessionId(chatSession);
+      // URLからパラメータを除去してクリーンに
       const params = new URLSearchParams(searchParams.toString());
       params.delete("chatSession");
       const newUrl = params.size > 0 ? `${pathname}?${params}` : pathname;
       router.replace(newUrl, { scroll: false });
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+    setReady(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  return <ChatWidget key={chatSessionId ?? "default"} initialSessionId={chatSessionId} />;
+  if (!ready) return null;
+  return <ChatWidget initialSessionId={initialSessionId} />;
 }
 
 export default function ChatWidgetLoader() {
