@@ -11,17 +11,27 @@ export default function ChatResumePage() {
   const locale = params.locale as string;
   const sessionId = params.sessionId as string;
 
-  const [phase, setPhase] = useState<"loading" | "login" | "chat">("loading");
+  const [phase, setPhase] = useState<"loading" | "login" | "chat" | "error">("loading");
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionStatus, setSessionStatus] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const supabase = createClient();
 
   async function loadChat() {
     const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
-    if (!res.ok) { window.location.href = `/${locale}`; return; }
+    if (!res.ok) {
+      setErrorMsg(`セッションが見つかりませんでした（${res.status}）。sessionId: ${sessionId}`);
+      setPhase("error");
+      return;
+    }
     const { status, messages: data } = await res.json();
-    setMessages(data ?? []);
+    if (!data || data.length === 0) {
+      setErrorMsg(`メッセージが0件です。sessionId: ${sessionId}`);
+      setPhase("error");
+      return;
+    }
+    setMessages(data);
     setSessionStatus(status);
     setPhase("chat");
   }
@@ -36,6 +46,17 @@ export default function ChatResumePage() {
   }
 
   useEffect(() => { checkAuth(); }, []);
+
+  if (phase === "error") {
+    return (
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)", padding: 24 }}>
+        <div style={{ background: "white", borderRadius: 16, padding: 24, maxWidth: 400, width: "100%" }}>
+          <p style={{ color: "#e05", fontSize: 13, marginBottom: 16 }}>エラー: {errorMsg}</p>
+          <button onClick={() => { window.location.href = `/${locale}`; }} style={{ padding: "10px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>トップへ戻る</button>
+        </div>
+      </div>
+    );
+  }
 
   if (phase === "loading") {
     return (
