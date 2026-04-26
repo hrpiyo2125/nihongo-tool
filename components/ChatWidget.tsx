@@ -47,13 +47,12 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       const { data: { user } } = await supabase.auth.getUser();
       setAuthUser(user ?? null);
 
-      // メール通知リンク経由（ログイン不要で履歴を読み込む）
+      if (!user) { setPhase("requireLogin"); return; }
+
       if (initialSessionId) {
         await loadMessages(initialSessionId);
         return;
       }
-
-      if (!user) { setPhase("requireLogin"); return; }
 
       // sessionStorageから直接復元（APIなし・RLS無関係）
       const savedSessionId = sessionStorage.getItem(SESSION_KEY);
