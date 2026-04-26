@@ -52,14 +52,14 @@ type Props = {
   columns?: number;
 };
 
-// Returns all candidates ranked by affinity (not sliced to 4)
+// Returns all materials ranked by affinity.
+// Fresh candidates (not in history) come first, history materials appended after.
+// This ensures the pool is always large enough for rotation and always 4 items per page.
 function rankCandidates(
   materials: Material[],
   favIds: string[],
   dlIds: string[],
-  userPlan: string
 ): Material[] {
-  const userRank = planRank[userPlan] ?? 0;
   const historyIds = new Set([...favIds, ...dlIds]);
   const historyMats = materials.filter((m) => historyIds.has(m.id));
 
@@ -70,29 +70,35 @@ function rankCandidates(
     for (const m of mat.method) methodFreq[m] = (methodFreq[m] ?? 0) + 1;
   }
 
-  const candidates = materials.filter((m) => !historyIds.has(m.id));
-
-  if (candidates.length === 0) {
-    // Fallback: all materials sorted by id
-    return [...materials].sort((a, b) => a.id.localeCompare(b.id));
-  }
-
-  const scored = candidates.map((mat) => {
+  const fresh = materials.filter((m) => !historyIds.has(m.id));
+  const scored = fresh.map((mat) => {
     let score = 0;
     for (const c of mat.content) score += (contentFreq[c] ?? 0) * 2;
     for (const m of mat.method) score += (methodFreq[m] ?? 0);
     return { mat, score };
   });
-
   scored.sort((a, b) => b.score - a.score || a.mat.id.localeCompare(b.mat.id));
-  return scored.map((s) => s.mat);
+
+  // Append history items at the end so the pool never runs short
+  const sortedHistory = [...historyMats].sort((a, b) => a.id.localeCompare(b.id));
+  return [...scored.map((s) => s.mat), ...sortedHistory];
 }
 
+// Always returns exactly 4 items; wraps around if the last page is short
 function pageOf(allMats: Material[], page: number): Material[] {
   const total = allMats.length;
   if (total === 0) return [];
-  const safePage = page % Math.ceil(total / 4);
-  return allMats.slice(safePage * 4, safePage * 4 + 4);
+  if (total <= 4) return allMats.slice(0, total); // edge case: fewer than 4 total
+  const totalPages = Math.ceil(total / 4);
+  const safePage = page % totalPages;
+  const slice = allMats.slice(safePage * 4, safePage * 4 + 4);
+  // Last page may be short — fill from the start of the list
+  if (slice.length < 4) {
+    const used = new Set(slice.map((m) => m.id));
+    const fill = allMats.filter((m) => !used.has(m.id)).slice(0, 4 - slice.length);
+    return [...slice, ...fill];
+  }
+  return slice;
 }
 
 function loadCache(userId: string, userPlan: string): CacheEntry | null {
@@ -173,7 +179,7 @@ export default function PersonalizedSection({
         }
       }
       // No valid cache: compute fresh at page 0
-      const all = rankCandidates(materials, favIds, dlIds, userPlan);
+      const all = rankCandidates(materials, favIds, dlIds);
       saveCache(userId, all, 0, userPlan);
       setPersonalizedMats(pageOf(all, 0));
     } else {
@@ -186,10 +192,10 @@ export default function PersonalizedSection({
           .filter((m): m is Material => m !== undefined);
         if (all.length < 4) {
           // allIds may have stale/deleted materials; recompute
-          all = rankCandidates(materials, favIds, dlIds, userPlan);
+          all = rankCandidates(materials, favIds, dlIds);
         }
       } else {
-        all = rankCandidates(materials, favIds, dlIds, userPlan);
+        all = rankCandidates(materials, favIds, dlIds);
       }
       const totalPages = Math.ceil(all.length / 4);
       const page = totalPages > 1 ? nextPage % totalPages : 0;
