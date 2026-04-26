@@ -89,6 +89,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   useEffect(() => { init(); }, []);
 
+  // どんな方法でログインしても（モーダル・ページ遷移・OAuth）チャットを再開する
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        init();
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // sessionId・messages・phaseをsessionStorageに保存
   useEffect(() => {
     if (sessionId) sessionStorage.setItem(SESSION_KEY, sessionId);
