@@ -8,6 +8,7 @@ const TOPICS = [
   "退会について",
   "使い方について",
   "教材のリクエスト",
+  "その他",
 ];
 
 type Message = {
@@ -19,6 +20,7 @@ type Message = {
 type Phase =
   | "closed"
   | "topic"
+  | "freeInput"
   | "loading"
   | "replied"
   | "resolved"
@@ -34,6 +36,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId ?? null);
   const [email, setEmail] = useState("");
   const [liveInput, setLiveInput] = useState("");
+  const [freeInput, setFreeInput] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -83,21 +86,46 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   async function handleTopic(topic: string) {
-    setMessages([{ role: "user", content: topic }]);
+    if (topic === "その他") {
+      setMessages([{ role: "user", content: topic }]);
+      addBotMsg("どのようなことでしょうか？自由にご入力ください。");
+      setPhase("freeInput");
+      return;
+    }
+    await sendMessage(topic, topic);
+  }
+
+  async function handleFreeInputSend() {
+    if (!freeInput.trim()) return;
+    const content = freeInput.trim();
+    setFreeInput("");
+    await sendMessage("その他", content, [
+      { role: "user", content: "その他" },
+      { role: "bot", content: "どのようなことでしょうか？自由にご入力ください。" },
+      { role: "user", content },
+    ]);
+  }
+
+  async function sendMessage(topic: string, userMessage: string, initialMessages?: Message[]) {
+    const userMsg: Message = { role: "user", content: userMessage };
+    setMessages(initialMessages ?? [userMsg]);
     setPhase("loading");
-    addBotMsg("少々お待ちください...");
+    if (!initialMessages) addBotMsg("少々お待ちください...");
 
     const res = await fetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic, userMessage: topic }),
+      body: JSON.stringify({ sessionId, topic, userMessage }),
     });
     const data = await res.json();
     setSessionId(data.sessionId);
-    setMessages([
-      { role: "user", content: topic },
-      { role: "bot", content: data.reply },
-    ]);
+    setMessages((prev) => {
+      const filtered = prev.filter((m) => m.content !== "少々お待ちください...");
+      if (initialMessages) {
+        return [...filtered, { role: "bot", content: data.reply }];
+      }
+      return [userMsg, { role: "bot", content: data.reply }];
+    });
     setPhase("replied");
   }
 
@@ -111,6 +139,12 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   async function handleRetryTopic(topic: string) {
+    if (topic === "その他") {
+      setMessages((prev) => [...prev, { role: "user", content: topic }]);
+      addBotMsg("どのようなことでしょうか？自由にご入力ください。");
+      setPhase("freeInput");
+      return;
+    }
     setMessages((prev) => [...prev, { role: "user", content: topic }]);
     setPhase("loading");
     addBotMsg("少々お待ちください...");
@@ -264,6 +298,21 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               </>
             )}
 
+            {phase === "freeInput" && (
+              <>
+                <textarea
+                  rows={3}
+                  placeholder="お困りの内容を自由にご入力ください..."
+                  value={freeInput}
+                  onChange={(e) => setFreeInput(e.target.value)}
+                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none" }}
+                />
+                <button style={primaryBtn} onClick={handleFreeInputSend} disabled={!freeInput.trim()}>
+                  送信する
+                </button>
+              </>
+            )}
+
             {phase === "loading" && (
               <p style={{ color: "#bbb", fontSize: 12, textAlign: "center" }}>AIが回答を生成中です...</p>
             )}
@@ -274,6 +323,51 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                 <div style={{ display: "flex", gap: 8 }}>
                   <button style={{ ...btnStyle("#22c55e"), flex: 1 }} onClick={() => handleResolved(true)}>✅ はい</button>
                   <button style={{ ...btnStyle("#f43f5e"), flex: 1 }} onClick={() => handleResolved(false)}>❌ いいえ</button>
+                </div>
+                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                  <input
+                    type="text"
+                    placeholder="追加で質問があればどうぞ..."
+                    value={liveInput}
+                    onChange={(e) => setLiveInput(e.target.value)}
+                    onKeyDown={async (e) => {
+                      if (e.key === "Enter" && liveInput.trim()) {
+                        const content = liveInput.trim();
+                        setLiveInput("");
+                        setMessages((prev) => [...prev, { role: "user", content }]);
+                        setPhase("loading");
+                        const res = await fetch("/api/chat/message", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ sessionId, topic: "追加質問", userMessage: content }),
+                        });
+                        const data = await res.json();
+                        setMessages((prev) => [...prev.filter(m => m.content !== "少々お待ちください..."), { role: "bot", content: data.reply }]);
+                        setPhase("replied");
+                      }
+                    }}
+                    style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.4)", fontSize: 12, outline: "none" }}
+                  />
+                  <button
+                    onClick={async () => {
+                      if (!liveInput.trim()) return;
+                      const content = liveInput.trim();
+                      setLiveInput("");
+                      setMessages((prev) => [...prev, { role: "user", content }]);
+                      setPhase("loading");
+                      const res = await fetch("/api/chat/message", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ sessionId, topic: "追加質問", userMessage: content }),
+                      });
+                      const data = await res.json();
+                      setMessages((prev) => [...prev.filter(m => m.content !== "少々お待ちください..."), { role: "bot", content: data.reply }]);
+                      setPhase("replied");
+                    }}
+                    style={{ padding: "9px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
+                  >
+                    送信
+                  </button>
                 </div>
               </>
             )}
