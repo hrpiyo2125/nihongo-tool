@@ -22,8 +22,8 @@ function ChatWidgetWithSession() {
     }
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // 認証関連ページではウィジェットを非表示
-  if (pathname.includes("/auth") || pathname.includes("/welcome-back")) return null;
+  // これらのページではウィジェットを非表示
+  if (pathname.includes("/auth") || pathname.includes("/welcome-back") || pathname.includes("/chat/")) return null;
 
   return <ChatWidget key={chatSessionId ?? "default"} initialSessionId={chatSessionId} />;
 }
