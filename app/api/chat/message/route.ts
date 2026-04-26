@@ -31,15 +31,20 @@ export async function POST(req: NextRequest) {
     content: userMessage,
   });
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      { role: "system", content: SITE_KNOWLEDGE },
-      { role: "user", content: `カテゴリ：${topic}\n質問：${userMessage}` },
-    ],
-  });
+  let reply: string;
 
-  const reply = completion.choices[0].message.content ?? "申し訳ありません、回答を生成できませんでした。";
+  if (topic === "教材のリクエスト") {
+    reply = "リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸";
+  } else {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: SITE_KNOWLEDGE },
+        { role: "user", content: `カテゴリ：${topic}\n質問：${userMessage}` },
+      ],
+    });
+    reply = completion.choices[0].message.content ?? "申し訳ありません、回答を生成できませんでした。";
+  }
 
   await supabase.from("chat_messages").insert({
     session_id: sid,

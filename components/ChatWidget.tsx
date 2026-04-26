@@ -265,7 +265,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     if (!content || loading) return;
     setLoading(true);
 
-    await fetch("/api/chat/message", {
+    const res = await fetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -276,9 +276,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
         userEmail: authUser?.email,
       }),
     });
+    const data = await res.json();
+    if (data.sessionId) setSessionId(data.sessionId);
 
     setMessages((prev) => [...prev, { role: "user", content }]);
-    botMsg("リクエストありがとうございます！いただいた内容を参考に、今後の教材制作に活かしてまいります。引き続きtoolioをよろしくお願いします🌸");
+    botMsg(data.reply);
     setPhase("done");
     clearInput();
     setLoading(false);
