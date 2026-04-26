@@ -358,7 +358,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
             {phase === "done" && (
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setOpen(false)}>チャットを閉じる</button>
+                <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(); setOpen(false); }}>チャットを閉じる</button>
                 <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={reset}>最初に戻る</button>
               </div>
             )}
