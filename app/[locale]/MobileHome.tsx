@@ -51,6 +51,7 @@ export default function MobileHome() {
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
+  const [favIdsLoaded, setFavIdsLoaded] = useState(false);
   const [dlIds, setDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
@@ -76,6 +77,7 @@ export default function MobileHome() {
         }
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
         if (favData) setFavIds(favData.map((d: any) => d.material_id));
+        setFavIdsLoaded(true);
         const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
         if (dlData) setDlIds([...new Set(dlData.map((d: any) => d.material_id as string))]);
         const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
@@ -299,6 +301,7 @@ export default function MobileHome() {
                 materials={materials}
                 favIds={effectiveFavIds}
                 dlIds={dlIds}
+                favIdsLoaded={favIdsLoaded}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
                 purchasedIds={purchasedIds}

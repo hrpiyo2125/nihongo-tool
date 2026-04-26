@@ -190,6 +190,7 @@ const methodItems = [
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
   const [topFavIds, setTopFavIds] = useState<string[]>([]);
+  const [topFavIdsLoaded, setTopFavIdsLoaded] = useState(false);
   const [topDlIds, setTopDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
@@ -280,6 +281,7 @@ const methodItems = [
       if (session) {
       const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
       if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+      setTopFavIdsLoaded(true);
       const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
       if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
       }
@@ -516,6 +518,7 @@ if (isMobile) return <MobileHome />;
                 materials={materials}
                 favIds={effectiveFavIds}
                 dlIds={topDlIds}
+                favIdsLoaded={topFavIdsLoaded}
                 userPlan={profile.plan ?? "free"}
                 isLoggedIn={isLoggedIn}
                 purchasedIds={purchasedIds}

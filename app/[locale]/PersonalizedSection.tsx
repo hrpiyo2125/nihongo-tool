@@ -30,6 +30,7 @@ type Props = {
   materials: Material[];
   favIds: string[];
   dlIds: string[];
+  favIdsLoaded: boolean;
   userPlan: string;
   isLoggedIn: boolean;
   purchasedIds: string[];
@@ -110,6 +111,7 @@ export default function PersonalizedSection({
   materials,
   favIds,
   dlIds,
+  favIdsLoaded,
   userPlan,
   isLoggedIn,
   purchasedIds,
@@ -125,25 +127,24 @@ export default function PersonalizedSection({
   const isFreeUser = !userPlan || userPlan === "free";
   const isPaidUser = !isFreeUser;
 
-  // Compute recommendations only once when materials first load (or plan changes).
-  // favIds/dlIds are captured as a snapshot so favoriting an item mid-session
-  // doesn't cause the list to reshuffle or disappear.
-  const computedRef = useRef(false);
-  const prevPlanRef = useRef(userPlan);
+  // Compute once when both materials and favIds are ready.
+  // After that, never recompute from fav/unfav actions — only recompute on plan change.
+  const computedPlanRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!isPaidUser || materials.length === 0) {
-      setPersonalizedMats([]);
-      computedRef.current = false;
+    if (!isPaidUser || materials.length === 0 || !favIdsLoaded) {
+      if (!isPaidUser) {
+        setPersonalizedMats([]);
+        computedPlanRef.current = null;
+      }
       return;
     }
-    const planChanged = prevPlanRef.current !== userPlan;
-    if (computedRef.current && !planChanged) return;
-    prevPlanRef.current = userPlan;
-    computedRef.current = true;
+    if (computedPlanRef.current === userPlan) return;
+    computedPlanRef.current = userPlan;
     setPersonalizedMats(pickPersonalized(materials, favIds, dlIds, userPlan));
+  // favIds/dlIds intentionally excluded: we snapshot them at first compute only
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [materials, userPlan, isPaidUser]);
+  }, [materials, userPlan, isPaidUser, favIdsLoaded]);
 
   // Don't show if not logged in
   if (!isLoggedIn) return null;
