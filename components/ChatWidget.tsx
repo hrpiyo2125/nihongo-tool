@@ -11,6 +11,10 @@ const TOPICS = [
   "その他",
 ];
 
+const STAFF_KEYWORDS = [
+  "担当者", "スタッフ", "人間", "繋い", "つない", "サポート", "直接", "電話", "メール", "連絡",
+];
+
 type Message = {
   id?: string;
   role: "bot" | "user" | "staff";
@@ -18,13 +22,10 @@ type Message = {
 };
 
 type Phase =
-  | "closed"
   | "topic"
-  | "freeInput"
   | "loading"
-  | "replied"
+  | "chat"
   | "resolved"
-  | "retry"
   | "email"
   | "waiting"
   | "live";
@@ -35,10 +36,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(initialSessionId ?? null);
   const [email, setEmail] = useState("");
-  const [liveInput, setLiveInput] = useState("");
-  const [freeInput, setFreeInput] = useState("");
+  const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [resolved, setResolved] = useState<boolean | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -85,68 +87,58 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setMessages((prev) => [...prev, { role: "bot", content }]);
   }
 
-  async function handleTopic(topic: string) {
-    if (topic === "その他") {
-      setMessages([{ role: "user", content: topic }]);
-      addBotMsg("どのようなことでしょうか？自由にご入力ください。");
-      setPhase("freeInput");
+  function wantsStaff(text: string) {
+    return STAFF_KEYWORDS.some((kw) => text.includes(kw));
+  }
+
+  async function handleSend() {
+    const content = input.trim();
+    if (!content || sending) return;
+    setInput("");
+
+    // 担当者希望の検出
+    if (phase === "chat" && wantsStaff(content)) {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
+      setPhase("email");
       return;
     }
-    await sendMessage(topic, topic);
-  }
 
-  async function handleFreeInputSend() {
-    if (!freeInput.trim()) return;
-    const content = freeInput.trim();
-    setFreeInput("");
-    await sendMessage("その他", content, [
-      { role: "user", content: "その他" },
-      { role: "bot", content: "どのようなことでしょうか？自由にご入力ください。" },
-      { role: "user", content },
-    ]);
-  }
+    // liveフェーズ（担当者チャット）
+    if (phase === "live") {
+      setMessages((prev) => [...prev, { role: "user", content }]);
+      await fetch("/api/chat/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, topic: "担当者チャット", userMessage: content }),
+      });
+      return;
+    }
 
-  async function sendMessage(topic: string, userMessage: string, initialMessages?: Message[]) {
-    const userMsg: Message = { role: "user", content: userMessage };
-    setMessages(initialMessages ?? [userMsg]);
-    setPhase("loading");
-    if (!initialMessages) addBotMsg("少々お待ちください...");
+    // 通常のAI返答
+    setMessages((prev) => [...prev, { role: "user", content }]);
+    setSending(true);
+    addBotMsg("少々お待ちください...");
 
     const res = await fetch("/api/chat/message", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, topic, userMessage }),
+      body: JSON.stringify({ sessionId, topic: "その他", userMessage: content }),
     });
     const data = await res.json();
     setSessionId(data.sessionId);
     setMessages((prev) => {
       const filtered = prev.filter((m) => m.content !== "少々お待ちください...");
-      if (initialMessages) {
-        return [...filtered, { role: "bot", content: data.reply }];
-      }
-      return [userMsg, { role: "bot", content: data.reply }];
+      return [...filtered, { role: "bot", content: data.reply }];
     });
-    setPhase("replied");
+    setPhase("chat");
+    setResolved(null);
+    setSending(false);
   }
 
-  async function handleResolved(yes: boolean) {
-    if (yes) {
-      addBotMsg("お役に立てて良かったです！またいつでもご相談ください。");
-      setPhase("resolved");
-    } else {
-      setPhase("retry");
-    }
-  }
-
-  async function handleRetryTopic(topic: string) {
-    if (topic === "その他") {
-      setMessages((prev) => [...prev, { role: "user", content: topic }]);
-      addBotMsg("どのようなことでしょうか？自由にご入力ください。");
-      setPhase("freeInput");
-      return;
-    }
+  async function handleTopic(topic: string) {
     setMessages((prev) => [...prev, { role: "user", content: topic }]);
-    setPhase("loading");
+    setSending(true);
     addBotMsg("少々お待ちください...");
 
     const res = await fetch("/api/chat/message", {
@@ -155,14 +147,29 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       body: JSON.stringify({ sessionId, topic, userMessage: topic }),
     });
     const data = await res.json();
+    setSessionId(data.sessionId);
     setMessages((prev) => {
       const filtered = prev.filter((m) => m.content !== "少々お待ちください...");
       return [...filtered, { role: "bot", content: data.reply }];
     });
-    setPhase("replied");
+    setPhase("chat");
+    setResolved(null);
+    setSending(false);
+  }
+
+  async function handleResolved(yes: boolean) {
+    setResolved(yes);
+    if (yes) {
+      addBotMsg("お役に立てて良かったです！またいつでもご相談ください。");
+      setPhase("resolved");
+    } else {
+      addBotMsg("解決しなかった場合は、引き続き質問するか、担当者に繋ぐこともできます。");
+      setPhase("chat");
+    }
   }
 
   async function handleRequestStaff() {
+    addBotMsg("担当者へのご連絡を承ります。メールアドレスを入力してください。");
     setPhase("email");
   }
 
@@ -179,30 +186,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     setPhase("waiting");
   }
 
-  async function handleLiveSend() {
-    if (!liveInput.trim() || !sessionId) return;
-    const content = liveInput.trim();
-    setLiveInput("");
-    setMessages((prev) => [...prev, { role: "user", content }]);
-    await fetch("/api/chat/message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, topic: "担当者チャット", userMessage: content }),
-    });
-  }
-
-  const btnStyle = (color = "#9b6ed4"): React.CSSProperties => ({
-    padding: "10px 16px",
-    borderRadius: 20,
-    border: `1.5px solid ${color}`,
-    background: "white",
-    color,
-    cursor: "pointer",
-    fontSize: 13,
-    fontWeight: 600,
-    textAlign: "left",
-    width: "100%",
-  });
+  const showTopicButtons = phase === "topic";
+  const showResolvedButtons = phase === "chat" && resolved === null && messages.some((m) => m.role === "bot" && m.content !== "少々お待ちください...");
+  const showStaffButton = phase === "chat";
+  const showEmailInput = phase === "email";
+  const showInput = phase !== "email" && phase !== "waiting" && phase !== "resolved";
 
   const primaryBtn: React.CSSProperties = {
     padding: "10px 20px",
@@ -215,6 +203,19 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     fontWeight: 700,
     width: "100%",
   };
+
+  const outlineBtn = (color = "#9b6ed4"): React.CSSProperties => ({
+    padding: "9px 14px",
+    borderRadius: 20,
+    border: `1.5px solid ${color}`,
+    background: "white",
+    color,
+    cursor: "pointer",
+    fontSize: 13,
+    fontWeight: 600,
+    textAlign: "left" as const,
+    width: "100%",
+  });
 
   return (
     <>
@@ -252,7 +253,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             right: 24,
             zIndex: 9998,
             width: 340,
-            maxHeight: 520,
+            height: 520,
             background: "white",
             borderRadius: 20,
             boxShadow: "0 8px 32px rgba(155,110,212,0.25)",
@@ -263,196 +264,126 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
           }}
         >
           {/* Header */}
-          <div
-            style={{
-              background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)",
-              padding: "14px 20px",
-              color: "white",
-              fontWeight: 700,
-              fontSize: 14,
-            }}
-          >
+          <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "14px 20px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0 }}>
             toolio サポート
           </div>
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
-            {messages.length === 0 && phase === "topic" && (
-              <Bubble role="bot">
-                こんにちは！どのようなことでお困りですか？
-              </Bubble>
+            {messages.length === 0 && (
+              <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
             )}
             {messages.map((m, i) => (
               <Bubble key={i} role={m.role}>{m.content}</Bubble>
             ))}
-            <div ref={bottomRef} />
-          </div>
 
-          {/* Controls */}
-          <div style={{ padding: "10px 14px 16px", display: "flex", flexDirection: "column", gap: 8, borderTop: "0.5px solid rgba(200,170,240,0.2)" }}>
-            {phase === "topic" && (
-              <>
-                {TOPICS.map((t) => (
-                  <button key={t} style={btnStyle()} onClick={() => handleTopic(t)}>{t}</button>
-                ))}
-              </>
-            )}
-
-            {phase === "freeInput" && (
-              <>
-                <textarea
-                  rows={3}
-                  placeholder="お困りの内容を自由にご入力ください..."
-                  value={freeInput}
-                  onChange={(e) => setFreeInput(e.target.value)}
-                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, resize: "none", outline: "none" }}
-                />
-                <button style={primaryBtn} onClick={handleFreeInputSend} disabled={!freeInput.trim()}>
-                  送信する
-                </button>
-              </>
-            )}
-
-            {phase === "loading" && (
-              <p style={{ color: "#bbb", fontSize: 12, textAlign: "center" }}>AIが回答を生成中です...</p>
-            )}
-
-            {phase === "replied" && (
-              <>
-                <p style={{ fontSize: 12, color: "#888", fontWeight: 600, marginBottom: 2 }}>この回答で解決しましたか？</p>
+            {/* 解決確認ボタン */}
+            {showResolvedButtons && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button style={{ ...btnStyle("#22c55e"), flex: 1 }} onClick={() => handleResolved(true)}>✅ はい</button>
-                  <button style={{ ...btnStyle("#f43f5e"), flex: 1 }} onClick={() => handleResolved(false)}>❌ いいえ</button>
+                  <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => handleResolved(true)}>✅ はい</button>
+                  <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => handleResolved(false)}>❌ いいえ</button>
                 </div>
-                <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                  <input
-                    type="text"
-                    placeholder="追加で質問があればどうぞ..."
-                    value={liveInput}
-                    onChange={(e) => setLiveInput(e.target.value)}
-                    onKeyDown={async (e) => {
-                      if (e.key === "Enter" && liveInput.trim()) {
-                        const content = liveInput.trim();
-                        setLiveInput("");
-                        setMessages((prev) => [...prev, { role: "user", content }]);
-                        setPhase("loading");
-                        const res = await fetch("/api/chat/message", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ sessionId, topic: "追加質問", userMessage: content }),
-                        });
-                        const data = await res.json();
-                        setMessages((prev) => [...prev.filter(m => m.content !== "少々お待ちください..."), { role: "bot", content: data.reply }]);
-                        setPhase("replied");
-                      }
-                    }}
-                    style={{ flex: 1, padding: "9px 13px", borderRadius: 20, border: "1px solid rgba(200,170,240,0.4)", fontSize: 12, outline: "none" }}
-                  />
-                  <button
-                    onClick={async () => {
-                      if (!liveInput.trim()) return;
-                      const content = liveInput.trim();
-                      setLiveInput("");
-                      setMessages((prev) => [...prev, { role: "user", content }]);
-                      setPhase("loading");
-                      const res = await fetch("/api/chat/message", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ sessionId, topic: "追加質問", userMessage: content }),
-                      });
-                      const data = await res.json();
-                      setMessages((prev) => [...prev.filter(m => m.content !== "少々お待ちください..."), { role: "bot", content: data.reply }]);
-                      setPhase("replied");
-                    }}
-                    style={{ padding: "9px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontSize: 12, fontWeight: 700 }}
-                  >
-                    送信
-                  </button>
-                </div>
-              </>
+              </div>
             )}
 
-            {phase === "retry" && (
-              <>
-                <p style={{ fontSize: 12, color: "#888", fontWeight: 600, marginBottom: 2 }}>別のカテゴリを選ぶか、担当者に繋ぎます。</p>
-                {TOPICS.map((t) => (
-                  <button key={t} style={btnStyle()} onClick={() => handleRetryTopic(t)}>{t}</button>
-                ))}
-                <button style={{ ...btnStyle("#7a50b0"), marginTop: 4 }} onClick={handleRequestStaff}>
-                  👤 担当者に繋ぐ
-                </button>
-              </>
+            {/* 担当者ボタン */}
+            {showStaffButton && resolved === false && (
+              <button style={outlineBtn("#7a50b0")} onClick={handleRequestStaff}>
+                👤 担当者に繋ぐ
+              </button>
             )}
 
-            {phase === "email" && (
-              <>
-                <p style={{ fontSize: 12, color: "#888", fontWeight: 600 }}>メールアドレスを入力してください。担当者からご連絡します。</p>
+            {/* メール入力 */}
+            {showEmailInput && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
                 <input
                   type="email"
                   placeholder="example@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{
-                    padding: "10px 14px",
-                    borderRadius: 12,
-                    border: "1px solid rgba(200,170,240,0.5)",
-                    fontSize: 13,
-                    outline: "none",
-                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleEmailSubmit()}
+                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(200,170,240,0.5)", fontSize: 13, outline: "none" }}
                 />
                 <button style={primaryBtn} onClick={handleEmailSubmit} disabled={sending}>
                   {sending ? "送信中..." : "送信する"}
                 </button>
-              </>
-            )}
-
-            {phase === "waiting" && (
-              <p style={{ fontSize: 12, color: "#888", textAlign: "center" }}>
-                担当者からのメールをお待ちください。チャットを閉じても大丈夫です。
-              </p>
-            )}
-
-            {phase === "live" && (
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  type="text"
-                  placeholder="メッセージを入力..."
-                  value={liveInput}
-                  onChange={(e) => setLiveInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleLiveSend()}
-                  style={{
-                    flex: 1,
-                    padding: "10px 14px",
-                    borderRadius: 20,
-                    border: "1px solid rgba(200,170,240,0.5)",
-                    fontSize: 13,
-                    outline: "none",
-                  }}
-                />
-                <button
-                  onClick={handleLiveSend}
-                  style={{
-                    padding: "10px 16px",
-                    borderRadius: 20,
-                    border: "none",
-                    background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
-                    color: "white",
-                    cursor: "pointer",
-                    fontSize: 13,
-                    fontWeight: 700,
-                  }}
-                >
-                  送信
-                </button>
               </div>
             )}
 
+            {/* 最初に戻る */}
             {phase === "resolved" && (
-              <button style={btnStyle()} onClick={() => { setPhase("topic"); setMessages([]); setSessionId(null); }}>
+              <button style={outlineBtn()} onClick={() => { setPhase("topic"); setMessages([]); setSessionId(null); setResolved(null); }}>
                 最初に戻る
               </button>
             )}
+
+            <div ref={bottomRef} />
           </div>
+
+          {/* Topic buttons (topicフェーズのみ) */}
+          {showTopicButtons && (
+            <div style={{ padding: "8px 14px", display: "flex", flexDirection: "column", gap: 6, borderTop: "0.5px solid rgba(200,170,240,0.15)", flexShrink: 0 }}>
+              {TOPICS.map((t) => (
+                <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
+              ))}
+            </div>
+          )}
+
+          {/* Input bar (LINE風・常時表示) */}
+          {showInput && (
+            <div style={{ padding: "10px 12px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", gap: 8, alignItems: "flex-end", flexShrink: 0, background: "white" }}>
+              <textarea
+                ref={inputRef}
+                rows={1}
+                placeholder={phase === "live" ? "メッセージを入力..." : "自由に質問できます..."}
+                value={input}
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  e.target.style.height = "auto";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 96) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSend();
+                    if (inputRef.current) inputRef.current.style.height = "auto";
+                  }
+                }}
+                style={{
+                  flex: 1,
+                  padding: "9px 13px",
+                  borderRadius: 20,
+                  border: "1px solid rgba(200,170,240,0.5)",
+                  fontSize: 13,
+                  resize: "none",
+                  outline: "none",
+                  lineHeight: 1.5,
+                  overflow: "hidden",
+                  maxHeight: 96,
+                }}
+              />
+              <button
+                onClick={() => { handleSend(); if (inputRef.current) inputRef.current.style.height = "auto"; }}
+                disabled={!input.trim() || sending}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: 20,
+                  border: "none",
+                  background: input.trim() ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5",
+                  color: input.trim() ? "white" : "#bbb",
+                  cursor: input.trim() ? "pointer" : "default",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  flexShrink: 0,
+                  transition: "background 0.2s",
+                }}
+              >
+                送信
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>
