@@ -109,13 +109,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   async function loadMessages(sid: string) {
     try {
-      const { data: sess } = await supabase.from("chat_sessions").select("status").eq("id", sid).single();
-      const { data } = await supabase.from("chat_messages").select("id, role, content").eq("session_id", sid).order("created_at");
+      // service role経由でRLSをバイパスして読み込み
+      const res = await fetch(`/api/chat/session?sessionId=${sid}`);
+      if (!res.ok) {
+        sessionStorage.removeItem(SESSION_KEY);
+        setPhase("topic");
+        return;
+      }
+      const json = await res.json();
+      const { status, messages: data } = json;
 
-      const status = sess?.status;
-
-      // セッションが存在しない・メッセージなし → トピック選択（sessionIdはセットしない）
-      if (!sess || !data || data.length === 0) {
+      // メッセージなし → トピック選択
+      if (!data || data.length === 0) {
         sessionStorage.removeItem(SESSION_KEY);
         setPhase("topic");
         return;
@@ -124,9 +129,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       // 有効なセッションのみsessionIdをセット（これによりsessionStorageも保存される）
       setSessionId(sid);
 
-      const hasStaff = data.some((m) => m.role === "staff");
+      const hasStaff = data.some((m: Message) => m.role === "staff");
       if (hasStaff) {
-        const firstStaffIdx = data.findIndex((m) => m.role === "staff");
+        const firstStaffIdx = data.findIndex((m: Message) => m.role === "staff");
         const withSeparator = [
           ...data.slice(0, firstStaffIdx),
           { role: "separator" as const, content: "ここから担当者との会話" },
