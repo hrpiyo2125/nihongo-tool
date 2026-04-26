@@ -23,7 +23,7 @@ type Message = {
 type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(!!initialSessionId);
   const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
