@@ -148,11 +148,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     clearInput();
 
     if (phase === "live" || phase === "waiting") {
-      setMessages((prev) => [...prev, { role: "user", content }]);
-      await fetch("/api/chat/message", {
+      // ローカル追加しない（Realtimeで反映）、AIも呼ばない
+      await fetch("/api/chat/live-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, topic: "担当者チャット", userMessage: content }),
+        body: JSON.stringify({ sessionId, userMessage: content }),
       });
       return;
     }
