@@ -30,7 +30,8 @@ export async function GET(req: NextRequest) {
         })
       }
 
-      return NextResponse.redirect(`${origin}/${locale}`)
+      const returnTo = searchParams.get('returnTo')
+      return NextResponse.redirect(`${origin}${returnTo ?? `/${locale}`}`)
     }
   }
 

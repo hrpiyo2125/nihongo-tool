@@ -46,6 +46,7 @@ export default function ChatResumePage() {
   }
 
   if (phase === "login") {
+    const returnTo = `/${locale}/chat/${sessionId}`;
     return (
       <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)" }}>
         <AuthModal
@@ -53,6 +54,7 @@ export default function ChatResumePage() {
           reason="chat"
           onClose={() => {}}
           onLoggedIn={() => loadChat()}
+          googleRedirectTo={`${typeof window !== "undefined" ? window.location.origin : ""}/api/auth/callback?locale=${locale}&returnTo=${returnTo}`}
         />
         <div style={{ position: "fixed", top: 16, left: 16, zIndex: 10000 }}>
           <button onClick={() => { window.location.href = `/${locale}`; }} style={{ background: "none", border: "none", color: "#9b6ed4", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>← トップへ戻る</button>
