@@ -63,6 +63,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
       if (pendingSessionId) {
         await loadMessages(pendingSessionId);
+        setOpen(true);
         return;
       }
 
