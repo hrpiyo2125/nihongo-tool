@@ -176,8 +176,16 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     }
   }
 
-  function botMsg(content: string) {
+  function botMsg(content: string, save = false, sid?: string) {
     setMessages((prev) => [...prev, { role: "bot", content }]);
+    const targetId = sid ?? sessionId;
+    if (save && targetId) {
+      fetch("/api/chat/bot-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: targetId, content }),
+      });
+    }
   }
 
   function clearInput() {
@@ -251,7 +259,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
+      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
       setPhase("staffConfirm");
       return;
     }
@@ -299,9 +307,10 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       }),
     });
     const data = await res.json();
+    const newSid = data.sessionId ?? sessionId;
     if (data.sessionId) setSessionId(data.sessionId);
     setLoading(false);
-    botMsg(`${authUser?.email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
+    botMsg(`${authUser?.email} に担当者からご連絡します。チャットを閉じても大丈夫です。`, true, newSid);
     setPhase("waiting");
   }
 
@@ -413,12 +422,12 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                     <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
-                        botMsg("お役に立てて良かったです！またいつでもご相談ください。");
+                        botMsg("お役に立てて良かったです！またいつでもご相談ください。", true);
                         setAiReplied(false);
                         setPhase("done");
                       }}>✅ はい</button>
                       <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
-                        botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。");
+                        botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。", true);
                         setAiReplied(false);
                         setPhase("retry");
                       }}>❌ いいえ</button>
@@ -432,7 +441,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                       {loading ? "送信中..." : "📧 担当者とのチャットを希望する"}
                     </button>
                     <button style={outlineBtn("#9b6ed4")} onClick={() => {
-                      botMsg("AIチャットに戻ります。他にご質問があればどうぞ。");
+                      botMsg("AIチャットに戻ります。他にご質問があればどうぞ。", true);
                       setPhase("retry");
                     }}>💬 AIチャットに戻る</button>
                   </div>
@@ -444,7 +453,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                       <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
                     ))}
                     <button style={outlineBtn("#7a50b0")} onClick={() => {
-                      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。");
+                      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
                       setPhase("staffConfirm");
                     }}>👤 担当者に繋ぐ</button>
                   </div>
