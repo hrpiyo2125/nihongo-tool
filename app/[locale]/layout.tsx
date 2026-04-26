@@ -1,9 +1,11 @@
-import Script from "next/script";
 import type { Metadata } from "next";
 import { Libre_Baskerville, Josefin_Sans } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
+import dynamic from "next/dynamic";
+
+const ChatWidget = dynamic(() => import("@/components/ChatWidget"), { ssr: false });
 
 
 
@@ -41,13 +43,9 @@ export default async function RootLayout({
   return (
    <html lang={locale} className={`${libreBaskerville.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <Script
-          id="tidio-widget"
-          src="//code.tidio.co/zp9r8sfhwymgrwrv5sua0jqxx11lhha2.js"
-          strategy="afterInteractive"
-        />
         <NextIntlClientProvider messages={messages}>
           {children}
+          <ChatWidget />
         </NextIntlClientProvider>
       </body>
     </html>
