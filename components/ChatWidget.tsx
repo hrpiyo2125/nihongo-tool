@@ -188,12 +188,25 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   }
 
   async function handleEmailSubmit() {
-    if (!email || !sessionId) return;
+    if (!email) return;
     setLoading(true);
+
+    let sid = sessionId;
+    if (!sid) {
+      const res = await fetch("/api/chat/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: null, topic: "担当者チャット", userMessage: "担当者への連絡を希望" }),
+      });
+      const data = await res.json();
+      sid = data.sessionId;
+      setSessionId(sid);
+    }
+
     await fetch("/api/chat/request-staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, userEmail: email }),
+      body: JSON.stringify({ sessionId: sid, userEmail: email }),
     });
     setLoading(false);
     botMsg(`ありがとうございます。${email} に担当者からご連絡します。チャットを閉じても大丈夫です。`);
