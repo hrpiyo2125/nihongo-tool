@@ -291,7 +291,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
                 <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
-                    botMsg("お役に立てて良かったです！またいつでもご相談ください。");
+                    botMsg("お役に立てて良かったです！またいつでもご相談ください。チャットを閉じても大丈夫です。");
                     setAiReplied(false);
                     setPhase("done");
                   }}>✅ はい</button>
@@ -357,7 +357,10 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
             )}
 
             {phase === "done" && (
-              <button style={outlineBtn()} onClick={reset}>最初に戻る</button>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setOpen(false)}>チャットを閉じる</button>
+                <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={reset}>最初に戻る</button>
+              </div>
             )}
 
             <div ref={bottomRef} />
