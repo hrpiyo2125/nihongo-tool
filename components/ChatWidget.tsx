@@ -6,6 +6,74 @@ import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/components/AuthModal";
 import { useIsMobile } from "@/app/[locale]/useIsMobile";
 
+function IconLock({ size = 28, color = "#9b6ed4" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="3" ry="3"/>
+      <path d="M7 11V7a5 5 0 0110 0v4"/>
+    </svg>
+  );
+}
+function IconCheck({ size = 14, color = "#22c55e" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  );
+}
+function IconX({ size = 14, color = "#f43f5e" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+  );
+}
+function IconMail({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <polyline points="2,4 12,13 22,4"/>
+    </svg>
+  );
+}
+function IconChat({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+  );
+}
+function IconUser({ size = 14, color = "currentColor" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+  );
+}
+function IconSparkle({ size = 13, color = "#9b6ed4" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/>
+    </svg>
+  );
+}
+function IconAlert({ size = 16, color = "#c0392b" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  );
+}
+function IconPencil({ size = 14, color = "#9b6ed4" }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+  );
+}
+
 const TOPICS = [
   "料金について",
   "解約について",
@@ -488,7 +556,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
             {/* ログイン未済 */}
             {phase === "requireLogin" && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 40, padding: "0 8px" }}>
-                <div style={{ fontSize: 32 }}>🔒</div>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#f5f0ff" }}><IconLock size={28} color="#9b6ed4" /></div>
                 <p style={{ fontSize: 13, color: "#555", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
                   チャットをご利用いただくには<br />ログイン・新規登録が必要です。
                 </p>
@@ -509,7 +577,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                   m.role === "separator" ? (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
                       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
-                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>{m.content === "新しい会話" ? "✨" : "👤"} {m.content}</span>
+                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>{m.content === "新しい会話" ? <IconSparkle size={11} color="#9b6ed4" /> : <IconUser size={11} color="#9b6ed4" />} {m.content}</span>
                       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
                     </div>
                   ) : (
@@ -521,32 +589,32 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
                     <div style={{ display: "flex", gap: 8 }}>
-                      <button style={{ ...outlineBtn("#22c55e"), flex: 1 }} onClick={() => {
-                        saveUserMsg("✅ はい（解決しました）");
+                      <button style={{ ...outlineBtn("#22c55e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
+                        saveUserMsg("はい（解決しました）");
                         botMsg("お役に立てて良かったです！またいつでもご相談ください。", true);
                         setAiReplied(false);
                         setPhase("done");
-                      }}>✅ はい</button>
-                      <button style={{ ...outlineBtn("#f43f5e"), flex: 1 }} onClick={() => {
-                        saveUserMsg("❌ いいえ（解決しませんでした）");
+                      }}><IconCheck size={14} color="#22c55e" /> はい</button>
+                      <button style={{ ...outlineBtn("#f43f5e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
+                        saveUserMsg("いいえ（解決しませんでした）");
                         botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。", true);
                         setAiReplied(false);
                         setPhase("retry");
-                      }}>❌ いいえ</button>
+                      }}><IconX size={14} color="#f43f5e" /> いいえ</button>
                     </div>
                   </div>
                 )}
 
                 {phase === "staffConfirm" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <button style={outlineBtn("#7a50b0")} onClick={handleRequestStaff} disabled={loading}>
-                      {loading ? "送信中..." : "📧 担当者とのチャットを希望する"}
+                    <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={handleRequestStaff} disabled={loading}>
+                      {loading ? "送信中..." : <><IconMail size={14} color="#7a50b0" /> 担当者とのチャットを希望する</>}
                     </button>
-                    <button style={outlineBtn("#9b6ed4")} onClick={() => {
-                      saveUserMsg("💬 AIチャットに戻る");
+                    <button style={{ ...outlineBtn("#9b6ed4"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
+                      saveUserMsg("AIチャットに戻る");
                       botMsg("AIチャットに戻ります。他にご質問があればどうぞ。", true);
                       setPhase("retry");
-                    }}>💬 AIチャットに戻る</button>
+                    }}><IconChat size={14} color="#9b6ed4" /> AIチャットに戻る</button>
                   </div>
                 )}
 
@@ -565,11 +633,11 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                     {TOPICS.map((t) => (
                       <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
                     ))}
-                    <button style={outlineBtn("#7a50b0")} onClick={() => {
-                      saveUserMsg("👤 担当者に繋ぐ");
+                    <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
+                      saveUserMsg("担当者に繋ぐ");
                       botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
                       setPhase("staffConfirm");
-                    }}>👤 担当者に繋ぐ</button>
+                    }}><IconUser size={14} color="#7a50b0" /> 担当者に繋ぐ</button>
                   </div>
                 )}
 
@@ -582,7 +650,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                       <>
                         {showCloseConfirm ? (
                           <div style={{ background: "#fff8f0", border: "1.5px solid #f4b9b9", borderRadius: 14, padding: "14px 14px 10px", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <p style={{ fontSize: 13, color: "#c0392b", fontWeight: 700, margin: 0 }}>⚠️ チャット履歴を削除しますか？</p>
+                            <p style={{ fontSize: 13, color: "#c0392b", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6 }}><IconAlert size={15} color="#c0392b" /> チャット履歴を削除しますか？</p>
                             <p style={{ fontSize: 12, color: "#555", margin: 0, lineHeight: 1.7 }}>
                               この操作を行うと、チャット履歴が即座に削除されます。<br />
                               <span style={{ color: "#aaa" }}>（削除しない場合は30日後に自動削除されます）</span>
@@ -636,9 +704,12 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
               <button
                 onClick={handleSend}
                 disabled={!isInputActive}
-                style={{ padding: "9px 16px", borderRadius: 20, border: "none", background: isInputActive ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: isInputActive ? "white" : "#bbb", cursor: isInputActive ? "pointer" : "default", fontSize: 13, fontWeight: 700, flexShrink: 0, transition: "background 0.2s" }}
+                aria-label="送信"
+                style={{ width: 38, height: 38, borderRadius: "50%", border: "none", background: isInputActive ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: isInputActive ? "white" : "#bbb", cursor: isInputActive ? "pointer" : "default", flexShrink: 0, transition: "background 0.2s", display: "flex", alignItems: "center", justifyContent: "center" }}
               >
-                送信
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                </svg>
               </button>
             </div>
           )}
@@ -646,7 +717,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
           {/* 教材リクエスト専用フォーム */}
           {phase === "materialRequest" && (
             <div style={{ padding: "12px 14px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 8, flexShrink: 0, background: "#fdf8ff" }}>
-              <p style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, margin: 0 }}>📝 リクエスト内容を記入してください</p>
+              <p style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 5 }}><IconPencil size={13} color="#9b6ed4" /> リクエスト内容を記入してください</p>
               <textarea
                 rows={3}
                 placeholder="例：ひらがな練習プリント（年長向け）"
