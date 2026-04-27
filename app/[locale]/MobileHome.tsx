@@ -240,7 +240,7 @@ export default function MobileHome() {
                   ログイン
                 </button>
                 <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
-                  <BrandIcon name="user" size={14} color="#9b6ed4" />
+                  <BrandIcon name="sparkle" size={14} color="#9b6ed4" />
                   会員でない方はこちらから新規登録
                 </button>
               </div>
@@ -459,7 +459,7 @@ export default function MobileHome() {
             {[
               { icon: "download" as const, label: "ダウンロード履歴", action: () => setMorePage("dl") },
               { icon: "chat"     as const, label: "お悩み解決",       action: () => setMorePage("trouble") },
-              { icon: "lightbulb" as const, label: "使い方ガイド",    action: () => setMorePage("guide") },
+              { icon: "guide"     as const, label: "使い方ガイド",    action: () => setMorePage("guide") },
               { icon: "plan"     as const, label: "プラン",           action: () => router.push(locale === "ja" ? "/plan" : `/${locale}/plan`) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
