@@ -14,6 +14,7 @@ import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
+import BillingSection from "./BillingSection";
 type Material = {
   id: string;
   title: string;
@@ -45,6 +46,9 @@ export default function MobileHome() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [myPageOpen, setMyPageOpen] = useState(false);
+  const [mySubPage, setMySubPage] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editNameSaving, setEditNameSaving] = useState(false);
   const [materials, setMaterials] = useState<Material[]>([]);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
@@ -92,6 +96,11 @@ export default function MobileHome() {
     fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
     fetch("/api/announcements").then(r => r.json()).then(data => setAnnouncements(Array.isArray(data) ? data : []));
   }, []);
+
+  useEffect(() => {
+    if (mySubPage === "profile") setEditName(profile.full_name || "");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mySubPage]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -460,12 +469,46 @@ export default function MobileHome() {
                       <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
                       <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
                     </div>
-                  ) : (
-                    <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
-                      <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
-                      <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
-                    </div>
-                  )}
+                  ) : (() => {
+                    const dlMaterials = materials.filter(m => dlIds.includes(m.id));
+                    if (dlMaterials.length === 0) return (
+                      <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
+                        <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+                        <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
+                      </div>
+                    );
+                    return (
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                        {dlMaterials.map((mat) => {
+                          const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
+                          return (
+                            <MaterialCard
+                              key={mat.id}
+                              mat={mat}
+                              onClick={() => setTeaserMat(mat)}
+                              locale={locale}
+                              isLoggedIn={isLoggedIn}
+                              favIds={effectiveFavIds}
+                              bg={bg} char={char} charColor={charColor}
+                              tag={tag} tagBg={tagBg} tagColor={tagColor}
+                              onFavToggle={async (mat) => {
+                                const supabase = createClient();
+                                const { data: { session } } = await supabase.auth.getSession();
+                                if (!session) return;
+                                if (favIds.includes(mat.id)) {
+                                  await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                                  setFavIds(prev => prev.filter(id => id !== mat.id));
+                                } else {
+                                  await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                                  setFavIds(prev => [...prev, mat.id]);
+                                }
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -569,13 +612,12 @@ export default function MobileHome() {
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
-              { icon: "👤", label: "プロフィール" },
-              { icon: "📋", label: "プラン" },
-              { icon: "🧾", label: "支払い履歴" },
-              { icon: "🔔", label: "通知設定" },
-              { icon: "⭐", label: "ポイント" },
+              { icon: "👤", label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
+              { icon: "📋", label: "プラン", action: () => { setMyPageOpen(false); router.push("/plan"); } },
+              { icon: "🧾", label: "支払い履歴", action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
+              { icon: "🔔", label: "通知設定", action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
             ].map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <span style={{ fontSize: 20 }}>{item.icon}</span>
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
@@ -602,7 +644,101 @@ export default function MobileHome() {
           </div>
         </>
       )}
- {materialsModalOpen && (
+ {/* マイページサブページ */}
+      {mySubPage && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
+              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
+            </span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto", padding: "28px 20px" }}>
+
+            {/* プロフィール */}
+            {mySubPage === "profile" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{ display: "flex", justifyContent: "center" }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", overflow: "hidden" }}>
+                    {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
+                  </div>
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#999", display: "block", marginBottom: 6 }}>名前</label>
+                  <input
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    placeholder="お名前を入力"
+                    style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.4)", fontSize: 15, outline: "none", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: 12, color: "#999", display: "block", marginBottom: 6 }}>プラン</label>
+                  <div style={{ padding: "12px 14px", borderRadius: 10, background: "#f7f7f7", fontSize: 14, color: "#555" }}>
+                    {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}
+                  </div>
+                </div>
+                <button
+                  disabled={editNameSaving}
+                  onClick={async () => {
+                    setEditNameSaving(true);
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) {
+                      await supabase.from("profiles").update({ full_name: editName }).eq("id", session.user.id);
+                      setProfile((prev: Record<string, any>) => ({ ...prev, full_name: editName }));
+                      if (editName) setUserInitial(editName.charAt(0).toUpperCase());
+                    }
+                    setEditNameSaving(false);
+                  }}
+                  style={{ padding: "13px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 700, cursor: "pointer", opacity: editNameSaving ? 0.7 : 1 }}
+                >
+                  {editNameSaving ? "保存中..." : "保存する"}
+                </button>
+              </div>
+            )}
+
+            {/* 支払い履歴 */}
+            {mySubPage === "billing" && (
+              <BillingSection
+                profile={profile as any}
+                onChangePlan={() => { setMySubPage(null); router.push("/plan"); }}
+                onProfileUpdate={(updates) => setProfile((prev: Record<string, any>) => ({ ...prev, ...updates }))}
+              />
+            )}
+
+            {/* 通知設定 */}
+            {mySubPage === "notifications" && (
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {[
+                  { key: "notif_new_material", label: "新しい教材の追加", desc: "新教材が追加された時" },
+                  { key: "notif_favorite", label: "お気に入り", desc: "お気に入り教材の更新時" },
+                  { key: "notif_billing", label: "支払い・請求", desc: "請求・決済に関するお知らせ" },
+                  { key: "notif_announcement", label: "お知らせ", desc: "サービスからのお知らせ" },
+                ].map(({ key, label, desc }) => (
+                  <div key={key} onClick={async () => {
+                    const newVal = !profile[key];
+                    setProfile((prev: Record<string, any>) => ({ ...prev, [key]: newVal }));
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session) await supabase.from("profiles").update({ [key]: newVal }).eq("id", session.user.id);
+                  }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+                    <div>
+                      <div style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{label}</div>
+                      <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>{desc}</div>
+                    </div>
+                    <div style={{ width: 44, height: 26, borderRadius: 13, background: profile[key] ? "#9b6ed4" : "#ddd", position: "relative", flexShrink: 0, transition: "background 0.2s" }}>
+                      <div style={{ position: "absolute", top: 3, left: profile[key] ? 21 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {materialsModalOpen && (
   <MobileMaterialsModal
     materials={materials}
     locale={locale}
