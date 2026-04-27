@@ -133,9 +133,18 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         if (newUser.length > 0) {
           newUser.forEach((m) => m.id && seenUserIdsRef.current.add(m.id));
           setMessages((prev) => {
-            const existingIds = new Set(prev.map((m) => m.id).filter(Boolean));
-            const toAdd = newUser.filter((m) => !existingIds.has(m.id));
-            return toAdd.length > 0 ? [...prev, ...toAdd] : prev;
+            let updated = [...prev];
+            for (const m of newUser) {
+              const existingIdx = updated.findIndex((p) => !p.id && p.role === "user" && p.content === m.content);
+              if (existingIdx >= 0) {
+                // 楽観的追加済みメッセージをDB版（id付き）で置き換え
+                updated[existingIdx] = m;
+              } else if (!updated.some((p) => p.id === m.id)) {
+                // 別端末から送られた新規メッセージを追加
+                updated = [...updated, m];
+              }
+            }
+            return updated;
           });
         }
 
