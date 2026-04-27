@@ -430,6 +430,8 @@ if (isMobile) return <MobileHome />;
   </div>
   {sbOpen && (
   <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: "10px 0 4px", flexWrap: "wrap" }}>
+    <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
+    <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
     <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
     <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
     <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>

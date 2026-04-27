@@ -210,6 +210,7 @@ export default function MobileHome() {
         <Link href="/plan">料金プラン</Link>
         <Link href="/faq">よくある質問</Link>
         <Link href="/guide">使い方ガイド</Link>
+        <Link href="/about">toolioとは</Link>
         <Link href="/terms">利用規約</Link>
         <Link href="/privacy">プライバシーポリシー</Link>
         <Link href="/tokushoho">特定商取引法に基づく表示</Link>
