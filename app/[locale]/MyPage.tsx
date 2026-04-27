@@ -416,6 +416,7 @@ type MyPageProps = {
   navItems: { id: string; label: string }[];
   onPlanChanged?: () => Promise<void>;
   onOpenAuth?: (mode: "signup" | "login") => void;
+  mobileMode?: boolean;
 };
 
 export default function MyPage({
@@ -444,6 +445,7 @@ export default function MyPage({
   navItems,
   onPlanChanged,
   onOpenAuth,
+  mobileMode,
 }: MyPageProps) {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -527,11 +529,13 @@ export default function MyPage({
   if (activePage === "settings-profile") return (
     <div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>My Account</p>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{tm("profile_title")}</h2>
-      </div>
-      <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: 600 }}>
+      {!mobileMode && (
+        <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+          <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>My Account</p>
+          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>{tm("profile_title")}</h2>
+        </div>
+      )}
+      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: mobileMode ? undefined : 600 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
           <div
             onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
@@ -1081,11 +1085,13 @@ export default function MyPage({
 
   if (activePage === "settings-notifications") return (
     <div>
-      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Notifications</p>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>通知設定</h2>
-      </div>
-      <div style={{ padding: "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: 600 }}>
+      {!mobileMode && (
+        <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+          <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase" as const, marginBottom: 8 }}>Notifications</p>
+          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>通知設定</h2>
+        </div>
+      )}
+      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: mobileMode ? undefined : 600 }}>
         {[
           { label: tm("notif_new_material_label"), desc: tm("notif_new_material_desc"), col: "notif_new_material" },
           { label: tm("notif_favorite_label"), desc: tm("notif_favorite_desc"), col: "notif_favorite" },

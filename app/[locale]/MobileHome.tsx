@@ -459,7 +459,7 @@ export default function MobileHome() {
               { icon: "↓", label: "ダウンロード履歴", action: () => setMorePage("dl") },
               { icon: "💬", label: "お悩み解決", action: () => setMorePage("trouble") },
               { icon: "❓", label: "使い方ガイド", action: () => setMorePage("guide") },
-              { icon: "📋", label: "プラン", action: () => router.push("/plan") },
+              { icon: "📋", label: "プラン", action: () => router.push(`/${locale}/plan`) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -628,7 +628,7 @@ export default function MobileHome() {
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
               { icon: "👤", label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
-              { icon: "📋", label: "プラン", action: () => { setMyPageOpen(false); router.push("/plan"); } },
+              { icon: "📋", label: "プラン", action: () => { setMyPageOpen(false); router.push(`/${locale}/plan`); } },
               { icon: "🧾", label: "支払い履歴", action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
               { icon: "🔔", label: "通知設定", action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
             ].map((item) => (
@@ -661,13 +661,16 @@ export default function MobileHome() {
       )}
  {/* マイページサブページ */}
       {mySubPage && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
-          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "#f8f4f4", display: "flex", flexDirection: "column" }}>
+          <div style={{ flexShrink: 0, padding: "52px 20px 24px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 13, color: "#bbb", cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 }}>‹ 戻る</button>
+            <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 6 }}>
+              {mySubPage === "profile" ? "My Account" : mySubPage === "billing" ? "Billing" : "Notifications"}
+            </p>
+            <h2 style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0 }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
-            </span>
-          </header>
+            </h2>
+          </div>
           <div style={{ flex: 1, overflowY: "auto" }}>
             <MyPage
               activePage={
@@ -676,7 +679,7 @@ export default function MobileHome() {
                 : "settings-notifications"
               }
               setActivePage={(page) => {
-                if (page === "plan") { setMySubPage(null); router.push("/plan"); }
+                if (page === "plan") { setMySubPage(null); router.push(`/${locale}/plan`); }
               }}
               isLoggedIn={isLoggedIn}
               userInitial={userInitial}
@@ -699,6 +702,7 @@ export default function MobileHome() {
               tmm={tmm}
               tm={tm}
               navItems={[]}
+              mobileMode={true}
               onPlanChanged={async () => {
                 const supabase = createClient();
                 const { data: { session } } = await supabase.auth.getSession();
