@@ -516,10 +516,10 @@ export default function MaterialDetailPage() {
           {(material.level ?? []).map((lv: string) => (
             <span key={lv} style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070", whiteSpace: "nowrap", flexShrink: 0 }}>{lv}</span>
           ))}
-          <span style={{ fontSize: 15, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{material.title}</span>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>{(material.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・")}</span>
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>{isFree ? "このプリントは無料でダウンロードできます" : "このプリントはサブスク会員限定です"}</span>
+          {!isMobile && <span style={{ fontSize: 15, fontWeight: 700, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{material.title}</span>}
+          {!isMobile && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>{(material.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・")}</span>}
+          {!isMobile && <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />}
+          {!isMobile && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>{isFree ? "このプリントは無料でダウンロードできます" : "このプリントはサブスク会員限定です"}</span>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexShrink: 0 }}>
           <div style={{ position: "relative" }}>
