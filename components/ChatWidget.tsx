@@ -41,6 +41,17 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
   const MESSAGES_KEY = "chat_messages";
   const PHASE_KEY = "chat_phase";
 
+  function setCookie(value: string) {
+    document.cookie = `${SESSION_KEY}=${encodeURIComponent(value)}; max-age=${30 * 86400}; path=/`;
+  }
+  function getCookie(): string | null {
+    const m = document.cookie.match(/(?:^|; )chat_session_id=([^;]*)/);
+    return m ? decodeURIComponent(m[1]) : null;
+  }
+  function deleteCookie() {
+    document.cookie = `${SESSION_KEY}=; max-age=0; path=/`;
+  }
+
   async function init() {
     setPhase("loading");
     try {
@@ -55,10 +66,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
       if (!user) { setPhase("requireLogin"); return; }
 
-      // sessionStorageから直接復元（APIなし・RLS無関係）
-      const savedSessionId = sessionStorage.getItem(SESSION_KEY);
-      const savedMessages = sessionStorage.getItem(MESSAGES_KEY);
-      const savedPhase = sessionStorage.getItem(PHASE_KEY) as Phase | null;
+      const savedSessionId = getCookie();
+      const savedMessages = localStorage.getItem(MESSAGES_KEY);
+      const savedPhase = localStorage.getItem(PHASE_KEY) as Phase | null;
 
       if (savedSessionId && savedMessages) {
         setSessionId(savedSessionId);
@@ -75,16 +85,15 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   useEffect(() => { init(); }, []);
 
-  // sessionId・messages・phaseをsessionStorageに保存
   useEffect(() => {
-    if (sessionId) sessionStorage.setItem(SESSION_KEY, sessionId);
+    if (sessionId) setCookie(sessionId);
   }, [sessionId]);
 
   useEffect(() => {
     const saveablePhases: Phase[] = ["ai", "retry", "staffConfirm", "waiting", "live", "done", "materialRequest"];
     if (messages.length > 0 && saveablePhases.includes(phase)) {
-      sessionStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
-      sessionStorage.setItem(PHASE_KEY, phase);
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+      localStorage.setItem(PHASE_KEY, phase);
     }
   }, [messages, phase]);
 
@@ -128,9 +137,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
     try {
       const res = await fetch(`/api/chat/session?sessionId=${sid}`);
       if (!res.ok) {
-        sessionStorage.removeItem(SESSION_KEY);
-        sessionStorage.removeItem(MESSAGES_KEY);
-        sessionStorage.removeItem(PHASE_KEY);
+        deleteCookie();
+        localStorage.removeItem(MESSAGES_KEY);
+        localStorage.removeItem(PHASE_KEY);
         setPhase("topic");
         return;
       }
@@ -138,14 +147,14 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       const { status, messages: data } = json;
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
-        sessionStorage.removeItem(SESSION_KEY);
-        sessionStorage.removeItem(MESSAGES_KEY);
-        sessionStorage.removeItem(PHASE_KEY);
+        deleteCookie();
+        localStorage.removeItem(MESSAGES_KEY);
+        localStorage.removeItem(PHASE_KEY);
         setPhase("topic");
         return;
       }
 
-      // 有効なセッションのみsessionIdをセット（これによりsessionStorageも保存される）
+      // 有効なセッションのみsessionIdをセット（CookieとlocalStorageに保存される）
       setSessionId(sid);
 
       const hasStaff = data.some((m: Message) => m.role === "staff");
@@ -166,7 +175,7 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       else if (status === "active") setPhase("live");
       else setPhase("ai");
     } catch {
-      sessionStorage.removeItem(SESSION_KEY);
+      deleteCookie();
       setPhase("topic");
     }
   }
@@ -375,9 +384,9 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   function reset(clearStorage = false) {
     if (clearStorage) {
-      sessionStorage.removeItem(SESSION_KEY);
-      sessionStorage.removeItem(MESSAGES_KEY);
-      sessionStorage.removeItem(PHASE_KEY);
+      deleteCookie();
+      localStorage.removeItem(MESSAGES_KEY);
+      localStorage.removeItem(PHASE_KEY);
     }
     seenStaffIdsRef.current = new Set();
     setPhase("topic");
