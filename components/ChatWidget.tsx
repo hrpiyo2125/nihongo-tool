@@ -70,10 +70,8 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
       const savedMessages = localStorage.getItem(MESSAGES_KEY);
       const savedPhase = localStorage.getItem(PHASE_KEY) as Phase | null;
 
-      if (savedSessionId && savedMessages) {
-        setSessionId(savedSessionId);
-        setMessages(JSON.parse(savedMessages));
-        setPhase(savedPhase ?? "ai");
+      if (savedSessionId) {
+        await loadMessages(savedSessionId);
         return;
       }
 
