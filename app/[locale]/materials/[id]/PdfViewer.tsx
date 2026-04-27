@@ -153,6 +153,6 @@ function PageCanvas({ page }: { page: any }) {
   }, [page]);
 
   return (
-    <canvas ref={canvasRef} style={{ width: 480, height: "auto", display: "block", boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", borderRadius: 4 }} />
+    <canvas ref={canvasRef} style={{ width: "min(480px, calc(100vw - 80px))", height: "auto", display: "block", boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", borderRadius: 4 }} />
   );
 }

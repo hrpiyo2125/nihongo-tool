@@ -325,7 +325,7 @@ export default function MaterialDetailPage() {
 
   const isMobile = useIsMobile();
   const SB_ICON_W = 64;
-  const SB_PANEL_W: string | number = isMobile ? "min(320px, 85vw)" : 393;
+  const SB_PANEL_W = isMobile ? 280 : 393;
   const panelOpen = activePanel !== null;
 
   if (loading) return (
