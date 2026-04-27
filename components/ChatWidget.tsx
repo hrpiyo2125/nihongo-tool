@@ -563,6 +563,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
 
                 {phase === "done" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <p style={{ textAlign: "center", fontSize: 11, color: "#aaa", margin: "4px 0 0" }}>このチャットは終了しました。<br />※ チャット履歴は30日間保持されます。</p>
                     {isPage ? (
                       <a href={`/${locale ?? "ja"}`} style={{ display: "block", padding: "10px 0", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textAlign: "center", textDecoration: "none" }}>トップへ戻る</a>
                     ) : (
@@ -571,7 +572,8 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                           <div style={{ background: "#fff8f0", border: "1.5px solid #f4b9b9", borderRadius: 14, padding: "14px 14px 10px", display: "flex", flexDirection: "column", gap: 10 }}>
                             <p style={{ fontSize: 13, color: "#c0392b", fontWeight: 700, margin: 0 }}>⚠️ チャット履歴を削除しますか？</p>
                             <p style={{ fontSize: 12, color: "#555", margin: 0, lineHeight: 1.7 }}>
-                              この操作を行うと、これまでのチャット履歴が全て削除されます。
+                              この操作を行うと、チャット履歴が即座に削除されます。<br />
+                              <span style={{ color: "#aaa" }}>（削除しない場合は30日後に自動削除されます）</span>
                             </p>
                             <button style={{ padding: "9px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { setShowCloseConfirm(false); reset(true); setOpen(false); }}>削除して閉じる</button>
                             <button style={{ ...outlineBtn("#9b6ed4"), textAlign: "center" as const }} onClick={() => setShowCloseConfirm(false)}>閉じずに戻る</button>
