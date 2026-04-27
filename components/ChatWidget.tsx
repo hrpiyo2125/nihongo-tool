@@ -454,7 +454,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const chatPanel = (
     <div style={isPage
       ? { display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
-      : { position: "fixed", bottom: isMobile ? 164 : 92, right: 24, zIndex: 9998, width: isMobile ? "calc(100vw - 48px)" : 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
+      : isMobile
+        ? { position: "fixed", top: 16, bottom: 164, right: 16, left: 16, zIndex: 9998, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
+        : { position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
     }>
 
           {isPage && (
