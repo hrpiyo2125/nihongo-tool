@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 
 const planRank: Record<string, number> = {
@@ -11,6 +11,83 @@ function canDownload(userPlan: string, requiredPlan: string): boolean {
   return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
 }
 
+function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
+  const [pages, setPages] = useState<any[]>([]);
+  const [failed, setFailed] = useState(false);
+  const [selected, setSelected] = useState(0);
+  const [allRendered, setAllRendered] = useState(false);
+  const mainRef = useRef<HTMLCanvasElement>(null);
+  const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
+  const loaded = pages.length > 0 && !failed;
+  const ready = loaded && allRendered;
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
+        const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
+        const doc = await pdfjsLib.getDocument({ url: proxyUrl, withCredentials: false }).promise;
+        const count = Math.min(doc.numPages, 3);
+        const list = [];
+        for (let i = 1; i <= count; i++) list.push(await doc.getPage(i));
+        setPages(list);
+      } catch {
+        setFailed(true);
+      }
+    })();
+  }, [pdfUrl]);
+
+  useEffect(() => {
+    const page = pages[selected];
+    const canvas = mainRef.current;
+    if (!page || !canvas) return;
+    const viewport = page.getViewport({ scale: 2 });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    page.render({ canvasContext: canvas.getContext("2d")!, viewport });
+  }, [pages, selected]);
+
+  useEffect(() => {
+    if (pages.length === 0) return;
+    let completed = 0;
+    pages.forEach((page, i) => {
+      const canvas = thumbRefs.current[i];
+      if (!canvas) return;
+      const viewport = page.getViewport({ scale: 0.6 });
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise.then(() => {
+        completed++;
+        if (completed === pages.length) setAllRendered(true);
+      });
+    });
+  }, [pages]);
+
+  const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, position: "relative", minHeight: 160 }}>
+        <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
+        <canvas ref={mainRef} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }} />
+      </div>
+      <div style={{ display: "flex", gap: 6, justifyContent: "center", height: 56, position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 6, justifyContent: "center", opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: 40, height: 56, borderRadius: 5, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
+          ))}
+        </div>
+        {loaded && pages.map((_, i) => (
+          <div key={i} onClick={() => ready && setSelected(i)} style={{ width: 40, cursor: ready ? "pointer" : "default", borderRadius: 5, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", background: "#fff", flexShrink: 0, opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }}>
+            <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type Material = {
   id: string;
   title: string;
@@ -20,6 +97,7 @@ type Material = {
   method: string[];
   ageGroup: string;
   requiredPlan: string;
+  pdfFile?: string;
   isPickup: boolean;
   isRecommended: boolean;
   ranking: number | null;
@@ -114,13 +192,18 @@ export default function TeaserModal({
           </div>
           
           {/* プレビュー */}
-<div style={{ marginTop: 16, marginBottom: 8 }}>
-  <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none", padding: "4px 0" }}>
-    {[0, 1, 2].map(i => (
-      <div key={i} style={{ width: 100, height: 140, flexShrink: 0, background: bg, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, color: charColor, fontWeight: 700 }}>{char}</div>
-    ))}
-  </div>
-</div>
+          <div style={{ marginTop: 8, marginBottom: 4 }}>
+            <style>{`@keyframes toolio-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+            {mat.pdfFile ? (
+              <PdfPreview pdfUrl={mat.pdfFile} />
+            ) : (
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", scrollbarWidth: "none", padding: "4px 0" }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ width: 100, height: 140, flexShrink: 0, background: bg, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, color: charColor, fontWeight: 700 }}>{char}</div>
+                ))}
+              </div>
+            )}
+          </div>
 
 
           {/* グレーボックス */}

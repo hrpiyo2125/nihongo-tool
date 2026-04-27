@@ -521,26 +521,23 @@ export default function MaterialDetailPage() {
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.8)", whiteSpace: "nowrap", fontWeight: 400, flexShrink: 0 }}>{isFree ? "このプリントは無料でダウンロードできます" : "このプリントはサブスク会員限定です"}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8, flexShrink: 0 }}>
           <div style={{ position: "relative" }}>
-            <button onClick={handleFavClick} onMouseEnter={() => setFavHover(true)} onMouseLeave={() => setFavHover(false)} style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.55)", background: favHover ? "rgba(255,255,255,0.22)" : "transparent", cursor: "pointer" }}>
+            <button onClick={handleFavClick} onMouseEnter={() => setFavHover(true)} onMouseLeave={() => setFavHover(false)} style={{ display: "flex", alignItems: "center", gap: isMobile ? 0 : 6, height: isMobile ? 30 : 34, padding: isMobile ? "0 8px" : "0 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.55)", background: favHover ? "rgba(255,255,255,0.22)" : "transparent", cursor: "pointer" }}>
               {!isLoggedIn ? (
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" stroke="white" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="white" /></svg>
               ) : (
                 <svg width="15" height="15" viewBox="0 0 24 24" fill={isFav ? "white" : "none"} strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke="white" /></svg>
               )}
-              <span style={{ fontSize: 12, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>{isLoggedIn ? (isFav ? "保存済み" : "お気に入り") : "お気に入り"}</span>
+              {!isMobile && <span style={{ fontSize: 12, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>{isLoggedIn ? (isFav ? "保存済み" : "お気に入り") : "お気に入り"}</span>}
             </button>
             <LockTooltip type="favorite" visible={activeTooltip === "favorite"} onClose={() => setActiveTooltip(null)} onOpenAuth={openAuth} />
           </div>
           <div style={{ position: "relative" }}>
-            <button onClick={handleDownloadClick} onMouseEnter={() => setDlHover(true)} onMouseLeave={() => setDlHover(false)} style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 16px", borderRadius: 8, border: "none", background: dlHover ? "rgba(255,255,255,0.85)" : "white", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" strokeWidth="2"><path d="M12 3v13M7 11l5 5 5-5" stroke="#333" /><path d="M4 20h16" stroke="#333" /></svg>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>
-              
+            <button onClick={handleDownloadClick} onMouseEnter={() => setDlHover(true)} onMouseLeave={() => setDlHover(false)} style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6, height: isMobile ? 30 : 34, padding: isMobile ? "0 10px" : "0 16px", borderRadius: 8, border: "none", background: dlHover ? "rgba(255,255,255,0.85)" : "white", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.1)" }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="2"><path d="M12 3v13M7 11l5 5 5-5" stroke="#333" /><path d="M4 20h16" stroke="#333" /></svg>
+              {!isMobile && <span style={{ fontSize: 12, fontWeight: 700, color: "#333", whiteSpace: "nowrap" }}>ダウンロード</span>}
             </button>
-              
-  
           </div>
         </div>
       </header>
