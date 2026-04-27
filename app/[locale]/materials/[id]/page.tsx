@@ -323,8 +323,9 @@ export default function MaterialDetailPage() {
     };
   }, []);
 
+  const isMobile = useIsMobile();
   const SB_ICON_W = 64;
-  const SB_PANEL_W = 393;
+  const SB_PANEL_W: string | number = isMobile ? "min(320px, 85vw)" : 393;
   const panelOpen = activePanel !== null;
 
   if (loading) return (
@@ -381,7 +382,7 @@ export default function MaterialDetailPage() {
 
         {/* メインエリア：用紙スケルトン */}
         <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ width: 480, aspectRatio: "1 / 1.414", borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", overflow: "hidden" }}>
+          <div style={{ width: "min(480px, 90vw)", aspectRatio: "1 / 1.414", borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", overflow: "hidden" }}>
             <div className="sk" style={{ width: "100%", height: "100%", borderRadius: 0 }} />
           </div>
         </div>
@@ -547,12 +548,18 @@ export default function MaterialDetailPage() {
 
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
-        <aside style={{ display: "flex", position: "absolute", top: 0, left: 0, bottom: 0, zIndex: 20, overflow: "hidden" }} onMouseLeave={() => setActivePanel(null)}>
+        <aside style={{ display: "flex", position: "absolute", top: 0, left: 0, bottom: 0, zIndex: 20, overflow: "hidden" }} onMouseLeave={isMobile ? undefined : () => setActivePanel(null)}>
           <div style={{ width: SB_ICON_W, background: "#f0f0f0", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 16, gap: 4, flexShrink: 0 }}>
             {sidePanels.map((panel) => {
               const active = activePanel === panel.id;
               return (
-                <button key={panel.id} onMouseEnter={() => setActivePanel(panel.id)} title={panel.label} style={{ width: 46, height: 54, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer", padding: 0 }}>
+                <button
+                  key={panel.id}
+                  onMouseEnter={isMobile ? undefined : () => setActivePanel(panel.id)}
+                  onClick={isMobile ? () => setActivePanel(active ? null : panel.id) : undefined}
+                  title={panel.label}
+                  style={{ width: 46, height: 54, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer", padding: 0 }}
+                >
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: active ? "rgba(255,255,255,0.9)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: active ? "0 1px 6px rgba(0,0,0,0.08)" : "none" }}>
                     {panel.icon(active)}
                   </div>
@@ -563,8 +570,9 @@ export default function MaterialDetailPage() {
           </div>
           <div style={{ width: panelOpen ? SB_PANEL_W : 0, transition: "width 0.22s ease", overflow: "hidden", flexShrink: 0 }}>
             <div style={{ width: SB_PANEL_W, height: "calc(100% - 12px)", overflowY: "scroll", background: "white", borderRadius: "16px 16px 0 0", marginTop: 12, boxShadow: "0 -4px 24px rgba(200,150,150,0.12)", scrollbarWidth: "thin" as const, position: "relative" }}>
-              <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(163,192,255,0.2)" }}>
+              <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(163,192,255,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#9b6ed4" }}>{sidePanels.find(p => p.id === activePanel)?.label}</span>
+                {isMobile && <button onClick={() => setActivePanel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#aaa", padding: "0 4px" }}>✕</button>}
               </div>
               {activePanel === "related" ? (
                 <RelatedPanel
@@ -586,7 +594,7 @@ export default function MaterialDetailPage() {
             <PdfViewer url={material.pdfFile} />
           ) : (
             <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 480, aspectRatio: "1 / 1.414", background: bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+              <div style={{ width: "min(480px, 90vw)", aspectRatio: "1 / 1.414", background: bg, borderRadius: 4, boxShadow: "0 16px 60px rgba(0,0,0,0.18), 0 4px 16px rgba(0,0,0,0.10)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", position: "relative", overflow: "hidden" }}>
                 <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.25)" }} />
                 <div style={{ position: "relative", zIndex: 1, textAlign: "center" }}>
                   <div style={{ fontSize: 80, fontWeight: 700, color: charColor }}>{char}</div>
