@@ -53,16 +53,10 @@ const plans = [
 export default function PlanPage() {
   return (
     <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f8f4f4" }}>
-      <div style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
-          ← ホームに戻る
-        </Link>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>Pricing</p>
-        <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-          料金プラン
-        </h1>
-        <p style={{ fontSize: 13, color: "#bbb", marginTop: 10 }}>用途に合わせてお選びください。いつでも変更・解約できます。</p>
-      </div>
+      <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", background: "white", gap: 12 }}>
+        <Link href="/" style={{ fontSize: 22, color: "#aaa", textDecoration: "none", lineHeight: 1 }}>‹</Link>
+        <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>料金プラン</span>
+      </header>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 80px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 20, marginBottom: 48 }}>
