@@ -100,10 +100,11 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase, open]);
 
-  // waiting/liveフェーズ中はポーリングで担当者メッセージ・ステータスを確認
+  // sessionIdがある間は常にポーリング（どのフェーズでも担当者メッセージ・他端末からのメッセージを反映）
   const seenStaffIdsRef = useRef<Set<string>>(new Set());
+  const seenUserIdsRef = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!sessionId || (phase !== "live" && phase !== "waiting")) return;
+    if (!sessionId || phase === "loading" || phase === "done") return;
     const timer = setInterval(async () => {
       try {
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
@@ -114,6 +115,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         const newStaff = (fetched as Message[]).filter(
           (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
         );
+        const newUser = (fetched as Message[]).filter(
+          (m) => m.role === "user" && m.id && !seenUserIdsRef.current.has(m.id)
+        );
 
         if (newStaff.length > 0) {
           newStaff.forEach((m) => m.id && seenStaffIdsRef.current.add(m.id));
@@ -123,6 +127,15 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
               ? prev
               : [...prev, { role: "separator" as const, content: "ここから担当者との会話" }];
             return [...withSeparator, ...newStaff];
+          });
+        }
+
+        if (newUser.length > 0) {
+          newUser.forEach((m) => m.id && seenUserIdsRef.current.add(m.id));
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m.id).filter(Boolean));
+            const toAdd = newUser.filter((m) => !existingIds.has(m.id));
+            return toAdd.length > 0 ? [...prev, ...toAdd] : prev;
           });
         }
 
