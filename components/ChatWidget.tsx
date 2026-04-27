@@ -37,6 +37,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const [fromFreeText, setFromFreeText] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const sessionIdRef = useRef<string | null>(null);
   const supabase = createClient();
 
   const SESSION_KEY = "chat_session_id";
@@ -86,6 +87,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   useEffect(() => { init(); }, []);
 
   useEffect(() => {
+    sessionIdRef.current = sessionId;
     if (sessionId) setCookie(sessionId);
   }, [sessionId]);
 
@@ -349,12 +351,14 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
     if (STAFF_KEYWORDS.some((kw) => content.includes(kw))) {
       setMessages((prev) => [...prev, { role: "user", content }]);
       if (!sessionId) {
-        // セッション未作成の場合、OpenAIなしでセッションとユーザーメッセージだけ保存
-        fetch("/api/chat/create-session", {
+        // セッション未作成の場合、await して sessionIdRef を確実に更新してから staffConfirm へ
+        const r = await fetch("/api/chat/create-session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ topic: "担当者リクエスト", userMessage: content, userId: authUser?.id, userEmail: authUser?.email }),
-        }).then((r) => r.json()).then((d) => { if (d.sessionId) setSessionId(d.sessionId); });
+        });
+        const d = await r.json();
+        if (d.sessionId) { sessionIdRef.current = d.sessionId; setSessionId(d.sessionId); }
       } else {
         saveUserMsg(content);
       }
@@ -396,11 +400,13 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   // メール入力不要 - ログイン済みのemailを自動使用
   async function handleRequestStaff() {
     setLoading(true);
+    // fire-and-forget create-session が完了していない可能性があるため ref で最新値を取得
+    const currentSessionId = sessionIdRef.current;
     const res = await fetch("/api/chat/request-staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        sessionId,
+        sessionId: currentSessionId,
         userId: authUser?.id,
         userEmail: authUser?.email,
       }),
