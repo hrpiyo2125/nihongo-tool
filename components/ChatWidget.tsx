@@ -22,8 +22,9 @@ type Message = {
 
 type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "materialRequest" | "staffConfirm" | "waiting" | "done" | "live";
 
-export default function ChatWidget({ initialSessionId }: { initialSessionId?: string }) {
-  const [open, setOpen] = useState(!!initialSessionId);
+export default function ChatWidget({ initialSessionId, mode = "widget", locale }: { initialSessionId?: string; mode?: "widget" | "page"; locale?: string }) {
+  const isPage = mode === "page";
+  const [open, setOpen] = useState(isPage || !!initialSessionId);
   const [phase, setPhase] = useState<Phase>("loading");
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -403,37 +404,18 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
   const isInputActive = input.trim().length > 0 && !loading;
 
-  return (
-    <>
-      {showAuthModal && (
-        <AuthModal
-          initialMode="login"
-          reason="chat"
-          onClose={() => setShowAuthModal(false)}
-          onLoggedIn={() => { setShowAuthModal(false); init(); }}
-        />
-      )}
-      <button
-        onClick={() => setOpen((o) => !o)}
-        aria-label="チャットを開く"
-        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
-        {open ? (
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        ) : (
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
-            <path d="M8 10h8M8 14h5" strokeWidth="1.6"/>
-          </svg>
-        )}
-      </button>
+  const chatPanel = (
+    <div style={isPage
+      ? { display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
+      : { position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
+    }>
 
-      {open && (
-        <div style={{ position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }}>
-
-          <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "12px 16px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, display: "flex", alignItems: "center", gap: 10 }}>
+          {isPage && (
+            <div style={{ padding: "16px 16px 0" }}>
+              <a href={`/${locale ?? "ja"}`} style={{ color: "#9b6ed4", fontSize: 13, fontWeight: 600, textDecoration: "none" }}>← トップへ</a>
+            </div>
+          )}
+          <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "12px 16px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, display: "flex", alignItems: "center", gap: 10, marginTop: isPage ? 12 : 0, borderRadius: isPage ? 12 : 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/toolio_icon.png" alt="toolio" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
             <div>
@@ -540,7 +522,11 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
 
                 {phase === "done" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(true); setOpen(false); }}>チャットを閉じる</button>
+                    {isPage ? (
+                      <a href={`/${locale ?? "ja"}`} style={{ display: "block", padding: "10px 0", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textAlign: "center", textDecoration: "none" }}>トップへ戻る</a>
+                    ) : (
+                      <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(true); setOpen(false); }}>チャットを閉じる</button>
+                    )}
                     <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(true)}>新しい質問をする</button>
                   </div>
                 )}
@@ -607,8 +593,56 @@ export default function ChatWidget({ initialSessionId }: { initialSessionId?: st
               </button>
             </div>
           )}
+    </div>
+  );
+
+  if (isPage) {
+    return (
+      <>
+        {showAuthModal && (
+          <AuthModal
+            initialMode="login"
+            reason="chat"
+            onClose={() => setShowAuthModal(false)}
+            onLoggedIn={() => { setShowAuthModal(false); init(); }}
+          />
+        )}
+        <div style={{ minHeight: "100vh", background: "linear-gradient(160deg,#fce8f8,#ede8ff,#e8f0ff)", padding: "16px", display: "flex", flexDirection: "column" }}>
+          <div style={{ maxWidth: 480, margin: "0 auto", width: "100%", flex: 1, display: "flex", flexDirection: "column", background: "white", borderRadius: 20, boxShadow: "0 4px 20px rgba(155,110,212,0.12)", overflow: "hidden" }}>
+            {chatPanel}
+          </div>
         </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {showAuthModal && (
+        <AuthModal
+          initialMode="login"
+          reason="chat"
+          onClose={() => setShowAuthModal(false)}
+          onLoggedIn={() => { setShowAuthModal(false); init(); }}
+        />
       )}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label="チャットを開く"
+        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        {open ? (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        ) : (
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            <path d="M8 10h8M8 14h5" strokeWidth="1.6"/>
+          </svg>
+        )}
+      </button>
+      {open && chatPanel}
     </>
   );
 }
