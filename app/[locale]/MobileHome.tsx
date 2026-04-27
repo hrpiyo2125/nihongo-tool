@@ -690,10 +690,10 @@ export default function MobileHome() {
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
-              { icon: "user"    as const, label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
+              { icon: "user"    as const, label: "プロフィール", action: () => { setMySubPage("profile"); } },
               { icon: "plan"    as const, label: "プラン",       action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); } },
-              { icon: "billing" as const, label: "支払い履歴",   action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
-              { icon: "bell"    as const, label: "通知設定",     action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
+              { icon: "billing" as const, label: "支払い履歴",   action: () => { setMySubPage("billing"); } },
+              { icon: "bell"    as const, label: "通知設定",     action: () => { setMySubPage("notifications"); } },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
