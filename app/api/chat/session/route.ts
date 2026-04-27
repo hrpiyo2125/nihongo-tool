@@ -24,5 +24,8 @@ export async function GET(req: NextRequest) {
     .eq("session_id", sessionId)
     .order("created_at", { ascending: true });
 
-  return NextResponse.json({ status: sess.status, messages: messages ?? [] });
+  return NextResponse.json(
+    { status: sess.status, messages: messages ?? [] },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
