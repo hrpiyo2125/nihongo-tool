@@ -555,9 +555,11 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                     {isPage ? (
                       <a href={`/${locale ?? "ja"}`} style={{ display: "block", padding: "10px 0", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textAlign: "center", textDecoration: "none" }}>トップへ戻る</a>
                     ) : (
-                      <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(true); setOpen(false); }}>チャットを閉じる</button>
+                      <>
+                        <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { reset(true); setOpen(false); }}>チャットを閉じる</button>
+                        <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(true)}>新しい質問をする</button>
+                      </>
                     )}
-                    <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(true)}>新しい質問をする</button>
                   </div>
                 )}
               </>
