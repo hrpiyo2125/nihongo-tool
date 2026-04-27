@@ -66,10 +66,12 @@ export default function BillingSection({
   profile,
   onChangePlan,
   onProfileUpdate,
+  mobileMode,
 }: {
   profile: Profile;
   onChangePlan: () => void;
   onProfileUpdate: (updates: Partial<Profile>) => void;
+  mobileMode?: boolean;
 }) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
@@ -204,12 +206,14 @@ export default function BillingSection({
   return (
     <div>
       {/* ヘッダー */}
-      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 8 }}>Billing</p>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>請求・プラン管理</h2>
-      </div>
+      {!mobileMode && (
+        <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+          <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 8 }}>Billing</p>
+          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>請求・プラン管理</h2>
+        </div>
+      )}
 
-      <div style={{ padding: "32px 48px 56px", maxWidth: 640, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ padding: mobileMode ? "20px 16px 56px" : "32px 48px 56px", maxWidth: mobileMode ? undefined : 640, display: "flex", flexDirection: "column", gap: 20 }}>
 
         {/* 現在のプラン */}
         <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "24px" }}>

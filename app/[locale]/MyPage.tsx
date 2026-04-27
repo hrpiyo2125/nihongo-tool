@@ -1080,6 +1080,7 @@ export default function MyPage({
       profile={profile as any}
       onChangePlan={() => setActivePage("plan")}
       onProfileUpdate={(updates) => setProfile((prev: any) => ({ ...prev, ...updates }))}
+      mobileMode={mobileMode}
     />
   );
 

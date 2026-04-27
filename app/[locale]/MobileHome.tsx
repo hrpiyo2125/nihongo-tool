@@ -459,7 +459,7 @@ export default function MobileHome() {
               { icon: "↓", label: "ダウンロード履歴", action: () => setMorePage("dl") },
               { icon: "💬", label: "お悩み解決", action: () => setMorePage("trouble") },
               { icon: "❓", label: "使い方ガイド", action: () => setMorePage("guide") },
-              { icon: "📋", label: "プラン", action: () => router.push(`/${locale}/plan`) },
+              { icon: "📋", label: "プラン", action: () => router.push(locale === "ja" ? "/plan" : `/${locale}/plan`) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -628,7 +628,7 @@ export default function MobileHome() {
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
               { icon: "👤", label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
-              { icon: "📋", label: "プラン", action: () => { setMyPageOpen(false); router.push(`/${locale}/plan`); } },
+              { icon: "📋", label: "プラン", action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); } },
               { icon: "🧾", label: "支払い履歴", action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
               { icon: "🔔", label: "通知設定", action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
             ].map((item) => (
@@ -679,7 +679,7 @@ export default function MobileHome() {
                 : "settings-notifications"
               }
               setActivePage={(page) => {
-                if (page === "plan") { setMySubPage(null); router.push(`/${locale}/plan`); }
+                if (page === "plan") { setMySubPage(null); router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); }
               }}
               isLoggedIn={isLoggedIn}
               userInitial={userInitial}
