@@ -1,8 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import dynamic from "next/dynamic";
-
-const ChatWidget = dynamic(() => import("@/components/ChatWidget"), { ssr: false });
+import ChatWidget from "@/components/ChatWidget";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
