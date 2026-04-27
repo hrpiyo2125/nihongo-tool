@@ -662,14 +662,16 @@ export default function MobileHome() {
  {/* マイページサブページ */}
       {mySubPage && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "#f8f4f4", display: "flex", flexDirection: "column" }}>
-          <div style={{ flexShrink: 0, padding: "52px 20px 24px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 13, color: "#bbb", cursor: "pointer", padding: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 4 }}>‹ 戻る</button>
-            <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 6 }}>
+          <div style={{ flexShrink: 0, padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+            <button onClick={() => setMySubPage(null)} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", background: "transparent", border: "none", cursor: "pointer", marginBottom: 24 }}>
+              ← 戻る
+            </button>
+            <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>
               {mySubPage === "profile" ? "My Account" : mySubPage === "billing" ? "Billing" : "Notifications"}
             </p>
-            <h2 style={{ fontSize: 22, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0 }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
-            </h2>
+            </h1>
           </div>
           <div style={{ flex: 1, overflowY: "auto" }}>
             <MyPage
