@@ -4,6 +4,7 @@ import { flushSync } from "react-dom";
 import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/components/AuthModal";
+import { useIsMobile } from "@/app/[locale]/useIsMobile";
 
 const TOPICS = [
   "料金について",
@@ -33,6 +34,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const isMobile = useIsMobile();
   const [aiReplied, setAiReplied] = useState(false);
   const [fromFreeText, setFromFreeText] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -452,7 +454,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const chatPanel = (
     <div style={isPage
       ? { display: "flex", flexDirection: "column", flex: 1, overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
-      : { position: "fixed", bottom: 92, right: 24, zIndex: 9998, width: 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
+      : { position: "fixed", bottom: isMobile ? 164 : 92, right: 24, zIndex: 9998, width: isMobile ? "calc(100vw - 48px)" : 340, height: 520, background: "white", borderRadius: 20, boxShadow: "0 8px 32px rgba(155,110,212,0.25)", display: "flex", flexDirection: "column", overflow: "hidden", fontFamily: "'Hiragino Sans','Yu Gothic','Noto Sans JP',sans-serif" }
     }>
 
           {isPage && (
@@ -695,7 +697,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="チャットを開く"
-        style={{ position: "fixed", bottom: 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
+        style={{ position: "fixed", bottom: isMobile ? 96 : 24, right: 24, zIndex: 9999, width: 56, height: 56, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(155,110,212,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}
       >
         {open ? (
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
