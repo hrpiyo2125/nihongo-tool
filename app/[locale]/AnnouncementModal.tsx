@@ -44,6 +44,7 @@ type Props = {
   onClose: () => void;
   onFavChange?: (materialId: string, isFav: boolean) => void;
   onOpenAuth?: (mode: "signup" | "login") => void;
+  onMaterialClick?: (mat: Material) => void;
 };
 
 export default function AnnouncementModal({
@@ -56,6 +57,7 @@ export default function AnnouncementModal({
   onClose,
   onFavChange,
   onOpenAuth,
+  onMaterialClick,
 }: Props) {
   const tmm = useTranslations("materials_modal");
   const [detail, setDetail] = useState<Announcement>(announcement);
@@ -142,7 +144,14 @@ export default function AnnouncementModal({
             <div style={{ marginTop: 28 }}>
               {material ? (
                 <button
-                  onClick={() => setShowTeaser(true)}
+                  onClick={() => {
+                    if (onMaterialClick) {
+                      onClose();
+                      onMaterialClick(material);
+                    } else {
+                      setShowTeaser(true);
+                    }
+                  }}
                   style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "linear-gradient(135deg, #b48be8, #9b6ed4)", color: "white", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
                 >
                   この教材を見る →

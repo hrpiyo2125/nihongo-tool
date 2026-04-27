@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
 import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
-import TeaserModal from "./TeaserModal";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
@@ -67,7 +66,6 @@ export default function MobileHome() {
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
-  const [modalFilter, setModalFilter] = useState<{ content: string; method: string } | null>(null);
   const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
   const [modalInitContent, setModalInitContent] = useState("all");
   const [modalInitMethod, setModalInitMethod] = useState("all");
@@ -609,6 +607,10 @@ export default function MobileHome() {
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
+          onMaterialClick={(mat) => {
+            setSelectedAnnouncement(null);
+            setTeaserMat(mat as any);
+          }}
         />
       )}
 
