@@ -33,7 +33,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
-  const [doneDismissed, setDoneDismissed] = useState(false);
   const [aiReplied, setAiReplied] = useState(false);
   const [fromFreeText, setFromFreeText] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -433,7 +432,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
     clearInput();
     setAiReplied(false);
     setFromFreeText(false);
-    setDoneDismissed(false);
     setShowCloseConfirm(false);
   }
 
@@ -459,10 +457,14 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
           <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "12px 16px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, display: "flex", alignItems: "center", gap: 10, marginTop: isPage ? 12 : 0, borderRadius: isPage ? 12 : 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/toolio_icon.png" alt="toolio" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
-            <div>
+            <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>toolio サポート</div>
               <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.9, letterSpacing: 0.3 }}>お気軽にご相談ください</div>
             </div>
+            <button
+              onClick={() => reset(false)}
+              style={{ background: "rgba(255,255,255,0.25)", border: "1px solid rgba(255,255,255,0.5)", borderRadius: 12, color: "white", fontSize: 11, fontWeight: 600, padding: "4px 10px", cursor: "pointer", flexShrink: 0, whiteSpace: "nowrap" }}
+            >新しい質問をする</button>
           </div>
 
           {/* メッセージエリア */}
@@ -578,13 +580,10 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                             <button style={{ padding: "9px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { setShowCloseConfirm(false); reset(true); setOpen(false); }}>削除して閉じる</button>
                             <button style={{ ...outlineBtn("#9b6ed4"), textAlign: "center" as const }} onClick={() => setShowCloseConfirm(false)}>閉じずに戻る</button>
                           </div>
-                        ) : doneDismissed ? (
-                          <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(false)}>新しい質問をする</button>
                         ) : (
                           <>
                             <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "#fee2e2", color: "#c0392b", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setShowCloseConfirm(true)}>チャット履歴を削除する</button>
-                            <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setDoneDismissed(true)}>チャットを閉じる</button>
-                            <button style={{ ...outlineBtn("#bbb"), textAlign: "center" as const }} onClick={() => reset(false)}>新しい質問をする</button>
+                            <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setOpen(false)}>チャットを閉じる</button>
                           </>
                         )}
                       </>
