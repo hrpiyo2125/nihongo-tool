@@ -417,10 +417,17 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
       deleteCookie();
       localStorage.removeItem(MESSAGES_KEY);
       localStorage.removeItem(PHASE_KEY);
+      seenStaffIdsRef.current = new Set();
+      seenUserIdsRef.current = new Set();
+      setMessages([]);
+    } else {
+      // 履歴を残したまま新しい会話の区切り線を追加
+      setMessages((prev) => prev.length > 0
+        ? [...prev, { role: "separator" as const, content: "新しい会話" }]
+        : []
+      );
     }
-    seenStaffIdsRef.current = new Set();
     setPhase("topic");
-    setMessages([]);
     setSessionId(null);
     clearInput();
     setAiReplied(false);
@@ -487,7 +494,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                   m.role === "separator" ? (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
                       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
-                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>👤 {m.content}</span>
+                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap" }}>{m.content === "新しい会話" ? "✨" : "👤"} {m.content}</span>
                       <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
                     </div>
                   ) : (
