@@ -169,6 +169,12 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
       // 有効なセッションのみsessionIdをセット（CookieとlocalStorageに保存される）
       setSessionId(sid);
 
+      // 既存メッセージのIDをseenに登録してポーリングによる重複追加を防ぐ
+      (data as Message[]).forEach((m) => {
+        if (m.id && m.role === "staff") seenStaffIdsRef.current.add(m.id);
+        if (m.id && m.role === "user") seenUserIdsRef.current.add(m.id);
+      });
+
       const hasStaff = data.some((m: Message) => m.role === "staff");
       if (hasStaff) {
         const firstStaffIdx = data.findIndex((m: Message) => m.role === "staff");
