@@ -317,11 +317,13 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
 
     if (phase === "live") {
       setMessages((prev) => [...prev, { role: "user", content }]);
-      await fetch("/api/chat/live-message", {
+      const res = await fetch("/api/chat/live-message", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, userMessage: content }),
       });
+      const data = await res.json();
+      if (data.id) seenUserIdsRef.current.add(data.id);
       return;
     }
 

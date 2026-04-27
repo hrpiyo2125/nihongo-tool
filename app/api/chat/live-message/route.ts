@@ -10,11 +10,11 @@ export async function POST(req: NextRequest) {
   const { sessionId, userMessage } = await req.json();
   if (!sessionId || !userMessage) return NextResponse.json({ error: "missing params" }, { status: 400 });
 
-  await supabase.from("chat_messages").insert({
+  const { data } = await supabase.from("chat_messages").insert({
     session_id: sessionId,
     role: "user",
     content: userMessage,
-  });
+  }).select("id").single();
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, id: data?.id ?? null });
 }
