@@ -14,6 +14,7 @@ import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
 import MyPage from "./MyPage";
+import { BrandIcon } from "../../components/BrandIcon";
 type Material = {
   id: string;
   title: string;
@@ -235,11 +236,11 @@ export default function MobileHome() {
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
                 <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
                 <button onClick={() => { setGuestMenuOpen(false); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" stroke="#888" /><path d="M7 11V7a5 5 0 0110 0v4" stroke="#888" /></svg>
+                  <BrandIcon name="key" size={14} color="#888" />
                   ログイン
                 </button>
                 <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" stroke="#9b6ed4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9b6ed4" /><path d="M19 8v6M16 11h6" stroke="#9b6ed4" /></svg>
+                  <BrandIcon name="user" size={14} color="#9b6ed4" />
                   会員でない方はこちらから新規登録
                 </button>
               </div>
@@ -456,26 +457,14 @@ export default function MobileHome() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke="#9b6ed4" /><path d="M4 20h16" stroke="#9b6ed4" /></svg>,
-                label: "ダウンロード履歴", action: () => setMorePage("dl")
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#9b6ed4" /></svg>,
-                label: "お悩み解決", action: () => setMorePage("trouble")
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke="#9b6ed4" /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="#9b6ed4" /><circle cx="12" cy="17" r="0.8" fill="#9b6ed4" strokeWidth="0" /></svg>,
-                label: "使い方ガイド", action: () => setMorePage("guide")
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#9b6ed4" /><path d="M8 8h8M8 12h8M8 16h5" stroke="#9b6ed4" /></svg>,
-                label: "プラン", action: () => router.push(locale === "ja" ? "/plan" : `/${locale}/plan`)
-              },
+              { icon: "download" as const, label: "ダウンロード履歴", action: () => setMorePage("dl") },
+              { icon: "chat"     as const, label: "お悩み解決",       action: () => setMorePage("trouble") },
+              { icon: "lightbulb" as const, label: "使い方ガイド",    action: () => setMorePage("guide") },
+              { icon: "plan"     as const, label: "プラン",           action: () => router.push(locale === "ja" ? "/plan" : `/${locale}/plan`) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  {item.icon}
+                  <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
                 </div>
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
@@ -643,26 +632,14 @@ export default function MobileHome() {
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4" stroke="#9b6ed4" /><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#9b6ed4" /></svg>,
-                label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); }
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" stroke="#9b6ed4" /><path d="M8 8h8M8 12h8M8 16h5" stroke="#9b6ed4" /></svg>,
-                label: "プラン", action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); }
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" stroke="#9b6ed4" /><path d="M2 10h20" stroke="#9b6ed4" /></svg>,
-                label: "支払い履歴", action: () => { setMyPageOpen(false); setMySubPage("billing"); }
-              },
-              {
-                icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" stroke="#9b6ed4" /><path d="M13.73 21a2 2 0 01-3.46 0" stroke="#9b6ed4" /></svg>,
-                label: "通知設定", action: () => { setMyPageOpen(false); setMySubPage("notifications"); }
-              },
+              { icon: "user"    as const, label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
+              { icon: "plan"    as const, label: "プラン",       action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); } },
+              { icon: "billing" as const, label: "支払い履歴",   action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
+              { icon: "bell"    as const, label: "通知設定",     action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  {item.icon}
+                  <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
                 </div>
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
