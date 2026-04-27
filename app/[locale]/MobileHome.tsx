@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
 import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import TeaserModal from "./TeaserModal";
@@ -14,7 +14,7 @@ import { TroubleSection, GuideSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
-import BillingSection from "./BillingSection";
+import MyPage from "./MyPage";
 type Material = {
   id: string;
   title: string;
@@ -37,18 +37,23 @@ export default function MobileHome() {
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
 
+  const tm = useTranslations('mypage');
+  const tmm = useTranslations('materials_modal');
+
   const [activeTab, setActiveTab] = useState("home");
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
   const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); setAuthModalOpen(true); };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
+  const [userName, setUserName] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [myPageOpen, setMyPageOpen] = useState(false);
   const [mySubPage, setMySubPage] = useState<string | null>(null);
-  const [editName, setEditName] = useState("");
-  const [editNameSaving, setEditNameSaving] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
@@ -74,11 +79,14 @@ export default function MobileHome() {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
         setUserId(session.user.id);
-        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
+        setUserEmail(session.user.email);
+        const displayName = session.user.user_metadata?.full_name || session.user.email.split("@")[0];
+        setUserName(displayName);
+        setUserInitial(displayName.charAt(0).toUpperCase());
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) {
           setProfile(profileData);
-          if (profileData.full_name) setUserInitial(profileData.full_name.charAt(0).toUpperCase());
+          if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
           if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
         }
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
@@ -96,11 +104,6 @@ export default function MobileHome() {
     fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
     fetch("/api/announcements").then(r => r.json()).then(data => setAnnouncements(Array.isArray(data) ? data : []));
   }, []);
-
-  useEffect(() => {
-    if (mySubPage === "profile") setEditName(profile.full_name || "");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mySubPage]);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -186,11 +189,6 @@ export default function MobileHome() {
     )},
   ];
 
-  const tmmDummy = (key: string) => ({
-    title: "教材を探す", search_placeholder: "教材を検索...", age: "対象年齢",
-    content: "学習内容", method: "学習方法", download: "ダウンロード",
-    lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み",
-  }[key] ?? key);
 
   const contentTabsForModal = [
     { id: "all", label: "すべて", char: "✦", color: "#e8efff", imageSrc: "/all.png" },
@@ -228,8 +226,8 @@ export default function MobileHome() {
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-        <button onClick={() => setMyPageOpen(true)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
-          {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
+        <button onClick={() => isLoggedIn ? setMyPageOpen(true) : openAuth("signup")} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
         </button>
       </header>
 
@@ -570,7 +568,7 @@ export default function MobileHome() {
             methodTabs={methodTabsForModal}
             locale={locale}
             onClose={() => setTeaserMat(null)}
-            tmm={tmmDummy}
+            tmm={tmm}
             onFavChange={(materialId, isFav) => {
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
@@ -653,87 +651,46 @@ export default function MobileHome() {
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
             </span>
           </header>
-          <div style={{ flex: 1, overflowY: "auto", padding: "28px 20px" }}>
-
-            {/* プロフィール */}
-            {mySubPage === "profile" && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                <div style={{ display: "flex", justifyContent: "center" }}>
-                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", overflow: "hidden" }}>
-                    {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
-                  </div>
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#999", display: "block", marginBottom: 6 }}>名前</label>
-                  <input
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    placeholder="お名前を入力"
-                    style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.4)", fontSize: 15, outline: "none", boxSizing: "border-box" }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: 12, color: "#999", display: "block", marginBottom: 6 }}>プラン</label>
-                  <div style={{ padding: "12px 14px", borderRadius: 10, background: "#f7f7f7", fontSize: 14, color: "#555" }}>
-                    {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}
-                  </div>
-                </div>
-                <button
-                  disabled={editNameSaving}
-                  onClick={async () => {
-                    setEditNameSaving(true);
-                    const supabase = createClient();
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session) {
-                      await supabase.from("profiles").update({ full_name: editName }).eq("id", session.user.id);
-                      setProfile((prev: Record<string, any>) => ({ ...prev, full_name: editName }));
-                      if (editName) setUserInitial(editName.charAt(0).toUpperCase());
-                    }
-                    setEditNameSaving(false);
-                  }}
-                  style={{ padding: "13px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 700, cursor: "pointer", opacity: editNameSaving ? 0.7 : 1 }}
-                >
-                  {editNameSaving ? "保存中..." : "保存する"}
-                </button>
-              </div>
-            )}
-
-            {/* 支払い履歴 */}
-            {mySubPage === "billing" && (
-              <BillingSection
-                profile={profile as any}
-                onChangePlan={() => { setMySubPage(null); router.push("/plan"); }}
-                onProfileUpdate={(updates) => setProfile((prev: Record<string, any>) => ({ ...prev, ...updates }))}
-              />
-            )}
-
-            {/* 通知設定 */}
-            {mySubPage === "notifications" && (
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {[
-                  { key: "notif_new_material", label: "新しい教材の追加", desc: "新教材が追加された時" },
-                  { key: "notif_favorite", label: "お気に入り", desc: "お気に入り教材の更新時" },
-                  { key: "notif_billing", label: "支払い・請求", desc: "請求・決済に関するお知らせ" },
-                  { key: "notif_announcement", label: "お知らせ", desc: "サービスからのお知らせ" },
-                ].map(({ key, label, desc }) => (
-                  <div key={key} onClick={async () => {
-                    const newVal = !profile[key];
-                    setProfile((prev: Record<string, any>) => ({ ...prev, [key]: newVal }));
-                    const supabase = createClient();
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (session) await supabase.from("profiles").update({ [key]: newVal }).eq("id", session.user.id);
-                  }} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
-                    <div>
-                      <div style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{label}</div>
-                      <div style={{ fontSize: 12, color: "#bbb", marginTop: 3 }}>{desc}</div>
-                    </div>
-                    <div style={{ width: 44, height: 26, borderRadius: 13, background: profile[key] ? "#9b6ed4" : "#ddd", position: "relative", flexShrink: 0, transition: "background 0.2s" }}>
-                      <div style={{ position: "absolute", top: 3, left: profile[key] ? 21 : 3, width: 20, height: 20, borderRadius: "50%", background: "white", transition: "left 0.2s", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            <MyPage
+              activePage={
+                mySubPage === "profile" ? "settings-profile"
+                : mySubPage === "billing" ? "settings-billing"
+                : "settings-notifications"
+              }
+              setActivePage={(page) => {
+                if (page === "plan") { setMySubPage(null); router.push("/plan"); }
+              }}
+              isLoggedIn={isLoggedIn}
+              userInitial={userInitial}
+              setUserInitial={setUserInitial}
+              avatarUrl={avatarUrl}
+              setAvatarUrl={setAvatarUrl}
+              userName={userName}
+              setUserName={setUserName}
+              userEmail={userEmail}
+              profile={profile}
+              setProfile={setProfile}
+              editingField={editingField}
+              setEditingField={setEditingField}
+              editingValue={editingValue}
+              setEditingValue={setEditingValue}
+              materials={materials}
+              contentTabs={contentTabsForModal}
+              methodTabs={methodTabsForModal}
+              locale={locale}
+              tmm={tmm}
+              tm={tm}
+              navItems={[]}
+              onPlanChanged={async () => {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return;
+                const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+                if (data) setProfile(data);
+              }}
+              onOpenAuth={openAuth}
+            />
           </div>
         </div>
       )}
