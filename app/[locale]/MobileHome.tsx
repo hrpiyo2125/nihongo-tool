@@ -683,27 +683,29 @@ export default function MobileHome() {
         />
       )}
 
-      {/* マイページドロワー */}
+      {/* マイページ */}
       {myPageOpen && (
-        <>
-          <div onClick={() => setMyPageOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
-          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMyPageOpen(false)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>マイページ</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto", padding: "8px 20px 40px" }}>
             {[
               { icon: "user"    as const, label: "プロフィール", action: () => { setMyPageOpen(false); setMySubPage("profile"); } },
               { icon: "plan"    as const, label: "プラン",       action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); } },
               { icon: "billing" as const, label: "支払い履歴",   action: () => { setMyPageOpen(false); setMySubPage("billing"); } },
               { icon: "bell"    as const, label: "通知設定",     action: () => { setMyPageOpen(false); setMySubPage("notifications"); } },
             ].map((item) => (
-              <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
-                  <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
+                  <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
                 </div>
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
               </div>
             ))}
-            <div style={{ marginTop: "auto" }}>
+            <div style={{ marginTop: 32 }}>
               {!isLoggedIn ? (
                 <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
                   ログイン / 新規登録
@@ -720,22 +722,18 @@ export default function MobileHome() {
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
- {/* マイページサブページ */}
+
+      {/* マイページサブページ */}
       {mySubPage && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "#f8f4f4", display: "flex", flexDirection: "column" }}>
-          <div style={{ flexShrink: 0, padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-            <button onClick={() => setMySubPage(null)} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", background: "transparent", border: "none", cursor: "pointer", marginBottom: 24 }}>
-              ← 戻る
-            </button>
-            <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>
-              {mySubPage === "profile" ? "My Account" : mySubPage === "billing" ? "Billing" : "Notifications"}
-            </p>
-            <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", margin: 0 }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
-            </h1>
-          </div>
+            </span>
+          </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
             <MyPage
               activePage={
