@@ -51,6 +51,7 @@ export default function MobileHome() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [myPageOpen, setMyPageOpen] = useState(false);
+  const [guestMenuOpen, setGuestMenuOpen] = useState(false);
   const [mySubPage, setMySubPage] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -226,9 +227,25 @@ export default function MobileHome() {
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-        <button onClick={() => isLoggedIn ? setMyPageOpen(true) : openAuth("signup")} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
-          {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
-        </button>
+        <div style={{ position: "relative" }}>
+          <button onClick={() => isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+            {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
+          </button>
+          {guestMenuOpen && (
+            <>
+              <div onClick={() => setGuestMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+              <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
+                <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
+                <button onClick={() => { setGuestMenuOpen(false); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+                  🔑 ログイン
+                </button>
+                <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
+                  ✨ 会員でない方はこちらから新規登録
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </header>
 
       {/* メインコンテンツ */}
