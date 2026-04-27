@@ -6,10 +6,12 @@ import { createClient } from "../../../../lib/supabase";
 import PdfViewer from "./PdfViewer";
 import MaterialCard from "../../MaterialCard";
 import TeaserModal from "../../TeaserModal";
+import MobileTeaserModal from "../../MobileTeaserModal";
 import { getCardStyle, getTag } from "../../../../lib/materialUtils";
 import { BrandIcon } from "../../../../components/BrandIcon";
 import { contentTabsJa as contentTabs, methodTabsJa as methodTabs } from "../../../../lib/tabs";
 import AuthModal, { AuthModalMode } from "../../../../components/AuthModal";
+import { useIsMobile } from "../../useIsMobile";
 
 type Material = {
   id: string;
@@ -113,31 +115,35 @@ function RelatedPanel({
   setTeaserFavIds: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+  const isMobile = useIsMobile();
+
+  const contentTabsMapped = contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }));
+  const methodTabsMapped = methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }));
+  const tmmFn = (key: string) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key);
 
   return (
     <div style={{ padding: "20px 18px", position: "relative" as const, height: "100%" }}>
       {teaserMat ? (() => {
         const { bg, char, charColor } = getCardStyle(teaserMat);
         const { tag, tagBg, tagColor } = getTag(teaserMat);
-        return (
-          <TeaserModal
-            mat={teaserMat as any}
-            bg={bg} char={char} charColor={charColor}
-            tag={tag} tagBg={tagBg} tagColor={tagColor}
-            isLoggedIn={isLoggedIn}
-            userPlan={userPlan}
-            favIds={teaserFavIds}
-            contentTabs={contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }))}
-            methodTabs={methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }))}
-            locale="ja"
-            tmm={(key) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key)}
-            onClose={() => setTeaserMat(null)}
-            onFavChange={(materialId, isFav) => {
-              if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
-              else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
-            }}
-          />
-        );
+        const commonProps = {
+          mat: teaserMat as any,
+          bg, char, charColor, tag, tagBg, tagColor,
+          isLoggedIn, userPlan,
+          favIds: teaserFavIds,
+          contentTabs: contentTabsMapped,
+          methodTabs: methodTabsMapped,
+          locale: "ja",
+          tmm: tmmFn,
+          onClose: () => setTeaserMat(null),
+          onFavChange: (materialId: string, isFav: boolean) => {
+            if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
+            else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
+          },
+        };
+        return isMobile
+          ? <MobileTeaserModal {...commonProps} />
+          : <TeaserModal {...commonProps} />;
       })() : (
         <>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
