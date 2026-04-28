@@ -1187,13 +1187,24 @@ export default function MyPage({
             }}
           />
         ) : !isLoggedIn ? (
-          <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", gap: 16, padding: "28px 36px", background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(228,155,253,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16 }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#333" }}>この機能を使うには登録が必要です</div>
-            <div style={{ fontSize: 13, color: "#999", lineHeight: 1.8 }}>無料アカウントを作成すると<br />お気に入り保存・ダウンロード履歴などが使えます</div>
-            <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-              <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>無料で登録する →</button>
-              <button onClick={() => onOpenAuth ? onOpenAuth("login") : router.push("/auth?mode=login")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+          <div style={{ textAlign: "center", padding: "60px 0" }}>
+            {activePage === "fav" ? (
+              <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
+            ) : activePage === "dl" ? (
+              <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+            ) : (
+              <div style={{ marginBottom: 12 }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" stroke="#e0d0f0"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="M2 10h20" /><path d="M6 15h4" /><path d="M14 15h4" /></svg>
+              </div>
+            )}
+            <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>
+              {activePage === "fav"
+                ? "ログインするとお気に入りを保存できます"
+                : activePage === "dl"
+                ? "ログインするとダウンロード履歴を確認できます"
+                : "ログインすると購入履歴を確認できます"}
             </div>
+            <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
           </div>
         ) : activePage === "fav" ? (
           <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} userPlan={profile.plan ?? "free"} />
