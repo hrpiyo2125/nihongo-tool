@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
@@ -14,6 +13,7 @@ import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
 import MyPage from "./MyPage";
+import PlanSelector from "../../components/PlanSelector";
 import { BrandIcon } from "../../components/BrandIcon";
 type Material = {
   id: string;
@@ -32,7 +32,6 @@ type Material = {
 };
 
 export default function MobileHome() {
-  const router = useRouter();
   const locale = useLocale();
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
@@ -677,7 +676,7 @@ export default function MobileHome() {
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
               { icon: "user"    as const, label: "プロフィール", action: () => { setMySubPage("profile"); } },
-              { icon: "plan"    as const, label: "プラン",       action: () => { router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); } },
+              { icon: "plan"    as const, label: "プラン",       action: () => { setMySubPage("plan"); } },
               { icon: "billing" as const, label: "支払い履歴",   action: () => { setMySubPage("billing"); } },
               { icon: "bell"    as const, label: "通知設定",     action: () => { setMySubPage("notifications"); } },
             ].map((item) => (
@@ -715,19 +714,35 @@ export default function MobileHome() {
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "通知設定"}
+              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : mySubPage === "plan" ? "プラン確認・変更" : "通知設定"}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
+            {mySubPage === "plan" ? (
+              <div style={{ padding: "24px 20px 56px" }}>
+                <PlanSelector
+                  currentPlan={profile?.plan ?? "free"}
+                  cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
+                  currentPeriodEnd={profile?.current_period_end ?? null}
+                  isPendingDeletion={profile?.status === "pending_deletion"}
+                  onSubscribed={async () => {
+                    const supabase = createClient();
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) return;
+                    const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+                    if (data) setProfile(data);
+                    setMySubPage(null);
+                  }}
+                />
+              </div>
+            ) : (
             <MyPage
               activePage={
                 mySubPage === "profile" ? "settings-profile"
                 : mySubPage === "billing" ? "settings-billing"
                 : "settings-notifications"
               }
-              setActivePage={(page) => {
-                if (page === "plan") { setMySubPage(null); router.push(locale === "ja" ? "/plan" : `/${locale}/plan`); }
-              }}
+              setActivePage={() => {}}
               isLoggedIn={isLoggedIn}
               userInitial={userInitial}
               setUserInitial={setUserInitial}
@@ -759,6 +774,7 @@ export default function MobileHome() {
               }}
               onOpenAuth={openAuth}
             />
+            )}
           </div>
         </div>
       )}
