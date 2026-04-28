@@ -1125,42 +1125,12 @@ export default function MyPage({
     </div>
   );
 
-  if (activePage === "pt") return (
-    <div>
-      <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-        <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>ポイント</h2>
-      </div>
-      <div style={{ padding: "32px 48px 56px", maxWidth: 600 }}>
-        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.15),rgba(228,155,253,0.15),rgba(163,192,255,0.15))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "32px", textAlign: "center" as const, marginBottom: 20 }}>
-          <div style={{ fontSize: 11, color: "#c9a0f0", fontWeight: 700, letterSpacing: 2, marginBottom: 8 }}>現在のポイント</div>
-          <div style={{ fontSize: 56, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", lineHeight: 1.1 }}>0</div>
-          <div style={{ fontSize: 13, color: "#aaa", marginTop: 6 }}>pt</div>
-        </div>
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden", marginBottom: 20 }}>
-          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", fontSize: 13, fontWeight: 700, color: "#555" }}>ポイント履歴</div>
-          <div style={{ padding: "48px 0", textAlign: "center" as const, color: "#bbb", fontSize: 14 }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>⭐</div>
-            ポイント履歴はまだありません
-          </div>
-        </div>
-        <div style={{ background: "#f8f6ff", border: "0.5px solid rgba(200,170,240,0.25)", borderRadius: 12, padding: "16px 20px" }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 8 }}>ポイントについて</div>
-          <div style={{ fontSize: 12, color: "#888", lineHeight: 1.9 }}>
-            ・教材をダウンロードするとポイントが貯まります<br />
-            ・貯まったポイントはサブスクプランの割引に使えます<br />
-            ・ポイントの有効期限は取得から1年間です
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div>
       <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
           <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4, display: "inline-block" }}>
-            {navItems.find(n => n.id === activePage)?.label}
+            {activePage === "plan" ? "プラン" : navItems.find(n => n.id === activePage)?.label}
           </h2>
           {(activePage === "fav" || activePage === "dl") && (
             <span style={{ fontSize: 11, color: "#bbb", fontWeight: 500 }}>

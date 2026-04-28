@@ -55,7 +55,6 @@ export default function UserMenuPopup({
       {[
         { icon: "user" as const, label: tm("profile"), page: "settings-profile" },
         { icon: "plan" as const, label: tm("plan"), page: "plan" },
-        { icon: "star" as const, label: tm("points"), page: "pt" },
         { icon: "billing" as const, label: tm("billing"), page: "settings-billing" },
         { icon: "bell" as const, label: tm("notifications"), page: "settings-notifications" },
       ].map((item) => (

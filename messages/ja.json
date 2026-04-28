@@ -34,7 +34,6 @@
   "mypage": {
     "profile": "プロフィール・登録情報",
     "plan": "プラン確認・変更",
-    "points": "ポイント",
     "billing": "支払い履歴",
     "notifications": "通知設定",
     "logout": "ログアウト",
@@ -51,11 +50,6 @@
     "current_plan": "現在のプラン",
     "change_plan": "プランを変更する →",
     "no_billing": "支払い履歴はまだありません",
-    "current_points": "現在のポイント",
-    "no_points": "ポイント履歴はまだありません",
-    "about_points": "ポイントについて",
-
-    
     "my_account": "My Account",
     "profile_title": "プロフィール・登録情報",
     "name": "名前",
@@ -80,11 +74,6 @@
     "item": "内容",
     "amount": "金額",
     "status": "ステータス",
-    "points_history": "ポイント履歴",
-    "no_points_desc": "ポイント履歴はまだありません",
-    "points_info_1": "教材をダウンロードするとポイントが貯まります",
-    "points_info_2": "貯まったポイントはサブスクプランの割引に使えます",
-    "points_info_3": "ポイントの有効期限は取得から1年間です",
     "notif_new_material_label": "新着教材のお知らせ",
     "notif_new_material_desc": "新しい教材が追加されたときに通知します",
     "notif_favorite_label": "お気に入り教材の更新",
