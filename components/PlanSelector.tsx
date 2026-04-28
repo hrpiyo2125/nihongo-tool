@@ -356,6 +356,26 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
       )}
       
 
+      <style>{`
+        .plan-selector-table { width: 100%; min-width: 620px; border-collapse: separate; border-spacing: 0; }
+        .plan-selector-wrap { overflow-x: auto; }
+        @media (max-width: 767px) {
+          .plan-selector-table { min-width: 320px; }
+          .plan-selector-table th, .plan-selector-table td { padding-left: 3px !important; padding-right: 3px !important; }
+          .plan-selector-plan-name { font-size: 10px !important; }
+          .plan-selector-price-big { font-size: 13px !important; }
+          .plan-selector-price-unit { font-size: 8px !important; }
+          .plan-selector-badge { font-size: 8px !important; padding: 2px 6px !important; }
+          .plan-selector-feat-label { font-size: 10px !important; padding: 10px 4px !important; }
+          .plan-selector-feat-cell { padding: 8px 3px !important; }
+          .plan-selector-feat-dot { width: 14px !important; height: 14px !important; }
+          .plan-selector-feat-dot svg { width: 7px !important; height: 7px !important; }
+          .plan-selector-sub-text { font-size: 8px !important; }
+          .plan-selector-btn { font-size: 9px !important; height: 34px !important; }
+          .plan-selector-plan-header { padding: 10px 4px 8px !important; }
+          .plan-selector-saving { font-size: 8px !important; padding: 3px 5px !important; }
+        }
+      `}</style>
       <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif" }}>
 
         {/* 今月の使い方サマリー */}
@@ -381,8 +401,8 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
         )}
 
         {/* 比較テーブル */}
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", minWidth: 620, borderCollapse: "separate", borderSpacing: 0 }}>
+        <div className="plan-selector-wrap" style={{ overflowX: "auto" }}>
+          <table className="plan-selector-table" style={{ borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
               <tr>
                 {/* 空白セル */}
@@ -396,7 +416,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                     <th key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{ width: "18%", padding: "0 6px 12px", textAlign: "center", verticalAlign: "bottom", cursor: "pointer" }}>
                       {/* 吹き出し */}
                       {savingText && (
-                        <div style={{
+                        <div className="plan-selector-saving" style={{
                           background: positive ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#f0f0f0",
                           color: positive ? "white" : "#999",
                           fontSize: 9,
@@ -420,7 +440,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                       )}
 
                       {/* プラン名・バッジ */}
-                      <div style={{
+                      <div className="plan-selector-plan-header" style={{
                         background: plan.bg,
                         border: `${plan.featured ? 2 : 1}px solid ${isCurrent ? plan.color : plan.border}`,
                         borderRadius: "12px 12px 0 0",
@@ -428,7 +448,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                         position: "relative",
                       }}>
                         {plan.featured && !isCurrent && (
-                          <div style={{
+                          <div className="plan-selector-badge" style={{
                             position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
                             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
                             color: "white", fontSize: 9, fontWeight: 700,
@@ -436,23 +456,23 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           }}>おすすめ</div>
                         )}
                         {isCurrent && (
-                          <div style={{
+                          <div className="plan-selector-badge" style={{
                             position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
                             background: "linear-gradient(135deg,#a3c0ff,#e49bfd)",
                             color: "white", fontSize: 9, fontWeight: 700,
                             padding: "2px 10px", borderRadius: 8, whiteSpace: "nowrap",
                           }}>現在</div>
                         )}
-                        <div style={{ fontSize: 12, fontWeight: 800, color: plan.color, marginBottom: 4, whiteSpace: "nowrap" }}>
+                        <div className="plan-selector-plan-name" style={{ fontSize: 12, fontWeight: 800, color: plan.color, marginBottom: 4, whiteSpace: "nowrap" }}>
                           {plan.name}
                         </div>
                         <div>
                           {plan.price === null ? (
-                            <span style={{ fontSize: 14, fontWeight: 800, color: "#aaa" }}>無料</span>
+                            <span className="plan-selector-price-big" style={{ fontSize: 14, fontWeight: 800, color: "#aaa" }}>無料</span>
                           ) : (
                             <>
-                              <span style={{ fontSize: 16, fontWeight: 800, color: plan.color }}>¥{plan.price.toLocaleString()}</span>
-                              <span style={{ fontSize: 9, color: "#bbb" }}>/月</span>
+                              <span className="plan-selector-price-big" style={{ fontSize: 16, fontWeight: 800, color: plan.color }}>¥{plan.price.toLocaleString()}</span>
+                              <span className="plan-selector-price-unit" style={{ fontSize: 9, color: "#bbb" }}>/月</span>
                             </>
                           )}
                         </div>
@@ -466,7 +486,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
             <tbody>
               {features.map((feature, fi) => (
                 <tr key={feature.label} style={{ background: fi % 2 === 0 ? "#fafafa" : "white", cursor: "pointer" }}>
-                  <td style={{
+                  <td className="plan-selector-feat-label" style={{
                     padding: "14px 12px",
                     fontSize: 11,
                     color: "#555",
@@ -484,7 +504,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                       ? plan.key === "free" ? feature.freeNote : feature.paidNote
                       : null;
                     return (
-                      <td key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{
+                      <td key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} className="plan-selector-feat-cell" style={{
                         textAlign: "center",
                         padding: "10px 6px",
                         borderBottom: "1px solid #ede8ff",
@@ -493,7 +513,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                         transition: "background 0.2s ease",
                         cursor: "pointer",
                       }}>
-                        <div style={{
+                        <div className="plan-selector-feat-dot" style={{
                           width: 18, height: 18, borderRadius: "50%", margin: "0 auto",
                           background: ok
                           ? plan.featured
@@ -515,7 +535,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           )}
                         </div>
                         {subText && (
-                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600, whiteSpace: "nowrap" }}>{subText}</div>
+                          <div className="plan-selector-sub-text" style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600, whiteSpace: "nowrap" }}>{subText}</div>
                         )}
                       </td>
                     );
@@ -543,7 +563,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                       transition: "background 0.2s ease",
                     }}>
                       {isCurrent ? (
-                        <button onClick={() => onSubscribed?.()} style={{
+                        <button onClick={() => onSubscribed?.()} className="plan-selector-btn" style={{
                           width: "100%", height: 32, borderRadius: 16,
                           border: `1px solid ${plan.color}`,
                           background: "white", color: plan.color,
@@ -552,6 +572,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                       ) : plan.key === "free" && isPaid && cancelAtPeriodEnd ? (
                         <button
                           disabled
+                          className="plan-selector-btn"
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
@@ -568,6 +589,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                       ) : plan.key === "free" && isPaid ? (
                         <button
                           onClick={(() => setStartPlan({ key: "free", name: "無料", price: 0, mode: "cancel" }))}
+                          className="plan-selector-btn"
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
@@ -588,6 +610,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                               setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" });
                             }
                           }}
+                          className="plan-selector-btn"
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -606,6 +629,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                               setStartPlan({ key: plan.key, name: plan.name, price: plan.price!, mode: "change" });
                             }
                           }}
+                          className="plan-selector-btn"
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
@@ -619,6 +643,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                         <button
                           onClick={() => handleSubscribe(plan)}
                           disabled={loading === plan.key}
+                          className="plan-selector-btn"
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: plan.featured
