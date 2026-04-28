@@ -382,7 +382,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
 
         {/* 比較テーブル */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", minWidth: 480, borderCollapse: "separate", borderSpacing: 0 }}>
+          <table style={{ width: "100%", minWidth: 620, borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
               <tr>
                 {/* 空白セル */}
@@ -406,6 +406,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           marginBottom: 6,
                           lineHeight: 1.4,
                           position: "relative",
+                          whiteSpace: "nowrap",
                         }}>
                           {savingText}
                           <div style={{
@@ -442,7 +443,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             padding: "2px 10px", borderRadius: 8, whiteSpace: "nowrap",
                           }}>現在</div>
                         )}
-                        <div style={{ fontSize: 12, fontWeight: 800, color: plan.color, marginBottom: 4 }}>
+                        <div style={{ fontSize: 12, fontWeight: 800, color: plan.color, marginBottom: 4, whiteSpace: "nowrap" }}>
                           {plan.name}
                         </div>
                         <div>
@@ -472,7 +473,8 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                     fontWeight: 600,
                     borderBottom: "1px solid #e0d8f0",
                     borderRight: "1px solid #e0d8f0",
-                    textAlign: "center", 
+                    textAlign: "center",
+                    whiteSpace: "nowrap",
                   }}>
                     {feature.label}
                   </td>
@@ -513,7 +515,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           )}
                         </div>
                         {subText && (
-                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600 }}>{subText}</div>
+                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600, whiteSpace: "nowrap" }}>{subText}</div>
                         )}
                       </td>
                     );
@@ -545,7 +547,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           width: "100%", height: 32, borderRadius: 16,
                           border: `1px solid ${plan.color}`,
                           background: "white", color: plan.color,
-                          fontSize: 10, fontWeight: 700, cursor: "pointer", opacity: 0.8,
+                          fontSize: 10, fontWeight: 700, cursor: "pointer", opacity: 0.8, whiteSpace: "nowrap",
                         }}>このまま使う →</button>
                       ) : plan.key === "free" && isPaid && cancelAtPeriodEnd ? (
                         <button
@@ -555,7 +557,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
                             color: "white", fontSize: 9, fontWeight: 700,
                             cursor: "not-allowed", opacity: 0.65,
-                            lineHeight: 1.4, padding: "4px 6px",
+                            lineHeight: 1.4, padding: "4px 6px", whiteSpace: "nowrap",
                           }}
                         >
                           {isPendingDeletion ? "退会予約済み" : "変更予約済み"}<br />
@@ -570,7 +572,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: "pointer",
+                            cursor: "pointer", whiteSpace: "nowrap",
                           }}
                         >
                           始める →
@@ -590,7 +592,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: "pointer",
+                            cursor: "pointer", whiteSpace: "nowrap",
                           }}
                         >
                           始める →
@@ -608,7 +610,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: "pointer",
+                            cursor: "pointer", whiteSpace: "nowrap",
                           }}
                         >
                           始める →
@@ -623,7 +625,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                               ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
                               : "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
                             color: "white", fontSize: 10, fontWeight: 700,
-                            cursor: loading === plan.key ? "not-allowed" : "pointer",
+                            cursor: loading === plan.key ? "not-allowed" : "pointer", whiteSpace: "nowrap",
                             opacity: loading === plan.key ? 0.7 : 1,
                           }}
                         >
