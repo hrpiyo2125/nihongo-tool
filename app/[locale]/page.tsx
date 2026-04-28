@@ -18,7 +18,7 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
-import { TroubleSection, GuideSection } from "./TroubleGuide";
+import { GuideSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
 import PersonalizedSection from "./PersonalizedSection";
 import IconItem from "./IconItem";
@@ -89,7 +89,6 @@ const navItems: NavItem[] = [
   { id: "dl", label: t("dl"), badge: 3, icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3v13M7 11l5 5 5-5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M4 20h16" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M2 10h20" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M6 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M14 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
-  { id: "trouble", label: t("trouble"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
 ];
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
@@ -643,13 +642,7 @@ if (isMobile) return <MobileHome />;
           activePage === "guide" ? (
             <GuideSection />
 
-            ) : activePage === "trouble" ? (
-    <TroubleSection
-                    onOpenModal={() => setModal({ content: "all", method: "all" })}
-                    onHome={() => { setActivePage("home"); const c = document.getElementById("main-scroll"); if (c) c.scrollTo({ top: 0, behavior: "instant" }); }}
-                  />
-
-  ) : (
+            ) : (
     <MyPage
       activePage={activePage}
       setActivePage={setActivePage}
