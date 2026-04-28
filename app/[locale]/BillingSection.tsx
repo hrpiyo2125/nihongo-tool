@@ -215,12 +215,12 @@ export default function BillingSection({
       <div style={{ padding: mobileMode ? "20px 16px 56px" : "32px 48px 56px", maxWidth: mobileMode ? undefined : 640, display: "flex", flexDirection: "column", gap: 20, margin: "0 auto" }}>
 
         {/* 現在のプラン */}
-        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 12, fontWeight: 700, letterSpacing: 1 }}>現在のプラン</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 20, fontWeight: 800, color: "#7a50b0" }}>{PLAN_LABEL[profile.plan] ?? "無料プラン"}</div>
+        <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: mobileMode ? "16px" : "24px" }}>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>現在のプラン</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{PLAN_LABEL[profile.plan] ?? "無料プラン"}</div>
                 <StatusBadge
                   plan_status={profile.plan_status}
                   cancel_at_period_end={profile.cancel_at_period_end}
@@ -228,30 +228,30 @@ export default function BillingSection({
                   isPendingDeletion={isPendingDeletion}
                 />
               </div>
-              <div style={{ fontSize: 13, color: "#aaa" }}>{PLAN_PRICE[profile.plan] ?? "無料"}</div>
+              <div style={{ fontSize: 12, color: "#aaa" }}>{PLAN_PRICE[profile.plan] ?? "無料"}</div>
               {profile.plan_status === "trialing" && profile.trial_end && (
-                <div style={{ fontSize: 12, color: "#2a6a44", background: "#e8f8ee", padding: "6px 12px", borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: "#2a6a44", background: "#e8f8ee", padding: "5px 10px", borderRadius: 8 }}>
                   トライアル終了日：{formatDate(profile.trial_end)}
                 </div>
               )}
               {isPendingDeletion && profile.current_period_end && (
-                <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "6px 12px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} まで現在のプランでご利用いただけます。その後、自動的に退会されます。
+                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8, lineHeight: 1.6 }}>
+                  {formatDate(profile.current_period_end)} まで利用可。その後退会されます。
                 </div>
               )}
               {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
-                <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "6px 12px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} に無料プランへ移行します
+                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
+                  {formatDate(profile.current_period_end)} に無料プランへ移行
                 </div>
               )}
               {isPaid && !profile.cancel_at_period_end && profile.current_period_end && (
-                <div style={{ fontSize: 12, color: "#888" }}>
-                  次回更新日：{formatDate(profile.current_period_end)}
+                <div style={{ fontSize: 11, color: "#888" }}>
+                  次回更新：{formatDate(profile.current_period_end)}
                 </div>
               )}
               {profile.plan_status === "past_due" && (
-                <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "6px 12px", borderRadius: 8 }}>
-                  お支払いが確認できていません。カード情報をご確認ください。
+                <div style={{ fontSize: 11, color: "#a02020", background: "#ffe8e8", padding: "5px 10px", borderRadius: 8 }}>
+                  お支払いが確認できていません
                 </div>
               )}
             </div>
@@ -259,7 +259,7 @@ export default function BillingSection({
               <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                 <button
                   onClick={() => setConfirmWithdrawalCancel(true)}
-                  style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
+                  style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", whiteSpace: "nowrap" }}
                 >
                   退会をやめる
                 </button>
@@ -269,23 +269,23 @@ export default function BillingSection({
               <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
                 <button
                   onClick={onChangePlan}
-                  style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
+                  style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}
                 >
-                  プランを変更する →
+                  プランを変更 →
                 </button>
                 {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && (
                   <button
                     onClick={() => setConfirmCancel(true)}
-                    style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                    style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer", whiteSpace: "nowrap" }}
                   >
-                    無料プランに変更
+                    無料に変更
                   </button>
                 )}
                 {isPaid && profile.cancel_at_period_end && (
                   <button
                     onClick={handleReactivate}
                     disabled={reactivateLoading}
-                    style={{ fontSize: 12, padding: "8px 20px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
+                    style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", whiteSpace: "nowrap" }}
                   >
                     {reactivateLoading ? "処理中..." : "変更を取り消す"}
                   </button>
