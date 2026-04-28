@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
-import MobilePlanModal from "../../components/MobilePlanModal";
 
 const planRank: Record<string, number> = {
   free: 0, light: 1, standard: 2, premium: 3,
@@ -143,7 +142,6 @@ export default function TeaserModal({
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
-  const [showPlanModal, setShowPlanModal] = useState(false);
 
   const isFav = favIds.includes(mat.id);
   const canDl = canDownload(userPlan, mat.requiredPlan);
@@ -275,7 +273,7 @@ export default function TeaserModal({
                   ) : (
                     <>
                       <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
-                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                      <button onClick={() => { onClose(); window.location.href = "/plan"; }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
                     </>
                   )}
                 </div>
@@ -284,9 +282,7 @@ export default function TeaserModal({
           </div>
         </div>
       </div>
-      {showPlanModal && (
-        <MobilePlanModal onClose={() => setShowPlanModal(false)} />
-      )}
+
     </div>
   );
 }
