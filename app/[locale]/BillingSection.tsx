@@ -43,7 +43,7 @@ function formatDate(isoString: string | null) {
   return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
 }
 
-function StatusBadge({ plan_status, cancel_at_period_end, trial_end, isPendingDeletion }: { plan_status: string; cancel_at_period_end: boolean; trial_end: string | null; isPendingDeletion?: boolean }) {
+function StatusBadge({ plan_status, cancel_at_period_end, isPendingDeletion }: { plan_status: string; cancel_at_period_end: boolean; trial_end?: string | null; isPendingDeletion?: boolean }) {
   if (isPendingDeletion) {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>退会予約済み</span>;
   }
@@ -204,7 +204,7 @@ export default function BillingSection({
   const isPendingDeletion = profile.status === "pending_deletion";
 
   return (
-    <div>
+    <div style={{ maxWidth: 800, margin: "0 auto", width: "100%" }}>
       {/* ヘッダー */}
       {!mobileMode && (
         <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
