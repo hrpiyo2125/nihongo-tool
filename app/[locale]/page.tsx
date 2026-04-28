@@ -18,7 +18,7 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
-import { GuideSection } from "./TroubleGuide";
+import { FaqSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
 import PersonalizedSection from "./PersonalizedSection";
 import IconItem from "./IconItem";
@@ -331,7 +331,6 @@ if (isMobile) return <MobileHome />;
         <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
           <Link href="/plan">料金プラン</Link>
           <Link href="/faq">よくある質問</Link>
-          <Link href="/guide">使い方ガイド</Link>
           <Link href="/terms">利用規約</Link>
           <Link href="/privacy">プライバシーポリシー</Link>
           <Link href="/tokushoho">特定商取引法に基づく表示</Link>
@@ -640,7 +639,7 @@ if (isMobile) return <MobileHome />;
 
         {activePage !== "home" && (
           activePage === "guide" ? (
-            <GuideSection />
+            <FaqSection />
 
             ) : (
     <MyPage

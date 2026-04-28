@@ -9,7 +9,7 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
-import { GuideSection } from "./MobileTroubleGuide";
+import { FaqSection } from "./MobileTroubleGuide";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
@@ -216,7 +216,6 @@ export default function MobileHome() {
       <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
         <Link href="/plan">料金プラン</Link>
         <Link href="/faq">よくある質問</Link>
-        <Link href="/guide">使い方ガイド</Link>
         <Link href="/about">toolioとは</Link>
         <Link href="/terms">利用規約</Link>
         <Link href="/privacy">プライバシーポリシー</Link>
@@ -458,7 +457,7 @@ export default function MobileHome() {
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
               { icon: "download" as const, label: "ダウンロード履歴", action: () => setMorePage("dl") },
-              { icon: "guide"     as const, label: "使い方ガイド",    action: () => setMorePage("guide") },
+              { icon: "guide"     as const, label: "よくある質問",    action: () => setMorePage("guide") },
               { icon: "purchases" as const, label: "教材購入履歴",    action: () => setMorePage("purchases") },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
@@ -592,10 +591,10 @@ export default function MobileHome() {
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
                   <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>使い方ガイド</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto" }}>
-                  <GuideSection />
+                  <FaqSection />
                 </div>
               </div>
             )}
