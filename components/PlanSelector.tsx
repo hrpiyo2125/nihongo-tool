@@ -382,7 +382,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
 
         {/* 比較テーブル */}
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
+          <table style={{ width: "100%", minWidth: 480, borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
               <tr>
                 {/* 空白セル */}
