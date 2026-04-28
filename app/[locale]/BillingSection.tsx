@@ -212,7 +212,7 @@ export default function BillingSection({
         </div>
       )}
 
-      <div style={{ padding: mobileMode ? "20px 16px 56px" : "32px 48px 56px", maxWidth: mobileMode ? undefined : 640, display: "flex", flexDirection: "column", gap: 20 }}>
+      <div style={{ padding: mobileMode ? "20px 16px 56px" : "32px 48px 56px", maxWidth: mobileMode ? undefined : 640, display: "flex", flexDirection: "column", gap: 20, margin: "0 auto" }}>
 
         {/* 現在のプラン */}
         <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "24px" }}>

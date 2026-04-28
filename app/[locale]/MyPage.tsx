@@ -534,7 +534,7 @@ export default function MyPage({
           <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>{tm("profile_title")}</h2>
         </div>
       )}
-      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: mobileMode ? undefined : 600 }}>
+      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: mobileMode ? undefined : 600, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
           <div
             onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
@@ -1090,7 +1090,7 @@ export default function MyPage({
           <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>通知設定</h2>
         </div>
       )}
-      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: mobileMode ? undefined : 600 }}>
+      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: mobileMode ? undefined : 600, margin: "0 auto" }}>
         {[
           { label: tm("notif_new_material_label"), desc: tm("notif_new_material_desc"), col: "notif_new_material" },
           { label: tm("notif_favorite_label"), desc: tm("notif_favorite_desc"), col: "notif_favorite" },
