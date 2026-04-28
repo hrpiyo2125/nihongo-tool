@@ -1,4 +1,6 @@
 "use client";
+import { useState, useEffect } from "react";
+import { createClient } from "../lib/supabase";
 import PlanSelector from "./PlanSelector";
 
 type Props = {
@@ -8,6 +10,24 @@ type Props = {
 };
 
 export default function PlanModal({ currentPlan, onSubscribed, onClose }: Props) {
+  const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
+  const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
+  const [isPendingDeletion, setIsPendingDeletion] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase.from("profiles").select("cancel_at_period_end, current_period_end, status").eq("id", session.user.id).single();
+      if (data) {
+        setCancelAtPeriodEnd(data.cancel_at_period_end ?? false);
+        setCurrentPeriodEnd(data.current_period_end ?? null);
+        setIsPendingDeletion(data.status === "pending_deletion");
+      }
+    })();
+  }, []);
+
   return (
     <div
       onClick={onClose}
@@ -62,6 +82,9 @@ export default function PlanModal({ currentPlan, onSubscribed, onClose }: Props)
 
         <PlanSelector
           currentPlan={currentPlan}
+          cancelAtPeriodEnd={cancelAtPeriodEnd}
+          currentPeriodEnd={currentPeriodEnd}
+          isPendingDeletion={isPendingDeletion}
           onSubscribed={() => {
             onSubscribed();
             onClose();
