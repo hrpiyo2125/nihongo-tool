@@ -676,7 +676,7 @@ export default function MobileHome() {
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
               { icon: "user"    as const, label: "プロフィール", action: () => { setMySubPage("profile"); } },
-              { icon: "plan"    as const, label: "プラン",       action: () => { setMySubPage("plan"); } },
+              { icon: "plan"    as const, label: "プラン確認・変更", action: () => { setMySubPage("plan"); } },
               { icon: "billing" as const, label: "支払い履歴",   action: () => { setMySubPage("billing"); } },
               { icon: "bell"    as const, label: "通知設定",     action: () => { setMySubPage("notifications"); } },
             ].map((item) => (
