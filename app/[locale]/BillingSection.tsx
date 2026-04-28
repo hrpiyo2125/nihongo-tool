@@ -446,15 +446,16 @@ export default function BillingSection({
               支払い履歴はまだありません
             </div>
           ) : (
-            <>
-              <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px", fontSize: 11, color: "#bbb", fontWeight: 700 }}>
-                <span>日付</span><span>金額</span><span>ステータス</span><span></span>
+            <div style={{ overflowX: "auto" }}>
+              <div style={{ minWidth: 360 }}>
+              <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "160px 80px 80px 80px", fontSize: 11, color: "#bbb", fontWeight: 700 }}>
+                <span style={{ whiteSpace: "nowrap" }}>日付</span><span style={{ whiteSpace: "nowrap" }}>金額</span><span style={{ whiteSpace: "nowrap" }}>ステータス</span><span></span>
               </div>
               {invoices.map((inv) => (
-                <div key={inv.id} style={{ padding: "14px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 80px", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "#555" }}>{formatDate(new Date(inv.created * 1000).toISOString())}</span>
-                  <span style={{ fontSize: 13, color: "#555" }}>¥{inv.amount_paid.toLocaleString()}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: inv.status === "paid" ? "#2a6a44" : "#a02020" }}>
+                <div key={inv.id} style={{ padding: "14px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "160px 80px 80px 80px", alignItems: "center" }}>
+                  <span style={{ fontSize: 13, color: "#555", whiteSpace: "nowrap" }}>{formatDate(new Date(inv.created * 1000).toISOString())}</span>
+                  <span style={{ fontSize: 13, color: "#555", whiteSpace: "nowrap" }}>¥{inv.amount_paid.toLocaleString()}</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: inv.status === "paid" ? "#2a6a44" : "#a02020", whiteSpace: "nowrap" }}>
                     {inv.status === "paid" ? "支払済" : "未払い"}
                   </span>
                   <a href={inv.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>
@@ -462,7 +463,8 @@ export default function BillingSection({
                   </a>
                 </div>
               ))}
-            </>
+              </div>
+            </div>
           )}
         </div>
       </div>
