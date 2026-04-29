@@ -78,6 +78,14 @@ export default function MobileMaterialsModal({
         </button>
       </header>
 
+      {/* 検索欄 */}
+      <div style={{ padding: "12px 16px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "10px 18px", width: "100%", maxWidth: 480 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" placeholder="教材を検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }} />
+        </div>
+      </div>
+
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
         <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none" as const }}>
