@@ -4,7 +4,7 @@ import { createClient } from "../../lib/supabase";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
-import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
+import { contentTabLabels, methodTabLabels, getContentTabs, getMethodTabs } from "../../lib/tabs";
 import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
@@ -189,26 +189,8 @@ export default function MobileHome() {
   ];
 
 
-  const contentTabsForModal = [
-    { id: "all", label: "すべて", char: "✦", color: "#e8efff", imageSrc: "/all.png" },
-    { id: "hiragana", label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png" },
-    { id: "katakana", label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png" },
-    { id: "kanji", label: cl.kanji, char: "字", color: "#ffe8f4", imageSrc: "/kanji.png" },
-    { id: "food", label: cl.food, char: "🍎", color: "#fff0e8", imageSrc: "/food.png" },
-    { id: "animal", label: cl.animal, char: "🐾", color: "#e8f8ee", imageSrc: "/animal.png" },
-    { id: "season", label: cl.season, char: "季", color: "#e8efff", imageSrc: "/season.png" },
-    { id: "adjective", label: cl.adjective, char: "い", color: "#fff8e0", imageSrc: null },
-    { id: "verb", label: cl.verb, char: "動", color: "#e8f8ee", imageSrc: null },
-  ];
-
-  const methodTabsForModal = [
-    { id: "all", label: "すべて", char: "✦", imageSrc: "/all.png" },
-    { id: "card", label: ml.card, char: "🃏", imageSrc: "/method_card.png" },
-    { id: "nurie", label: ml.nurie, char: "◎", imageSrc: null },
-    { id: "drill", label: ml.drill, char: "✏", imageSrc: "/method_drill.png" },
-    { id: "bingo", label: ml.bingo, char: "🎯", imageSrc: null },
-    { id: "sugoroku", label: ml.sugoroku, char: "🎲", imageSrc: null },
-  ];
+  const contentTabsForModal = getContentTabs(cl);
+  const methodTabsForModal = getMethodTabs(ml);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
