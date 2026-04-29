@@ -99,9 +99,9 @@ export default function MobileMaterialsModal({
       </div>
 
       {/* 方法タブ */}
-      <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
-        <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto" }}>
-          <div style={{ width: 80, flexShrink: 0 }} />
+      <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, display: "flex" }}>
+        <div style={{ width: 80, flexShrink: 0 }} />
+        <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {
             const active = activeMethodFilter === tab.id;
             return (
@@ -114,7 +114,7 @@ export default function MobileMaterialsModal({
             );
           })}
         </div>
-      </div>
+        </div>
 
       {/* メインエリア */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
