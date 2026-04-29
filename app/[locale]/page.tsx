@@ -498,7 +498,7 @@ if (isMobile) return <MobileHome />;
             </section>
 
             <section style={{ padding: "80px 36px 80px", flex: 1, background: "white" }}>
-              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 30 }}>
+              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 80 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />{th("notice")}
                 </div>
@@ -542,7 +542,7 @@ if (isMobile) return <MobileHome />;
                 }}
                 onPlanChanged={loadProfile}
               />
-              <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 48 }}>
+              <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 80 }}>
                 {[
                 { key: "pickup", label: th("pickup") },
                 { key: "recommended", label: th("recommended") },
