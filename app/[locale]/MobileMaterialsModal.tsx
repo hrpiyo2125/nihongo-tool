@@ -70,12 +70,27 @@ export default function MobileMaterialsModal({
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<string[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  const executeSearch = async (q: string) => {
+    if (!q.trim()) return;
+    setSearchLoading(true);
+    setActiveContentFilter("all");
+    setActiveMethodFilter("all");
+    try {
+      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
+      const data = await res.json();
+      setSearchResults((data.results ?? []).map((r: { id: string }) => r.id));
+    } catch { setSearchResults(null); }
+    finally { setSearchLoading(false); }
+  };
 
   const filtered = materials.filter(m => {
+    if (searchResults !== null) return searchResults.includes(m.id);
     const cMatch = activeContentFilter === "all" || (m.content ?? []).includes(activeContentFilter);
     const mMatch = activeMethodFilter === "all" || (m.method ?? []).includes(activeMethodFilter);
-    const sMatch = !searchQuery || m.title.includes(searchQuery);
-    return cMatch && mMatch && sMatch;
+    return cMatch && mMatch;
   });
 
   return (
@@ -87,16 +102,24 @@ export default function MobileMaterialsModal({
       <div style={{ padding: "12px 16px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "10px 18px", width: "100%", maxWidth: 480 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="text" placeholder="教材を検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }} />
+          <input type="text" placeholder="教材を検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") executeSearch(searchQuery); }} style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }} />
           {searchQuery && (
             <button
-              onClick={() => setSearchQuery("")}
+              onClick={() => { setSearchQuery(""); setSearchResults(null); }}
               style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb", flexShrink: 0 }}
               aria-label="検索をクリア"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
           )}
+          <button
+            onClick={() => executeSearch(searchQuery)}
+            disabled={!searchQuery.trim() || searchLoading}
+            style={{ background: "none", border: "none", cursor: searchQuery.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: searchQuery.trim() ? "#9b6ed4" : "#ddd", flexShrink: 0 }}
+            aria-label="検索"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          </button>
         </div>
       </div>
 
@@ -107,9 +130,9 @@ export default function MobileMaterialsModal({
         </div>
         <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {
-            const active = activeMethodFilter === tab.id;
+            const active = searchResults === null && activeMethodFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActiveMethodFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethodFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11, fontWeight: 700, color: "#555" }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                 </div>
@@ -126,9 +149,9 @@ export default function MobileMaterialsModal({
         <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
           <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto" }}>
           {contentTabs.map((tab) => {
-            const active = activeContentFilter === tab.id;
+            const active = searchResults === null && activeContentFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContentFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11 }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                 </div>
@@ -142,9 +165,10 @@ export default function MobileMaterialsModal({
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
           <div style={{ padding: "0 0 12px", fontSize: 12, color: "#bbb" }}>
-            {contentTabs.find(t => t.id === activeContentFilter)?.label}
-            {activeMethodFilter !== "all" && ` × ${methodTabs.find(t => t.id === activeMethodFilter)?.label}`}
-            {` — ${filtered.length}件`}
+            {searchResults !== null
+              ? `検索結果 — ${filtered.length}件`
+              : `${contentTabs.find(t => t.id === activeContentFilter)?.label}${activeMethodFilter !== "all" ? ` × ${methodTabs.find(t => t.id === activeMethodFilter)?.label}` : ""} — ${filtered.length}件`
+            }
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
             {filtered.map((mat) => {

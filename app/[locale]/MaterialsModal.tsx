@@ -70,6 +70,19 @@ export default function MaterialsModal({
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  const executeSearch = async (q: string) => {
+    if (!q.trim()) return;
+    setSearchLoading(true);
+    setActiveContent("all");
+    setActiveMethod("all");
+    try {
+      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
+      const data = await res.json();
+      setSearchResults((data.results ?? []).map((r: { id: string }) => r.id));
+    } catch { setSearchResults(null); }
+    finally { setSearchLoading(false); }
+  };
+
   useEffect(() => {
     if (!isLoggedIn) return;
     const supabase = createClient();
@@ -105,18 +118,8 @@ export default function MaterialsModal({
               type="text"
               placeholder={tmm("search_placeholder")}
               value={searchQuery}
-              onChange={async (e) => {
-                const q = e.target.value;
-                setSearchQuery(q);
-                if (!q.trim()) { setSearchResults(null); return; }
-                setSearchLoading(true);
-                try {
-                  const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
-                  const data = await res.json();
-                  setSearchResults((data.results ?? []).map((r: { id: string }) => r.id));
-                } catch { setSearchResults(null); }
-                finally { setSearchLoading(false); }
-              }}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") executeSearch(searchQuery); }}
               style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
             />
             {searchQuery && (
@@ -128,6 +131,14 @@ export default function MaterialsModal({
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             )}
+            <button
+              onClick={() => executeSearch(searchQuery)}
+              disabled={!searchQuery.trim() || searchLoading}
+              style={{ background: "none", border: "none", cursor: searchQuery.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: searchQuery.trim() ? "#9b6ed4" : "#ddd", flexShrink: 0 }}
+              aria-label="検索"
+            >
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            </button>
           </div>
         </div>
 
@@ -140,9 +151,9 @@ export default function MaterialsModal({
             <div style={{ flex: 1, minWidth: 0, padding: "16px 20px 0 0" }}>
               <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 4, paddingLeft: 8 }} onWheel={handleMethodTabWheel}>
                 {methodTabs.map((tab) => {
-                  const active = activeMethod === tab.id;
+                  const active = searchResults === null && activeMethod === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
+                    <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethod(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#555", border: "1px solid rgba(0,0,0,0.06)" }}>
                         {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                       </div>
@@ -159,9 +170,9 @@ export default function MaterialsModal({
             <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
               <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 0 28px" }}>
                 {contentTabs.map((tab) => {
-                  const active = activeContent === tab.id;
+                  const active = searchResults === null && activeContent === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => setActiveContent(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
+                    <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContent(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555" }}>
                         {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                       </div>
@@ -174,9 +185,10 @@ export default function MaterialsModal({
 
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
               <div style={{ padding: "16px 0 20px 20px", fontSize: 12, color: "#bbb", flexShrink: 0 }}>
-                {contentTabs.find(t => t.id === activeContent)?.label}
-                {activeMethod !== "all" && ` × ${methodTabs.find(t => t.id === activeMethod)?.label}`}
-                {` — ${filtered.length}件`}
+                {searchResults !== null
+                  ? `検索結果 — ${filtered.length}件`
+                  : `${contentTabs.find(t => t.id === activeContent)?.label}${activeMethod !== "all" ? ` × ${methodTabs.find(t => t.id === activeMethod)?.label}` : ""} — ${filtered.length}件`
+                }
               </div>
               <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 20px 40px" }}>
               {filtered.length === 0 ? (
