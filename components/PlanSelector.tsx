@@ -118,7 +118,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
 
   const monthlyCost = monthlyCount * UNIT_PRICE;
 
-  const getSavingText = (planKey: string, price: number) => {
+  const getSavingText = (_planKey: string, price: number) => {
     if (monthlyCount === 0) {
       const breakEven = Math.ceil(price / UNIT_PRICE);
       return `月${breakEven}本以上でお得`;
@@ -281,7 +281,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
       {showFreeDowngradeNotice && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "36px 28px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>解約前にご確認ください</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>無料プランへの変更前にご確認ください</div>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 20 }}>
               無料プランでは、<strong>お気に入り登録</strong>と<strong>ダウンロード履歴</strong>の表示は最新5件までとなります。<br /><br />
               現在の登録・履歴データは削除されません。再度ライトプラン以上にアップグレードいただくと、すべての履歴が復活します。
@@ -318,10 +318,10 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
       {cancellationChoiceForPlan && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 440, padding: "36px 32px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>解約予約について</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{isPendingDeletion ? "退会予約について" : "無料プランへの変更予約について"}</div>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 24 }}>
-              現在、<strong>{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong>に解約予約が設定されています。<br />
-              <strong>{cancellationChoiceForPlan.name}プラン</strong>に変更する場合、解約予約はどうしますか？
+              現在、<strong>{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong>に{isPendingDeletion ? "退会予約" : "無料プランへの変更予約"}が設定されています。<br />
+              <strong>{cancellationChoiceForPlan.name}プラン</strong>に変更する場合、{isPendingDeletion ? "退会予約" : "変更予約"}はどうしますか？
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
@@ -332,7 +332,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                 }}
                 style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
               >
-                解約予約を取り消してプランを変更する
+                {isPendingDeletion ? "退会予約を取り消してプランを変更する" : "変更予約を取り消してプランを変更する"}
               </button>
               <button
                 onClick={() => {
@@ -342,7 +342,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                 }}
                 style={{ padding: "14px", borderRadius: 12, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
-                解約予約を維持したままプランを変更する
+                {isPendingDeletion ? "退会予約を維持したままプランを変更する" : "変更予約を維持したままプランを変更する"}
               </button>
               <button
                 onClick={() => setCancellationChoiceForPlan(null)}

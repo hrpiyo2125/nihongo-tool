@@ -76,7 +76,7 @@ function IconPencil({ size = 14, color = "#9b6ed4" }: { size?: number; color?: s
 
 const TOPICS = [
   "料金について",
-  "解約について",
+  "プラン変更について",
   "退会について",
   "使い方について",
   "教材のリクエスト",
