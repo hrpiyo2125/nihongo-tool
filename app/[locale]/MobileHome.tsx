@@ -333,6 +333,7 @@ export default function MobileHome() {
                 purchasedIds={purchasedIds}
                 locale={locale}
                 columns={2}
+                isMobile={true}
                 onCardClick={(mat) => setTeaserMat(mat)}
                 onFavToggle={async (mat) => {
                   const supabase = createClient();

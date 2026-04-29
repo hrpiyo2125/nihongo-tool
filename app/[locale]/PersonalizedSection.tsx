@@ -50,6 +50,7 @@ type Props = {
   onFavToggle: (mat: Material) => void;
   onPlanChanged?: () => void;
   columns?: number;
+  isMobile?: boolean;
 };
 
 // Returns all materials ranked by affinity.
@@ -153,6 +154,7 @@ export default function PersonalizedSection({
   onFavToggle,
   onPlanChanged,
   columns = 4,
+  isMobile = false,
 }: Props) {
   const [planModalOpen, setPlanModalOpen] = useState(false);
   const [personalizedMats, setPersonalizedMats] = useState<Material[]>([]);
@@ -225,9 +227,11 @@ export default function PersonalizedSection({
     <>
       <div style={{ marginBottom: 40 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 18 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", flexShrink: 0 }} />
-          <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>あなたへのおすすめ</span>
-          <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: "#bbb", marginLeft: 4 }}>Recommended for you</span>
+          {!isMobile && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />}
+          <div>
+            <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: isMobile ? 4 : 2, ...(isMobile ? {} : { fontFamily: "var(--font-libre)" }) }}>Recommended for you</div>
+            <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#333", ...(isMobile ? {} : { fontFamily: "var(--font-libre)" }) }}>あなたへのおすすめ</div>
+          </div>
           {isPaidUser && personalizedMats.length > 0 && (
             <button
               onClick={() => {
