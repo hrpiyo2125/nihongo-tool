@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import {
   sendCancelEmail,
   sendWithdrawalEmail,
+  sendWithdrawalCompleteEmail,
   sendDowngradedToFreeEmail,
   sendPaymentFailedEmail,
   sendTrialEndingSoonEmail,
+  sendRenewalSuccessEmail,
 } from '@/lib/email'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
@@ -64,6 +66,7 @@ export async function POST(req: NextRequest) {
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice & {
         subscription: string
+        billing_reason: string
       }
       const subscriptionId = invoice.subscription
       if (!subscriptionId) break
@@ -72,6 +75,9 @@ export async function POST(req: NextRequest) {
       const userId = subscription.metadata?.userId
       const priceId = subscription.items.data[0]?.price.id
       const plan = PRICE_TO_PLAN[priceId] ?? 'free'
+      const currentPeriodEnd = subscription.items.data[0]?.current_period_end
+        ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+        : null
 
       if (userId) {
         await supabase
@@ -82,14 +88,31 @@ export async function POST(req: NextRequest) {
             stripe_customer_id: subscription.customer as string,
             stripe_subscription_id: subscription.id,
             cancel_at_period_end: false,
-            current_period_end: subscription.items.data[0]?.current_period_end
-              ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
-              : null,
+            current_period_end: currentPeriodEnd,
             payment_failed_at: null,
             updated_at: new Date().toISOString(),
           })
           .eq('id', userId)
       }
+
+      // 毎月の自動更新時のみ更新成功メールを送信（初回・アップグレード時は除く）
+      if (invoice.billing_reason === 'subscription_cycle') {
+        const renewalCustomer = await stripe.customers.retrieve(subscription.customer as string)
+        const renewalEmail = (renewalCustomer as any).email
+        const planLabels: Record<string, string> = {
+          light: 'ライトプラン',
+          standard: 'スタンダードプラン',
+          premium: 'プレミアムプラン',
+        }
+        if (renewalEmail) {
+          await sendRenewalSuccessEmail({
+            to: renewalEmail,
+            planLabel: planLabels[plan] ?? plan,
+            currentPeriodEnd,
+          })
+        }
+      }
+
       break
     }
 
@@ -211,10 +234,12 @@ export async function POST(req: NextRequest) {
         .update(updateData)
         .eq('id', userId)
 
-      if (!isPendingDeletion) {
-        const deletedCustomer = await stripe.customers.retrieve(subscription.customer as string)
-        const deletedEmail = (deletedCustomer as any).email
-        if (deletedEmail) {
+      const deletedCustomer = await stripe.customers.retrieve(subscription.customer as string)
+      const deletedEmail = (deletedCustomer as any).email
+      if (deletedEmail) {
+        if (isPendingDeletion) {
+          await sendWithdrawalCompleteEmail({ to: deletedEmail })
+        } else {
           await sendDowngradedToFreeEmail({ to: deletedEmail })
         }
       }

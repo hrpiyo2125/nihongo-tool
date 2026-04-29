@@ -188,6 +188,49 @@ export async function sendDowngradedToFreeEmail({
     `,
   })
 }
+// ─── 退会完了 ─────────────────────────────────────────────
+export async function sendWithdrawalCompleteEmail({
+  to,
+}: {
+  to: string
+}) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `【toolio】退会が完了しました`,
+    html: `
+      <p>toolioをご利用いただきありがとうございました。</p>
+      <p>退会処理が完了しました。</p>
+      <p>またいつでも同じメールアドレスでご登録いただけます。またのご利用をお待ちしています。</p>
+      <br />
+      <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
+    `,
+  })
+}
+
+// ─── 更新成功（月次課金） ─────────────────────────────────
+export async function sendRenewalSuccessEmail({
+  to, planLabel, currentPeriodEnd,
+}: {
+  to: string
+  planLabel: string
+  currentPeriodEnd: string | null
+}) {
+  await resend.emails.send({
+    from: FROM,
+    to,
+    subject: `【toolio】ご利用料金のお支払いが完了しました`,
+    html: `
+      <p>toolioをご利用いただきありがとうございます。</p>
+      <p><strong>${planLabel}</strong>のご利用料金のお支払いが完了しました。</p>
+      <p>次回更新日：${formatDate(currentPeriodEnd)}</p>
+      <p>引き続きtoolioをお楽しみください。</p>
+      <br />
+      <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>
+    `,
+  })
+}
+
 // ─── 管理者への異常通知 ───────────────────────────────────
 export async function sendAdminAlertEmail({
   userId,
