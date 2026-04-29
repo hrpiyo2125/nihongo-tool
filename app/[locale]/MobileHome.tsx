@@ -211,7 +211,7 @@ export default function MobileHome() {
   ];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", fontFamily: "'Hiragino Sans', 'Yu Gothic', sans-serif", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
       <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
         <Link href="/faq">よくある質問</Link>
         <Link href="/about">toolioとは</Link>
