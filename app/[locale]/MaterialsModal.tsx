@@ -36,6 +36,7 @@ export type Material = {
   tag?: string;
   tagBg?: string;
   tagColor?: string;
+  searchKeywords?: string;
 };
 
 type ContentTab = { id: string; label: string; char: string; color: string; imageSrc: string | null };
@@ -68,19 +69,19 @@ export default function MaterialsModal({
   const [favIds, setFavIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
 
-  const executeSearch = async (q: string) => {
+  const executeSearch = (q: string) => {
     if (!q.trim()) return;
-    setSearchLoading(true);
     setActiveContent("all");
     setActiveMethod("all");
-    try {
-      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
-      const data = await res.json();
-      setSearchResults((data.results ?? []).map((r: { id: string }) => r.id));
-    } catch { setSearchResults(null); }
-    finally { setSearchLoading(false); }
+    const words = q.trim().split(/\s+/);
+    const matched = materials
+      .filter((m) => {
+        const haystack = [m.title, m.description, m.searchKeywords ?? ""].join(" ").toLowerCase();
+        return words.every((w) => haystack.includes(w.toLowerCase()));
+      })
+      .map((m) => m.id);
+    setSearchResults(matched);
   };
 
   useEffect(() => {
@@ -133,7 +134,7 @@ export default function MaterialsModal({
             )}
             <button
               onClick={() => executeSearch(searchQuery)}
-              disabled={!searchQuery.trim() || searchLoading}
+              disabled={!searchQuery.trim()}
               style={{ background: "none", border: "none", cursor: searchQuery.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: searchQuery.trim() ? "#9b6ed4" : "#ddd", flexShrink: 0 }}
               aria-label="検索"
             >

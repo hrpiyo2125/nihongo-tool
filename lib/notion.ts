@@ -92,6 +92,7 @@ export async function getMaterials() {
       usageAdvanced:  props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
       features:    props.features?.rich_text?.[0]?.plain_text ?? '',
       howto:       props.howto?.rich_text?.[0]?.plain_text ?? '',
+      searchKeywords: props.searchKeywords?.rich_text?.[0]?.plain_text ?? '',
     }
   })
 }

@@ -71,19 +71,19 @@ export default function MobileMaterialsModal({
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
-  const [searchLoading, setSearchLoading] = useState(false);
 
-  const executeSearch = async (q: string) => {
+  const executeSearch = (q: string) => {
     if (!q.trim()) return;
-    setSearchLoading(true);
     setActiveContentFilter("all");
     setActiveMethodFilter("all");
-    try {
-      const res = await fetch("/api/search", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) });
-      const data = await res.json();
-      setSearchResults((data.results ?? []).map((r: { id: string }) => r.id));
-    } catch { setSearchResults(null); }
-    finally { setSearchLoading(false); }
+    const words = q.trim().split(/\s+/);
+    const matched = materials
+      .filter((m) => {
+        const haystack = [m.title, m.description, (m as any).searchKeywords ?? ""].join(" ").toLowerCase();
+        return words.every((w) => haystack.includes(w.toLowerCase()));
+      })
+      .map((m) => m.id);
+    setSearchResults(matched);
   };
 
   const filtered = materials.filter(m => {
@@ -114,7 +114,7 @@ export default function MobileMaterialsModal({
           )}
           <button
             onClick={() => executeSearch(searchQuery)}
-            disabled={!searchQuery.trim() || searchLoading}
+            disabled={!searchQuery.trim()}
             style={{ background: "none", border: "none", cursor: searchQuery.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: searchQuery.trim() ? "#9b6ed4" : "#ddd", flexShrink: 0 }}
             aria-label="検索"
           >
