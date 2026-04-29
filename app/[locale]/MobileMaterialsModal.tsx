@@ -82,13 +82,6 @@ export default function MobileMaterialsModal({
     <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
 
       <style>{scrollbarStyle}</style>
-      {/* ヘッダー */}
-      <header style={{ position: "relative", zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0 }}>
-        <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
-        <button onClick={onOpenMyPage} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
-          {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
-        </button>
-      </header>
 
       {/* 検索欄 */}
       <div style={{ padding: "12px 16px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
@@ -100,7 +93,9 @@ export default function MobileMaterialsModal({
 
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, display: "flex" }}>
-        <div style={{ width: 80, flexShrink: 0 }} />
+        <div style={{ width: 80, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {/* 画像エリア */}
+        </div>
         <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {
             const active = activeMethodFilter === tab.id;
