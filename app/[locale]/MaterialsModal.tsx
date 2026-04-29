@@ -127,8 +127,9 @@ export default function MaterialsModal({
         </div>
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          <div className="toolio-scroll-y" style={{ width: 180, flexShrink: 0, overflowY: "auto", padding: "0 0 28px", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-            <div style={{ height: 100, flexShrink: 0 }} />
+          <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+            <div style={{ height: 64, flexShrink: 0 }} />
+          <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 0 28px" }}>
             {contentTabs.map((tab) => {
               const active = activeContent === tab.id;
               return (
@@ -140,6 +141,7 @@ export default function MaterialsModal({
                 </button>
               );
             })}
+          </div>
           </div>
 
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
