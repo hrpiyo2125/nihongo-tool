@@ -119,6 +119,15 @@ export default function MaterialsModal({
               }}
               style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
             />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(""); setSearchResults(null); }}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb", flexShrink: 0 }}
+                aria-label="検索をクリア"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            )}
           </div>
         </div>
 
