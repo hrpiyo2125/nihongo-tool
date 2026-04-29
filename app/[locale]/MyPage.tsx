@@ -1093,8 +1093,6 @@ export default function MyPage({
       <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: mobileMode ? undefined : 600, margin: "0 auto" }}>
         {[
           { label: tm("notif_new_material_label"), desc: tm("notif_new_material_desc"), col: "notif_new_material" },
-          { label: tm("notif_favorite_label"), desc: tm("notif_favorite_desc"), col: "notif_favorite" },
-          { label: tm("notif_billing_label"), desc: tm("notif_billing_desc"), col: "notif_billing" },
           { label: tm("notif_announcement_label"), desc: tm("notif_announcement_desc"), col: "notif_announcement" },
         ].map((item) => {
           const on = !!profile[item.col];

@@ -76,10 +76,6 @@
     "status": "Status",
     "notif_new_material_label": "New material notifications",
     "notif_new_material_desc": "Notifies you when new materials are added.",
-    "notif_favorite_label": "Favorite material updates",
-    "notif_favorite_desc": "Notifies you when a favorited material is updated.",
-    "notif_billing_label": "Plan & billing notifications",
-    "notif_billing_desc": "Important notifications about plan renewals and billing.",
     "notif_announcement_label": "Announcements from toolio",
     "notif_announcement_desc": "Updates about new features and campaigns.",
     "notif_note": "* These are email notifications sent to your registered email address."
