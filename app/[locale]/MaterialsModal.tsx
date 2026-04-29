@@ -127,7 +127,8 @@ export default function MaterialsModal({
         </div>
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          <div className="toolio-scroll-y" style={{ width: 180, flexShrink: 0, overflowY: "auto", padding: "16px 0 28px", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+          <div className="toolio-scroll-y" style={{ width: 180, flexShrink: 0, overflowY: "auto", padding: "0 0 28px", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+            <div style={{ height: 100, flexShrink: 0 }} />
             {contentTabs.map((tab) => {
               const active = activeContent === tab.id;
               return (
