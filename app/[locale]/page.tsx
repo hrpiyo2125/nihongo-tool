@@ -497,7 +497,7 @@ if (isMobile) return <MobileHome />;
               </div>
             </section>
 
-            <section style={{ padding: "80px 36px 72px", flex: 1, background: "white" }}>
+            <section style={{ padding: "80px 36px 152px", flex: 1, background: "white" }}>
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 152 }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />{th("notice")}
