@@ -624,6 +624,7 @@ export default function MobileHome() {
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={profile.plan ?? "free"}
+            purchasedIds={purchasedIds}
             favIds={effectiveFavIds}
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}

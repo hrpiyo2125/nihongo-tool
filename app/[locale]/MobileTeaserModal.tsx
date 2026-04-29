@@ -1,16 +1,10 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
+import { canDownload } from "../../lib/materialUtils";
+import { BrandIcon } from "../../components/BrandIcon";
+import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import PlanModal from "../../components/PlanModal";
-
-const planRank: Record<string, number> = {
-  free: 0, light: 1, standard: 2, premium: 3,
-  "無料": 0, "ライト": 1, "スタンダード": 2, "プレミアム": 3,
-};
-
-function canDownload(userPlan: string, requiredPlan: string): boolean {
-  return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
-}
 
 function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   const [pages, setPages] = useState<any[]>([]);
@@ -124,6 +118,7 @@ type Props = {
   tagColor: string;
   isLoggedIn: boolean;
   userPlan: string;
+  purchasedIds?: string[];
   favIds: string[];
   contentTabs: ContentTab[];
   methodTabs: MethodTab[];
@@ -136,7 +131,7 @@ type Props = {
 
 export default function TeaserModal({
   mat, bg, char, charColor, tag, tagBg, tagColor,
-  isLoggedIn, userPlan, favIds: initialFavIds,
+  isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
   contentTabs, methodTabs, locale, tmm,
   onClose, onFavChange, onOpenAuth,
 }: Props) {
@@ -144,11 +139,14 @@ export default function TeaserModal({
   const [favTooltip, setFavTooltip] = useState(false);
   const [favLimitTooltip, setFavLimitTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
+  const [purchaseStep, setPurchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
+  const [purchaseLockTooltip, setPurchaseLockTooltip] = useState(false);
 
   const isFav = favIds.includes(mat.id);
   const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
-  const canDl = canDownload(userPlan, mat.requiredPlan);
+  const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -277,9 +275,9 @@ export default function TeaserModal({
             {downTooltip && !canDl && (
               <>
                 <div onClick={() => setDownTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
-                <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "16px 18px", width: 260, border: "0.5px solid rgba(200,170,240,0.35)" }}>
+                <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 300, background: "white", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 32px", width: 320, border: "0.5px solid rgba(200,170,240,0.35)" }}>
                   <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
-                    {mat.requiredPlan === "light" ? "ライトプラン" : mat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます ✨
+                    {mat.requiredPlan === "light" ? "ライトプラン" : mat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます
                   </div>
                   {!isLoggedIn ? (
                     <>
@@ -289,8 +287,47 @@ export default function TeaserModal({
                     </>
                   ) : (
                     <>
-                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするとダウンロードできます。</div>
-                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするか、この教材を単品購入できます。</div>
+                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
+                      {purchaseStep === "idle" && (
+                        <div style={{ position: "relative" }}>
+                          <button
+                            onClick={() => {
+                              if (isFreeUser) setPurchaseLockTooltip(prev => !prev);
+                              else setShowPurchaseConfirm(true);
+                            }}
+                            style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: isFreeUser ? "#f8f5ff" : "white", color: "#9b6ed4", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                          >
+                            {isFreeUser && <BrandIcon name="lock" size={12} color="#9b6ed4" />}
+                            ¥350 この教材を単品購入する
+                          </button>
+                          {purchaseLockTooltip && isFreeUser && (
+                            <>
+                              <div onClick={() => setPurchaseLockTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 349 }} />
+                              <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 350, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 280, border: "0.5px solid rgba(200,170,240,0.35)" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
+                                  <BrandIcon name="lock" size={12} color="#7a50b0" />単品購入について
+                                </div>
+                                <div style={{ fontSize: 11, color: "#666", lineHeight: 1.7, marginBottom: 12 }}>
+                                  単品購入はライトプラン会員の方以上が使用できます。この教材を単品購入したい方はライトプラン以上のプランにご登録ください。
+                                </div>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); setPurchaseLockTooltip(false); setDownTooltip(false); setShowPlanModal(true); }}
+                                  style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
+                                >
+                                  プランをアップグレードする →
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {purchaseStep === "done" && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+                          <div style={{ fontSize: 11, color: "#3a8a5a", fontWeight: 700, textAlign: "center" }}>✓ 購入完了！</div>
+                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
+                        </div>
+                      )}
                     </>
                   )}
                 </div>
@@ -299,6 +336,16 @@ export default function TeaserModal({
           </div>
         </div>
       </div>
+      {showPurchaseConfirm && (
+        <PurchaseConfirmModal
+          mat={mat}
+          onSuccess={() => {
+            setShowPurchaseConfirm(false);
+            setPurchaseStep("done");
+          }}
+          onClose={() => setShowPurchaseConfirm(false)}
+        />
+      )}
       {showPlanModal && (
         <PlanModal
           currentPlan={userPlan}

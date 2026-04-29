@@ -106,11 +106,12 @@ function TagBadge({ tag }: { tag: string }) {
 
 // ===== 関連教材パネル（独立コンポーネント）=====
 function RelatedPanel({
-  relatedMaterials, isLoggedIn, userPlan, teaserFavIds, setTeaserFavIds,
+  relatedMaterials, isLoggedIn, userPlan, purchasedIds, teaserFavIds, setTeaserFavIds,
 }: {
   relatedMaterials: Material[];
   isLoggedIn: boolean;
   userPlan: string;
+  purchasedIds: string[];
   teaserFavIds: string[];
   setTeaserFavIds: React.Dispatch<React.SetStateAction<string[]>>;
 }) {
@@ -130,6 +131,7 @@ function RelatedPanel({
           mat: teaserMat as any,
           bg, char, charColor, tag, tagBg, tagColor,
           isLoggedIn, userPlan,
+          purchasedIds,
           favIds: teaserFavIds,
           contentTabs: contentTabsMapped,
           methodTabs: methodTabsMapped,
@@ -201,6 +203,7 @@ export default function MaterialDetailPage() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
+  const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
@@ -246,7 +249,8 @@ export default function MaterialDetailPage() {
         }
         const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
         if (profileData) setProfile(profileData);
-        
+        const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+        if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: any) => d.material_id as string))]);
       }
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -576,6 +580,7 @@ export default function MaterialDetailPage() {
                   relatedMaterials={relatedMaterials}
                   isLoggedIn={isLoggedIn}
                   userPlan={profile.plan ?? "free"}
+                  purchasedIds={purchasedIds}
                   teaserFavIds={teaserFavIds}
                   setTeaserFavIds={setTeaserFavIds}
                 />
