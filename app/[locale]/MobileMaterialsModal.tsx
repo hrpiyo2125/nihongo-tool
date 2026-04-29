@@ -89,6 +89,7 @@ export default function MobileMaterialsModal({
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
         <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none" as const }}>
+          <div style={{ width: 60, flexShrink: 0 }} />
           {methodTabs.map((tab) => {
             const active = activeMethodFilter === tab.id;
             return (
@@ -108,6 +109,7 @@ export default function MobileMaterialsModal({
         {/* 内容タブ（縦） */}
         <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
           <div style={{ flex: 1, overflowY: "auto" }}>
+          <div style={{ height: 71, flexShrink: 0 }} />
           {contentTabs.map((tab) => {
             const active = activeContentFilter === tab.id;
             return (
