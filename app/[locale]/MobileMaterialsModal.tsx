@@ -107,7 +107,6 @@ export default function MobileMaterialsModal({
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* 内容タブ（縦） */}
         <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-          <div style={{ height: 71, flexShrink: 0 }} />
           <div style={{ flex: 1, overflowY: "auto" }}>
           {contentTabs.map((tab) => {
             const active = activeContentFilter === tab.id;
