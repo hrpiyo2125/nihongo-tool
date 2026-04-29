@@ -106,7 +106,7 @@ export default function MobileMaterialsModal({
             const active = activeMethodFilter === tab.id;
             return (
               <button key={tab.id} onClick={() => setActiveMethodFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 14, fontWeight: 700, color: "#555" }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11, fontWeight: 700, color: "#555" }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                 </div>
                 <span style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" as const, lineHeight: 1.2 }}>{tab.label}</span>
@@ -125,7 +125,7 @@ export default function MobileMaterialsModal({
             const active = activeContentFilter === tab.id;
             return (
               <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 14 }}>
+                <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11 }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                 </div>
                 <span style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", textAlign: "center" as const, lineHeight: 1.2 }}>{tab.label}</span>
@@ -137,7 +137,11 @@ export default function MobileMaterialsModal({
 
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
-          <div style={{ fontSize: 11, color: "#bbb", marginBottom: 10 }}>{filtered.length}件</div>
+          <div style={{ padding: "10px 0 14px", fontSize: 12, color: "#bbb" }}>
+            {contentTabs.find(t => t.id === activeContentFilter)?.label}
+            {activeMethodFilter !== "all" && ` × ${methodTabs.find(t => t.id === activeMethodFilter)?.label}`}
+            {` — ${filtered.length}件`}
+          </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
             {filtered.map((mat) => {
               const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
