@@ -1,6 +1,17 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase";
+
+const scrollbarStyle = `
+  .toolio-scroll-y::-webkit-scrollbar { width: 5px; }
+  .toolio-scroll-y::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 4px; }
+  .toolio-scroll-y::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
+  .toolio-scroll-y::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
+  .toolio-scroll-x::-webkit-scrollbar { height: 5px; }
+  .toolio-scroll-x::-webkit-scrollbar-track { background: rgba(0,0,0,0.04); border-radius: 4px; }
+  .toolio-scroll-x::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.14); border-radius: 4px; }
+  .toolio-scroll-x::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.28); }
+`;
 import { getCardStyle } from "../../lib/materialUtils";
 import MaterialCard from "./MaterialCard";
 
@@ -70,6 +81,7 @@ export default function MobileMaterialsModal({
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
 
+      <style>{scrollbarStyle}</style>
       {/* ヘッダー */}
       <header style={{ position: "relative", zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0 }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
@@ -88,7 +100,7 @@ export default function MobileMaterialsModal({
 
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
-        <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none" as const }}>
+        <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto" }}>
           <div style={{ width: 80, flexShrink: 0 }} />
           {methodTabs.map((tab) => {
             const active = activeMethodFilter === tab.id;
@@ -108,7 +120,7 @@ export default function MobileMaterialsModal({
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* 内容タブ（縦） */}
         <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-          <div style={{ flex: 1, overflowY: "auto" }}>
+          <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto" }}>
           {contentTabs.map((tab) => {
             const active = activeContentFilter === tab.id;
             return (
