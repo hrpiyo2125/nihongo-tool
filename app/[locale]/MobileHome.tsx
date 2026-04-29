@@ -237,15 +237,15 @@ export default function MobileHome() {
           <div>
             {/* ヒーロー */}
             <section style={{ padding: "80px 32px 48px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-              <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 32, fontFamily: "var(--font-libre)" }}>Japanese Language Tools</p>
+              <p style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 48, fontFamily: "var(--font-libre)" }}>Japanese Language Tools</p>
               <h1 style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>にほんごの勉強が、もっとたのしくなる。</h1>
-              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 32 }}>日本語を学ぶ子供を支える方のための<br />日本語学習ツールサイト。</p>
+              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 48 }}>日本語を学ぶ子供を支える方のための<br />日本語学習ツールサイト。</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 10 }}>
                 <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
                 <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
                 <button onClick={() => setMaterialsModalOpen(true)} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
