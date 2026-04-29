@@ -152,8 +152,8 @@ export default function MaterialsModal({
           </div>
 
           <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <div style={{ padding: "16px 24px 0", background: "white", flexShrink: 0 }}>
-              <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 4 }} onWheel={handleMethodTabWheel}>
+            <div style={{ padding: "16px 28px 0", background: "white", flexShrink: 0 }}>
+              <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 6 }} onWheel={handleMethodTabWheel}>
                 {methodTabs.map((tab) => {
                   const active = activeMethod === tab.id;
                   return (
@@ -166,14 +166,14 @@ export default function MaterialsModal({
                   );
                 })}
               </div>
-              <div style={{ padding: "4px 0 2px", fontSize: 12, color: "#bbb" }}>
+              <div style={{ padding: "10px 0 14px", fontSize: 12, color: "#bbb" }}>
                 {contentTabs.find(t => t.id === activeContent)?.label}
                 {activeMethod !== "all" && ` × ${methodTabs.find(t => t.id === activeMethod)?.label}`}
                 {` — ${filtered.length}件`}
               </div>
             </div>
 
-            <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "18px 24px 40px" }}>
+            <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "4px 24px 40px" }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
               ) : (
