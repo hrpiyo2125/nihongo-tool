@@ -124,7 +124,7 @@ export default function MaterialsModal({
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
           <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-            <div style={{ height: 64, flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 16px" }}>
+            <div style={{ height: 64, flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
               <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 2 }}>Materials</div>
               <div style={{ fontSize: 20, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>{tmm("title")}</div>
             </div>
