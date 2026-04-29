@@ -79,13 +79,16 @@ export default function MobileMaterialsModal({
       </header>
 
       {/* 方法タブ */}
-      <div style={{ padding: "16px 16px 0", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
-        <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, scrollbarWidth: "none" as const }}>
-          {[{ id: "all", label: "すべて" }, ...methodTabs.filter(t => t.id !== "all")].map((tab) => {
+      <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
+        <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none" as const }}>
+          {methodTabs.map((tab) => {
             const active = activeMethodFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActiveMethodFilter(tab.id)} style={{ padding: "5px 12px", flexShrink: 0, background: active ? "rgba(163,192,255,0.18)" : "rgba(0,0,0,0.03)", border: active ? "1px solid rgba(163,192,255,0.5)" : "1px solid rgba(0,0,0,0.07)", borderRadius: 20, cursor: "pointer" }}>
-                <span style={{ fontSize: 12, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" as const }}>{tab.label}</span>
+              <button key={tab.id} onClick={() => setActiveMethodFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.12)" : "transparent", cursor: "pointer", borderBottom: active ? "3px solid #9b6ed4" : "3px solid transparent" }}>
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 14, fontWeight: 700, color: "#555" }}>
+                  {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
+                </div>
+                <span style={{ fontSize: 9, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#888", whiteSpace: "nowrap" as const, lineHeight: 1.2 }}>{tab.label}</span>
               </button>
             );
           })}
@@ -96,7 +99,7 @@ export default function MobileMaterialsModal({
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* 内容タブ（縦） */}
         <div style={{ width: 80, flexShrink: 0, overflowY: "auto", borderRight: "0.5px solid rgba(0,0,0,0.06)", padding: "8px 0" }}>
-          {[{ id: "all", label: "すべて", color: "#e8efff", imageSrc: "/all.png", char: "✦" }, ...contentTabs.filter(t => t.id !== "all")].map((tab) => {
+          {contentTabs.map((tab) => {
             const active = activeContentFilter === tab.id;
             return (
               <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 4px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.12)" : "transparent", cursor: "pointer", borderLeft: active ? "3px solid #9b6ed4" : "3px solid transparent" }}>
