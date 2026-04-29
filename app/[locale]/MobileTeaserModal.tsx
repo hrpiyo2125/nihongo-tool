@@ -237,7 +237,7 @@ export default function TeaserModal({
               <>
                 <div onClick={() => setFavTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "14px 16px", width: 220, border: "0.5px solid rgba(200,170,240,0.25)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5 }}>🔒 お気に入り機能</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="lock" size={13} color="#bbb" />お気に入り機能</div>
                   <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>ログインするとお気に入りに保存できます。</div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/auth"); }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
@@ -250,7 +250,7 @@ export default function TeaserModal({
               <>
                 <div onClick={() => setFavLimitTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "16px 18px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6 }}>⭐ お気に入りの上限に達しました</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました</div>
                   <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。</div>
                   <button onClick={() => { setFavLimitTooltip(false); onClose(); window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}>お気に入り履歴を開く →</button>
                   <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>無制限でお気に入り登録したい方はプランのアップグレードをしてください。</div>
@@ -269,7 +269,7 @@ export default function TeaserModal({
               }}
               style={{ width: "100%", padding: "13px", background: canDl ? "#a3c0ff" : "#f0eeff", color: canDl ? "white" : "#7F77DD", border: canDl ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
             >
-              {!canDl && <span style={{ fontSize: 16 }}>🔒</span>}
+              {!canDl && <BrandIcon name="lock" size={16} color="#7F77DD" />}
               {canDl ? tmm("download") : tmm("lock_download")}
             </button>
             {downTooltip && !canDl && (
