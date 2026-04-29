@@ -94,7 +94,7 @@ export default function MobileMaterialsModal({
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, display: "flex" }}>
         <div style={{ width: 80, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {/* 画像エリア */}
+          <img src="/toolio_logo_mini.PNG" alt="toolio" style={{ width: 48, height: 48, objectFit: "contain" }} />
         </div>
         <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {
