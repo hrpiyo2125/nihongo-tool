@@ -147,7 +147,7 @@ export default function MaterialsModal({
                 {methodTabs.map((tab) => {
                   const active = activeMethod === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
+                    <button key={tab.id} onClick={() => setActiveMethod(tab.id)} style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#555", border: "1px solid rgba(0,0,0,0.06)" }}>
                         {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                       </div>
