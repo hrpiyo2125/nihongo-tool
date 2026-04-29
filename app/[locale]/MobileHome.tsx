@@ -249,14 +249,11 @@ export default function MobileHome() {
                 <button onClick={() => setMaterialsModalOpen(true)} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
-                  <div style={{ textAlign: "left" }}>
-                    <div style={{ fontSize: 11, color: "#b090d0", marginBottom: 4 }}>会員登録すると全機能が使えます</div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成 →</div>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                    <button onClick={() => openAuth("login")} style={{ fontSize: 12, padding: "10px 20px", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
-                    <button onClick={() => openAuth("signup")} style={{ fontSize: 12, padding: "10px 20px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
+                <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
+                  <div style={{ fontSize: 11, color: "#b090d0", marginBottom: 12, textAlign: "center" }}>会員登録すると全機能が使えます</div>
+                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                    <button onClick={() => openAuth("login")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                    <button onClick={() => openAuth("signup")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
                   </div>
                 </div>
               )}
