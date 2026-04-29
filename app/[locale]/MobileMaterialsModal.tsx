@@ -141,7 +141,7 @@ export default function MobileMaterialsModal({
 
         {/* カード一覧 */}
         <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
-          <div style={{ padding: "10px 0 14px", fontSize: 12, color: "#bbb" }}>
+          <div style={{ padding: "0 0 12px", fontSize: 12, color: "#bbb" }}>
             {contentTabs.find(t => t.id === activeContentFilter)?.label}
             {activeMethodFilter !== "all" && ` × ${methodTabs.find(t => t.id === activeMethodFilter)?.label}`}
             {` — ${filtered.length}件`}

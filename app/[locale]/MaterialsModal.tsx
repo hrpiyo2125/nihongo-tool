@@ -131,29 +131,14 @@ export default function MaterialsModal({
           </div>
         </div>
 
-        <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
-          <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-            <div style={{ height: 64, flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-              <div style={{ fontSize: 20, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>{tmm("title")}</div>
+        <div style={{ display: "flex", flex: 1, overflow: "hidden", flexDirection: "column" }}>
+          {/* タイトル + 横タブ行 */}
+          <div style={{ display: "flex", flexShrink: 0, alignItems: "stretch" }}>
+            <div style={{ width: 180, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+              <img src="/toolio_logo.png" alt="toolio" style={{ height: 42, objectFit: "contain", marginLeft: 12 }} />
             </div>
-          <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 0 28px" }}>
-            {contentTabs.map((tab) => {
-              const active = activeContent === tab.id;
-              return (
-                <button key={tab.id} onClick={() => setActiveContent(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555" }}>
-                    {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#666", whiteSpace: "nowrap" }}>{tab.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          </div>
-
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            <div style={{ padding: "16px 28px 0", background: "white", flexShrink: 0 }}>
-              <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 6 }} onWheel={handleMethodTabWheel}>
+            <div style={{ flex: 1, minWidth: 0, padding: "16px 20px 0 0" }}>
+              <div className="toolio-scroll-x" style={{ display: "flex", gap: 6, overflowX: "scroll", paddingBottom: 4, paddingLeft: 8 }} onWheel={handleMethodTabWheel}>
                 {methodTabs.map((tab) => {
                   const active = activeMethod === tab.id;
                   return (
@@ -166,14 +151,34 @@ export default function MaterialsModal({
                   );
                 })}
               </div>
-              <div style={{ padding: "10px 0 14px", fontSize: 12, color: "#bbb" }}>
+            </div>
+          </div>
+
+          {/* 縦タブ + カード */}
+          <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
+            <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+              <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 0 28px" }}>
+                {contentTabs.map((tab) => {
+                  const active = activeContent === tab.id;
+                  return (
+                    <button key={tab.id} onClick={() => setActiveContent(tab.id)} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
+                      <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555" }}>
+                        {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
+                      </div>
+                      <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#666", whiteSpace: "nowrap" }}>{tab.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <div style={{ padding: "16px 0 20px 20px", fontSize: 12, color: "#bbb", flexShrink: 0 }}>
                 {contentTabs.find(t => t.id === activeContent)?.label}
                 {activeMethod !== "all" && ` × ${methodTabs.find(t => t.id === activeMethod)?.label}`}
                 {` — ${filtered.length}件`}
               </div>
-            </div>
-
-            <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "4px 24px 40px" }}>
+              <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 20px 40px" }}>
               {filtered.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
               ) : (
@@ -202,6 +207,7 @@ export default function MaterialsModal({
                   })}
                 </div>
               )}
+            </div>
             </div>
           </div>
         </div>
