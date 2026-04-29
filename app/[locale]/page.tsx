@@ -193,7 +193,7 @@ const methodItems = [
   const [topFavIdsLoaded, setTopFavIdsLoaded] = useState(false);
   const [topDlIds, setTopDlIds] = useState<string[]>([]);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
-  const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "", notif_new_material: true, notif_favorite: false, notif_billing: true, notif_announcement: false });
+  const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "" });
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
@@ -256,10 +256,6 @@ const methodItems = [
       student_level: data.student_level || "",
       occupation_other: data.occupation_other || "",
       purpose_other: data.purpose_other || "",
-      notif_new_material: data.notif_new_material ?? true,
-      notif_favorite: data.notif_favorite ?? false,
-      notif_billing: data.notif_billing ?? true,
-      notif_announcement: data.notif_announcement ?? false,
       plan: data.plan || "free",
       plan_status: data.plan_status || "active",
       cancel_at_period_end: data.cancel_at_period_end ?? false,
