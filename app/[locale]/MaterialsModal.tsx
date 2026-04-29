@@ -98,11 +98,7 @@ export default function MaterialsModal({
       <button onClick={onClose} style={{ position: "absolute", top: 20, right: 20, zIndex: 110, width: 40, height: 40, borderRadius: "50%", background: "white", border: "none", cursor: "pointer", fontSize: 18, color: "#888", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}>✕</button>
 
       <div onClick={(e) => e.stopPropagation()} style={{ display: "flex", flexDirection: "column", width: "91vw", maxWidth: 1600, height: "calc(100vh - 56px)", background: "white", borderRadius: 16, boxShadow: "0 8px 48px rgba(0,0,0,0.22)", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", padding: "24px 28px 20px 28px", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, gap: 28 }}>
-          <div style={{ flexShrink: 0 }}>
-            <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 2 }}>Materials</div>
-            <div style={{ fontSize: 26, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>{tmm("title")}</div>
-          </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 28px 20px 28px", borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0 }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 10, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "12px 24px" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input
@@ -128,7 +124,10 @@ export default function MaterialsModal({
 
         <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
           <div style={{ width: 180, flexShrink: 0, display: "flex", flexDirection: "column", borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-            <div style={{ height: 64, flexShrink: 0 }} />
+            <div style={{ height: 64, flexShrink: 0, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 16px" }}>
+              <div style={{ fontSize: 10, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 2 }}>Materials</div>
+              <div style={{ fontSize: 20, fontWeight: 700, color: "#999", whiteSpace: "nowrap" }}>{tmm("title")}</div>
+            </div>
           <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 0 28px" }}>
             {contentTabs.map((tab) => {
               const active = activeContent === tab.id;
