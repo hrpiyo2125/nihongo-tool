@@ -106,11 +106,13 @@ export default function MobileMaterialsModal({
       {/* メインエリア */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* 内容タブ（縦） */}
-        <div style={{ width: 80, flexShrink: 0, overflowY: "auto", borderRight: "0.5px solid rgba(0,0,0,0.06)", padding: "8px 0" }}>
+        <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
+          <div style={{ height: 71, flexShrink: 0 }} />
+          <div style={{ flex: 1, overflowY: "auto" }}>
           {contentTabs.map((tab) => {
             const active = activeContentFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 4px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.12)" : "transparent", cursor: "pointer", borderLeft: active ? "3px solid #9b6ed4" : "3px solid transparent" }}>
+              <button key={tab.id} onClick={() => setActiveContentFilter(tab.id)} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.12)" : "transparent", cursor: "pointer", borderLeft: active ? "3px solid #9b6ed4" : "3px solid transparent" }}>
                 <div style={{ width: 36, height: 36, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 14 }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                 </div>
@@ -118,6 +120,7 @@ export default function MobileMaterialsModal({
               </button>
             );
           })}
+          </div>
         </div>
 
         {/* カード一覧 */}
