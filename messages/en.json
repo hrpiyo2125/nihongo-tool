@@ -73,12 +73,7 @@
     "date": "Date",
     "item": "Item",
     "amount": "Amount",
-    "status": "Status",
-    "notif_new_material_label": "New material notifications",
-    "notif_new_material_desc": "Notifies you when new materials are added.",
-    "notif_announcement_label": "Announcements from toolio",
-    "notif_announcement_desc": "Updates about new features and campaigns.",
-    "notif_note": "* These are email notifications sent to your registered email address."
+    "status": "Status"
   },
   "materials_modal": {
     "title": "Find Materials",

@@ -464,7 +464,6 @@ export default function MyPage({
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState(false);
-  const [savingNotifs, setSavingNotifs] = useState<Set<string>>(new Set());
   const [deleteStep, setDeleteStep] = useState<"closed" | "checklist" | "confirm" | "done">("closed");
   const [deleteChecks, setDeleteChecks] = useState({ data: false, subscription: false, return: false });
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -1081,46 +1080,6 @@ export default function MyPage({
       onProfileUpdate={(updates) => setProfile((prev: any) => ({ ...prev, ...updates }))}
       mobileMode={mobileMode}
     />
-  );
-
-  if (activePage === "settings-notifications") return (
-    <div>
-      {!mobileMode && (
-        <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>通知設定</h2>
-        </div>
-      )}
-      <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 12, maxWidth: mobileMode ? undefined : 600, margin: "0 auto" }}>
-        {[
-          { label: tm("notif_new_material_label"), desc: tm("notif_new_material_desc"), col: "notif_new_material" },
-          { label: tm("notif_announcement_label"), desc: tm("notif_announcement_desc"), col: "notif_announcement" },
-        ].map((item) => {
-          const on = !!profile[item.col];
-          return (
-            <div key={item.label} style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "18px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 3 }}>{item.label}</div>
-                <div style={{ fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>{item.desc}</div>
-              </div>
-              <div onClick={async () => {
-                if (savingNotifs.has(item.col)) return;
-                const newVal = !on;
-                setSavingNotifs(prev => new Set([...prev, item.col]));
-                setProfile((prev: any) => ({ ...prev, [item.col]: newVal }));
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) { setSavingNotifs(prev => { const s = new Set(prev); s.delete(item.col); return s; }); return; }
-                await supabase.from("profiles").upsert({ id: session.user.id, [item.col]: newVal });
-                setSavingNotifs(prev => { const s = new Set(prev); s.delete(item.col); return s; });
-              }} style={{ flexShrink: 0, width: 44, height: 24, borderRadius: 12, background: on ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e8e8e8", position: "relative" as const, cursor: savingNotifs.has(item.col) ? "not-allowed" : "pointer", transition: "background 0.2s", opacity: savingNotifs.has(item.col) ? 0.7 : 1 }}>
-                <div style={{ position: "absolute" as const, top: 2, left: on ? 22 : 2, width: 20, height: 20, borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.15)", transition: "left 0.15s" }} />
-              </div>
-            </div>
-          );
-        })}
-        <p style={{ fontSize: 12, color: "#ccc", marginTop: 8 }}>{tm("notif_note")}</p>
-      </div>
-    </div>
   );
 
   return (

@@ -679,7 +679,6 @@ export default function MobileHome() {
               { icon: "user"    as const, label: "プロフィール", action: () => { setMySubPage("profile"); } },
               { icon: "plan"    as const, label: "プラン確認・変更", action: () => { setMySubPage("plan"); } },
               { icon: "billing" as const, label: "支払い履歴",   action: () => { setMySubPage("billing"); } },
-              { icon: "bell"    as const, label: "通知設定",     action: () => { setMySubPage("notifications"); } },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -715,7 +714,7 @@ export default function MobileHome() {
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : mySubPage === "plan" ? "プラン確認・変更" : "通知設定"}
+              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
@@ -741,7 +740,7 @@ export default function MobileHome() {
               activePage={
                 mySubPage === "profile" ? "settings-profile"
                 : mySubPage === "billing" ? "settings-billing"
-                : "settings-notifications"
+                : "settings-billing"
               }
               setActivePage={() => {}}
               isLoggedIn={isLoggedIn}

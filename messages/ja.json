@@ -73,12 +73,7 @@
     "date": "日付",
     "item": "内容",
     "amount": "金額",
-    "status": "ステータス",
-    "notif_new_material_label": "新着教材のお知らせ",
-    "notif_new_material_desc": "新しい教材が追加されたときに通知します",
-    "notif_announcement_label": "toolioからのお知らせ",
-    "notif_announcement_desc": "機能追加やキャンペーンなどのお知らせ",
-    "notif_note": "※ メール通知の設定です。登録メールアドレス宛に送信されます。"
+    "status": "ステータス"
   },
   "materials_modal": {
     "title": "教材を探す",
