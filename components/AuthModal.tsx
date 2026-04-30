@@ -43,9 +43,20 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
     if (!savedAccount) return;
     setQuickLoginLoading(true);
     if (savedAccount.provider === 'google') {
+      // リフレッシュトークンが生きていればGoogleリダイレクトなしでログイン
+      const { data: { session } } = await supabase.auth.refreshSession();
+      if (session) {
+        onLoggedIn?.();
+        onClose();
+        return;
+      }
+      // リフレッシュトークンも切れている場合はlogin_hintでアカウント選択をスキップ
       await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}` },
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
+          queryParams: { login_hint: savedAccount.email },
+        },
       });
     } else {
       setView("login");
