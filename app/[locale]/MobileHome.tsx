@@ -114,19 +114,39 @@ export default function MobileHome() {
   }, []);
 
   // ブラウザ戻るボタンで画面を一段階閉じる
+  const materialsOpenRef = useRef(false);
+  const morePageRef = useRef<string | null>(null);
+  const myPageOpenRef = useRef(false);
+  const historyDepth = useRef(0);
+  const suppressNextPop = useRef(false);
+  useEffect(() => { materialsOpenRef.current = materialsModalOpen; }, [materialsModalOpen]);
+  useEffect(() => { morePageRef.current = morePage; }, [morePage]);
+  useEffect(() => { myPageOpenRef.current = myPageOpen; }, [myPageOpen]);
+
   const openScreen = (open: () => void) => {
     history.pushState({ toolioNav: true }, "");
+    historyDepth.current++;
     open();
+  };
+  const closeScreen = (close: () => void) => {
+    close();
+    if (historyDepth.current > 0) {
+      historyDepth.current--;
+      suppressNextPop.current = true;
+      history.back();
+    }
   };
   useEffect(() => {
     const onPop = () => {
-      if (materialsModalOpen) { setMaterialsModalOpen(false); return; }
-      if (morePage !== null) { setMorePage(null); return; }
-      if (myPageOpen) { setMyPageOpen(false); return; }
+      if (suppressNextPop.current) { suppressNextPop.current = false; return; }
+      historyDepth.current = Math.max(0, historyDepth.current - 1);
+      if (materialsOpenRef.current) { setMaterialsModalOpen(false); return; }
+      if (morePageRef.current !== null) { setMorePage(null); return; }
+      if (myPageOpenRef.current) { setMyPageOpen(false); return; }
     };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
-  }, [materialsModalOpen, morePage, myPageOpen]);
+  }, []);
 
   const contentItems = [
   { label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
@@ -481,7 +501,7 @@ export default function MobileHome() {
             {morePage === "dl" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -539,7 +559,7 @@ export default function MobileHome() {
             {morePage === "purchases" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -598,7 +618,7 @@ export default function MobileHome() {
             {morePage === "guide" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto" }}>
@@ -681,7 +701,7 @@ export default function MobileHome() {
       {/* マイページドロワー */}
       {myPageOpen && (
         <>
-          <div onClick={() => history.back()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
+          <div onClick={() => closeScreen(() => setMyPageOpen(false))} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
@@ -707,7 +727,7 @@ export default function MobileHome() {
                   const supabase = createClient();
                   await supabase.auth.signOut();
                   setIsLoggedIn(false);
-                  history.back();
+                  closeScreen(() => setMyPageOpen(false));
                 }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
                   ログアウト
                 </button>
@@ -816,7 +836,7 @@ export default function MobileHome() {
       }
     }}
     onCardClick={(mat) => setTeaserMat(mat)}
-    onClose={() => history.back()}
+    onClose={() => closeScreen(() => setMaterialsModalOpen(false))}
     onTabChange={(tabId) => setActiveTab(tabId)}
     onOpenMyPage={() => openScreen(() => setMyPageOpen(true))}
   />
