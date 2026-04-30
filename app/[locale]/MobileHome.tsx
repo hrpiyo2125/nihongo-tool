@@ -600,7 +600,7 @@ export default function MobileHome() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { setMaterialsModalOpen(true); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (tab.id === "materials") { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
             {tab.icon(active)}
             <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
