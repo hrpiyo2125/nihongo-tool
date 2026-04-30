@@ -225,14 +225,18 @@ const methodItems = [
     return () => window.removeEventListener("toolio:navigate-mypage", handler);
   }, []);
 
-  const loadProfile = async () => {
+  const loadProfile = async (uid?: string) => {
     const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.email) return;
+    let userId = uid;
+    if (!userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+      userId = session.user.id;
+    }
     const { data: profileData } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", userId)
       .single();
     if (profileData?.status === "deleted") {
       window.location.href = `/${locale}/welcome-back`;
@@ -241,12 +245,12 @@ const methodItems = [
     // pending_deletion は期間満了まで通常利用継続
     if (!profileData) {
       await supabase.from("profiles").upsert({
-        id: session.user.id,
-        full_name: session.user.user_metadata?.full_name || "",
+        id: userId,
+        full_name: "",
         status: "active",
       });
     }
-    const data = profileData ?? { id: session.user.id };
+    const data = profileData ?? { id: userId };
     setProfile({
       full_name: data.full_name || "",
       country: data.country || "",
@@ -293,7 +297,7 @@ const methodItems = [
         if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
         const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
         if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
-        await loadProfile();
+        await loadProfile(session.user.id);
       }
     });
     return () => subscription.unsubscribe();
