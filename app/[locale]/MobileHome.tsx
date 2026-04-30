@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
@@ -14,7 +15,10 @@ import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
 import MyPage from "./MyPage";
 import PlanSelector from "../../components/PlanSelector";
+import PlanModal from "../../components/PlanModal";
+import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import { BrandIcon } from "../../components/BrandIcon";
+
 type Material = {
   id: string;
   title: string;
@@ -31,7 +35,11 @@ type Material = {
   isNew: boolean;
 };
 
-export default function MobileHome() {
+function MobileHomeInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const m = searchParams.get("m") ?? "";
+
   const locale = useLocale();
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
@@ -41,32 +49,13 @@ export default function MobileHome() {
   const th = useTranslations('home');
 
   const [activeTab, setActiveTab] = useState("home");
-  const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
-  const historyDepth = useRef(0);
-  const suppressNextPop = useRef(false);
-  const openScreen = (open: () => void) => {
-    history.pushState({ toolioNav: true }, "");
-    historyDepth.current++;
-    open();
-  };
-  const closeScreen = (close: () => void) => {
-    close();
-    if (historyDepth.current > 0) {
-      historyDepth.current--;
-      suppressNextPop.current = true;
-      history.back();
-    }
-  };
-  const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); openScreen(() => setAuthModalOpen(true)); };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
   const [userName, setUserName] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
-  const [myPageOpen, setMyPageOpen] = useState(false);
-  const [guestMenuOpen, setGuestMenuOpen] = useState(false);
   const [mySubPage, setMySubPage] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -82,11 +71,77 @@ export default function MobileHome() {
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
-  const [materialsModalOpen, setMaterialsModalOpen] = useState(false);
   const [modalInitContent, setModalInitContent] = useState("all");
   const [modalInitMethod, setModalInitMethod] = useState("all");
-  const [morePage, setMorePage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // URL から derived な open 状態
+  const materialsModalOpen = m === "materials";
+  const teaserOpen = m === "teaser";
+  const authModalOpen = m === "auth";
+  const announcementOpen = m === "announcement";
+  const guestMenuOpen = m === "guest";
+  const myPageOpen = m === "mypage";
+  const mySubPageOpen = m === "mypage-profile" || m === "mypage-plan" || m === "mypage-billing";
+  const morePageDl = m === "more-dl";
+  const morePageGuide = m === "more-guide";
+  const morePagePurchases = m === "more-purchases";
+  const teaserPlanOpen = m === "teaser-plan";
+  const teaserPurchaseOpen = m === "teaser-purchase";
+
+  // m が変わるたびに sessionStorage から teaserMat / selectedAnnouncement を復元
+  useEffect(() => {
+    if (teaserOpen || teaserPlanOpen || teaserPurchaseOpen) {
+      const raw = sessionStorage.getItem("teaserMat");
+      if (raw) {
+        try { setTeaserMat(JSON.parse(raw)); } catch {}
+      }
+    }
+    if (announcementOpen) {
+      const raw = sessionStorage.getItem("selectedAnnouncement");
+      if (raw) {
+        try { setSelectedAnnouncement(JSON.parse(raw)); } catch {}
+      }
+    }
+    if (materialsModalOpen) {
+      const c = sessionStorage.getItem("modalInitContent");
+      const me = sessionStorage.getItem("modalInitMethod");
+      if (c) setModalInitContent(c);
+      if (me) setModalInitMethod(me);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [m]);
+
+  // mySubPage を URL から同期
+  useEffect(() => {
+    if (m === "mypage-profile") setMySubPage("profile");
+    else if (m === "mypage-plan") setMySubPage("plan");
+    else if (m === "mypage-billing") setMySubPage("billing");
+    else if (!mySubPageOpen) setMySubPage(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [m]);
+
+  // ホームに戻ったときスクロール復元
+  useEffect(() => {
+    if (!m && scrollRef.current) {
+      const pos = sessionStorage.getItem("homeScroll");
+      if (pos) requestAnimationFrame(() => { if (scrollRef.current) scrollRef.current.scrollTop = Number(pos); });
+    }
+  }, [m]);
+
+  const navigate = (screen: string) => {
+    if (!m && scrollRef.current) {
+      sessionStorage.setItem("homeScroll", String(scrollRef.current.scrollTop));
+    }
+    router.push(`?m=${screen}`);
+  };
+
+  const goBack = () => router.back();
+
+  const openAuth = (mode: AuthModalMode) => {
+    setAuthModalMode(mode);
+    navigate("auth");
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -126,40 +181,6 @@ export default function MobileHome() {
     const onScroll = () => setScrolled(el.scrollTop > 10);
     el.addEventListener("scroll", onScroll);
     return () => el.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // ブラウザ戻るボタンで画面を一段階閉じる
-  const materialsOpenRef = useRef(false);
-  const morePageRef = useRef<string | null>(null);
-  const myPageOpenRef = useRef(false);
-  const teaserMatRef = useRef<Material | null>(null);
-  const authModalOpenRef = useRef(false);
-  const selectedAnnouncementRef = useRef<typeof selectedAnnouncement>(null);
-  const mySubPageRef = useRef<string | null>(null);
-  const guestMenuOpenRef = useRef(false);
-  useEffect(() => { materialsOpenRef.current = materialsModalOpen; }, [materialsModalOpen]);
-  useEffect(() => { morePageRef.current = morePage; }, [morePage]);
-  useEffect(() => { myPageOpenRef.current = myPageOpen; }, [myPageOpen]);
-  useEffect(() => { teaserMatRef.current = teaserMat; }, [teaserMat]);
-  useEffect(() => { authModalOpenRef.current = authModalOpen; }, [authModalOpen]);
-  useEffect(() => { selectedAnnouncementRef.current = selectedAnnouncement; }, [selectedAnnouncement]);
-  useEffect(() => { mySubPageRef.current = mySubPage; }, [mySubPage]);
-  useEffect(() => { guestMenuOpenRef.current = guestMenuOpen; }, [guestMenuOpen]);
-  useEffect(() => {
-    const onPop = () => {
-      if (suppressNextPop.current) { suppressNextPop.current = false; return; }
-      historyDepth.current = Math.max(0, historyDepth.current - 1);
-      if (guestMenuOpenRef.current) { setGuestMenuOpen(false); return; }
-      if (teaserMatRef.current) { setTeaserMat(null); return; }
-      if (authModalOpenRef.current) { setAuthModalOpen(false); return; }
-      if (selectedAnnouncementRef.current) { setSelectedAnnouncement(null); return; }
-      if (mySubPageRef.current) { setMySubPage(null); return; }
-      if (materialsOpenRef.current) { setMaterialsModalOpen(false); return; }
-      if (morePageRef.current !== null) { setMorePage(null); return; }
-      if (myPageOpenRef.current) { setMyPageOpen(false); return; }
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
   }, []);
 
   const contentItems = [
@@ -242,6 +263,20 @@ export default function MobileHome() {
   const contentTabsForModal = getContentTabs(cl);
   const methodTabsForModal = getMethodTabs(ml);
 
+  const openMaterialsModal = (content: string, method: string) => {
+    sessionStorage.setItem("modalInitContent", content);
+    sessionStorage.setItem("modalInitMethod", method);
+    setModalInitContent(content);
+    setModalInitMethod(method);
+    navigate("materials");
+  };
+
+  const openTeaser = (mat: Material) => {
+    sessionStorage.setItem("teaserMat", JSON.stringify(mat));
+    setTeaserMat(mat);
+    navigate("teaser");
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
       <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
@@ -256,19 +291,19 @@ export default function MobileHome() {
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
-          <button onClick={() => isLoggedIn ? openScreen(() => setMyPageOpen(true)) : (guestMenuOpen ? closeScreen(() => setGuestMenuOpen(false)) : openScreen(() => setGuestMenuOpen(true)))} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          <button onClick={() => isLoggedIn ? navigate("mypage") : (guestMenuOpen ? goBack() : navigate("guest"))} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
             {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
             <>
-              <div onClick={() => closeScreen(() => setGuestMenuOpen(false))} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+              <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
                 <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
-                <button onClick={() => { closeScreen(() => setGuestMenuOpen(false)); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+                <button onClick={() => { goBack(); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
                   <BrandIcon name="key" size={14} color="#c9a0f0" />
                   ログイン
                 </button>
-                <button onClick={() => { closeScreen(() => setGuestMenuOpen(false)); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
+                <button onClick={() => { goBack(); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
                   <BrandIcon name="sparkle" size={14} color="#9b6ed4" />
                   会員でない方はこちらから新規登録
                 </button>
@@ -295,7 +330,7 @@ export default function MobileHome() {
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
+                <button onClick={() => openMaterialsModal("all", "all")} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
@@ -319,7 +354,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
-                  <div key={item.label} onClick={() => { setModalInitContent(item.contentId); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => openMaterialsModal(item.contentId, "all")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -337,7 +372,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
-                  <div key={item.label} onClick={() => { setModalInitContent("all"); setModalInitMethod(item.methodId); openScreen(() => setMaterialsModalOpen(true)); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => openMaterialsModal("all", item.methodId)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -354,7 +389,7 @@ export default function MobileHome() {
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />お知らせ
                 </div>
                 {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} onClick={() => openScreen(() => setSelectedAnnouncement(n))} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
+                  <div key={n.id} onClick={() => { sessionStorage.setItem("selectedAnnouncement", JSON.stringify(n)); setSelectedAnnouncement(n); navigate("announcement"); }} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
                     <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
                     <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
@@ -377,7 +412,7 @@ export default function MobileHome() {
                 locale={locale}
                 columns={2}
                 isMobile={true}
-                onCardClick={(mat) => openScreen(() => setTeaserMat(mat))}
+                onCardClick={(mat) => openTeaser(mat)}
                 onFavToggle={async (mat) => {
                   const supabase = createClient();
                   const { data: { session } } = await supabase.auth.getSession();
@@ -416,7 +451,7 @@ export default function MobileHome() {
                     <MaterialCard
                       key={mat.id}
                       mat={mat}
-                      onClick={() => openScreen(() => setTeaserMat(mat))}
+                      onClick={() => openTeaser(mat)}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
                       favIds={effectiveFavIds}
@@ -442,7 +477,7 @@ export default function MobileHome() {
           </div>
         )}
 
-        
+
 
         {/* お気に入りタブ */}
         {activeTab === "fav" && (
@@ -461,13 +496,13 @@ export default function MobileHome() {
                     <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
                     <div style={{ fontSize: 14 }}>お気に入りはまだありません</div>
                   </div>
-                ) : materials.filter(m => favIds.includes(m.id)).map((mat) => {
+                ) : materials.filter(mat => favIds.includes(mat.id)).map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                   return (
                     <MaterialCard
                       key={mat.id}
                       mat={mat}
-                      onClick={() => openScreen(() => setTeaserMat(mat))}
+                      onClick={() => openTeaser(mat)}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
                       favIds={effectiveFavIds}
@@ -498,9 +533,9 @@ export default function MobileHome() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", action: () => openScreen(() => setMorePage("dl")) },
-              { icon: "guide"     as const, label: "よくある質問",    action: () => openScreen(() => setMorePage("guide")) },
-              { icon: "purchases" as const, label: "教材購入履歴",    action: () => openScreen(() => setMorePage("purchases")) },
+              { icon: "download" as const, label: "ダウンロード履歴", action: () => navigate("more-dl") },
+              { icon: "guide"     as const, label: "よくある質問",    action: () => navigate("more-guide") },
+              { icon: "purchases" as const, label: "教材購入履歴",    action: () => navigate("more-purchases") },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -512,10 +547,10 @@ export default function MobileHome() {
             ))}
 
             {/* ダウンロード履歴サブページ */}
-            {morePage === "dl" && (
+            {morePageDl && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -526,7 +561,7 @@ export default function MobileHome() {
                       <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
                     </div>
                   ) : (() => {
-                    const dlMaterials = materials.filter(m => dlIds.includes(m.id));
+                    const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
                     if (dlMaterials.length === 0) return (
                       <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
                         <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
@@ -541,7 +576,7 @@ export default function MobileHome() {
                             <MaterialCard
                               key={mat.id}
                               mat={mat}
-                              onClick={() => openScreen(() => setTeaserMat(mat))}
+                              onClick={() => openTeaser(mat)}
                               locale={locale}
                               isLoggedIn={isLoggedIn}
                               favIds={effectiveFavIds}
@@ -570,10 +605,10 @@ export default function MobileHome() {
             )}
 
             {/* 教材購入履歴サブページ */}
-            {morePage === "purchases" && (
+            {morePagePurchases && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -584,7 +619,7 @@ export default function MobileHome() {
                       <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
                     </div>
                   ) : (() => {
-                    const purchasedMaterials = materials.filter(m => purchasedIds.includes(m.id));
+                    const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
                     if (purchasedMaterials.length === 0) return (
                       <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
                         <BrandIcon name="purchases" size={32} color="#e0d0f0" />
@@ -599,7 +634,7 @@ export default function MobileHome() {
                             <MaterialCard
                               key={mat.id}
                               mat={mat}
-                              onClick={() => openScreen(() => setTeaserMat(mat))}
+                              onClick={() => openTeaser(mat)}
                               locale={locale}
                               isLoggedIn={isLoggedIn}
                               favIds={effectiveFavIds}
@@ -629,10 +664,10 @@ export default function MobileHome() {
 
 
             {/* 使い方ガイドサブページ */}
-            {morePage === "guide" && (
+            {morePageGuide && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => closeScreen(() => setMorePage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto" }}>
@@ -649,7 +684,7 @@ export default function MobileHome() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); return; } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); return; } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
             {tab.icon(active)}
             <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
@@ -658,7 +693,7 @@ export default function MobileHome() {
       </div>
 
       {/* ティザーモーダル */}
-      {teaserMat && (() => {
+      {(teaserOpen || teaserPlanOpen || teaserPurchaseOpen) && teaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
         return (
           <MobileTeaserModal
@@ -672,18 +707,20 @@ export default function MobileHome() {
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
             locale={locale}
-            onClose={() => closeScreen(() => setTeaserMat(null))}
+            onClose={() => goBack()}
             tmm={tmm}
             onFavChange={(materialId, isFav) => {
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
             onOpenAuth={openAuth}
+            onOpenPlanModal={() => navigate("teaser-plan")}
+            onOpenPurchaseConfirm={() => navigate("teaser-purchase")}
           />
         );
       })()}
 
-      {selectedAnnouncement && (
+      {announcementOpen && selectedAnnouncement && (
         <AnnouncementModal
           announcement={selectedAnnouncement}
           isLoggedIn={isLoggedIn}
@@ -691,15 +728,15 @@ export default function MobileHome() {
           favIds={effectiveFavIds}
           purchasedIds={purchasedIds}
           locale={locale}
-          onClose={() => closeScreen(() => setSelectedAnnouncement(null))}
+          onClose={() => goBack()}
           onFavChange={(materialId, isFav) => {
             if (isFav) setFavIds(prev => [...prev, materialId]);
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
           onMaterialClick={(mat) => {
-            closeScreen(() => setSelectedAnnouncement(null));
-            openScreen(() => setTeaserMat(mat as any));
+            goBack();
+            openTeaser(mat as any);
           }}
         />
       )}
@@ -707,21 +744,21 @@ export default function MobileHome() {
       {authModalOpen && (
         <AuthModal
           initialMode={authModalMode}
-          onClose={() => closeScreen(() => setAuthModalOpen(false))}
-          onLoggedIn={() => { closeScreen(() => setAuthModalOpen(false)); window.location.reload(); }}
+          onClose={() => goBack()}
+          onLoggedIn={() => { goBack(); window.location.reload(); }}
         />
       )}
 
       {/* マイページドロワー */}
       {myPageOpen && (
         <>
-          <div onClick={() => closeScreen(() => setMyPageOpen(false))} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
+          <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
-              { icon: "user"    as const, label: "プロフィール", action: () => openScreen(() => setMySubPage("profile")) },
-              { icon: "plan"    as const, label: "プラン確認・変更", action: () => openScreen(() => setMySubPage("plan")) },
-              { icon: "billing" as const, label: "支払い履歴",   action: () => openScreen(() => setMySubPage("billing")) },
+              { icon: "user"    as const, label: "プロフィール", action: () => navigate("mypage-profile") },
+              { icon: "plan"    as const, label: "プラン確認・変更", action: () => navigate("mypage-plan") },
+              { icon: "billing" as const, label: "支払い履歴",   action: () => navigate("mypage-billing") },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -741,7 +778,7 @@ export default function MobileHome() {
                   const supabase = createClient();
                   await supabase.auth.signOut();
                   setIsLoggedIn(false);
-                  closeScreen(() => setMyPageOpen(false));
+                  goBack();
                 }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
                   ログアウト
                 </button>
@@ -752,10 +789,10 @@ export default function MobileHome() {
       )}
 
       {/* マイページサブページ */}
-      {mySubPage && (
+      {mySubPageOpen && mySubPage && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => closeScreen(() => setMySubPage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
             </span>
@@ -774,7 +811,7 @@ export default function MobileHome() {
                     if (!session) return;
                     const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
                     if (data) setProfile(data);
-                    closeScreen(() => setMySubPage(null));
+                    goBack();
                   }}
                 />
               </div>
@@ -823,38 +860,69 @@ export default function MobileHome() {
       )}
 
       {materialsModalOpen && (
-  <MobileMaterialsModal
-    materials={materials}
-    locale={locale}
-    isLoggedIn={isLoggedIn}
-    userPlan={profile.plan ?? "free"}
-    favIds={effectiveFavIds}
-    purchasedIds={purchasedIds}
-    contentTabs={contentTabsForModal}
-    methodTabs={methodTabsForModal}
-    avatarUrl={avatarUrl}
-    userInitial={userInitial}
-    tabs={tabs}
-    initContent={modalInitContent}
-    initMethod={modalInitMethod}
-    onFavToggle={async (m) => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      if (favIds.includes(m.id)) {
-        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", m.id);
-        setFavIds(prev => prev.filter(id => id !== m.id));
-      } else {
-        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: m.id });
-        setFavIds(prev => [...prev, m.id]);
-      }
-    }}
-    onCardClick={(mat) => openScreen(() => setTeaserMat(mat))}
-    onClose={() => closeScreen(() => setMaterialsModalOpen(false))}
-    onTabChange={(tabId) => setActiveTab(tabId)}
-    onOpenMyPage={() => openScreen(() => setMyPageOpen(true))}
-  />
-)}
+        <MobileMaterialsModal
+          materials={materials}
+          locale={locale}
+          isLoggedIn={isLoggedIn}
+          userPlan={profile.plan ?? "free"}
+          favIds={effectiveFavIds}
+          purchasedIds={purchasedIds}
+          contentTabs={contentTabsForModal}
+          methodTabs={methodTabsForModal}
+          avatarUrl={avatarUrl}
+          userInitial={userInitial}
+          tabs={tabs}
+          initContent={modalInitContent}
+          initMethod={modalInitMethod}
+          onFavToggle={async (mat) => {
+            const supabase = createClient();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+            if (favIds.includes(mat.id)) {
+              await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+              setFavIds(prev => prev.filter(id => id !== mat.id));
+            } else {
+              await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+              setFavIds(prev => [...prev, mat.id]);
+            }
+          }}
+          onCardClick={(mat) => openTeaser(mat)}
+          onClose={() => goBack()}
+          onTabChange={(tabId) => setActiveTab(tabId)}
+          onOpenMyPage={() => navigate("mypage")}
+        />
+      )}
+
+      {/* teaser内プランモーダル */}
+      {teaserPlanOpen && teaserMat && (
+        <PlanModal
+          currentPlan={profile.plan ?? "free"}
+          onSubscribed={() => { goBack(); }}
+          onClose={() => goBack()}
+        />
+      )}
+
+      {/* teaser内購入確認モーダル */}
+      {teaserPurchaseOpen && (() => {
+        const raw = sessionStorage.getItem("teaserMat");
+        const mat = raw ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : teaserMat;
+        if (!mat) return null;
+        return (
+          <PurchaseConfirmModal
+            mat={mat}
+            onSuccess={() => { goBack(); }}
+            onClose={() => goBack()}
+          />
+        );
+      })()}
     </div>
+  );
+}
+
+export default function MobileHome() {
+  return (
+    <Suspense>
+      <MobileHomeInner />
+    </Suspense>
   );
 }
