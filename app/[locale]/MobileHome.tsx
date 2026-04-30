@@ -156,11 +156,18 @@ function MobileHomeInner() {
       const displayName = user.user_metadata?.full_name || (user.email ?? "").split("@")[0];
       setUserName(displayName);
       setUserInitial(displayName.charAt(0).toUpperCase());
-      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single();
-      if (profileData) {
-        setProfile(profileData);
-        if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
-        if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession?.access_token) {
+        const res = await fetch('/api/profile', {
+          headers: { Authorization: `Bearer ${currentSession.access_token}` },
+        });
+        if (res.ok) {
+          const profileData = await res.json();
+          if (profileData.deleted) { window.location.href = '/ja/welcome-back'; return; }
+          setProfile(profileData);
+          if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
+          if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
+        }
       }
       const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", user.id);
       if (favData) setFavIds(favData.map((d: any) => d.material_id));
