@@ -148,29 +148,43 @@ function MobileHomeInner() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-      if (session?.user?.email) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        const displayName = session.user.user_metadata?.full_name || session.user.email.split("@")[0];
-        setUserName(displayName);
-        setUserInitial(displayName.charAt(0).toUpperCase());
-        const { data: profileData } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-        if (profileData) {
-          setProfile(profileData);
-          if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
-          if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
-        }
-        const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
-        if (favData) setFavIds(favData.map((d: any) => d.material_id));
+
+    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }) => {
+      setIsLoggedIn(true);
+      setUserId(user.id);
+      setUserEmail(user.email ?? "");
+      const displayName = user.user_metadata?.full_name || (user.email ?? "").split("@")[0];
+      setUserName(displayName);
+      setUserInitial(displayName.charAt(0).toUpperCase());
+      const { data: profileData } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if (profileData) {
+        setProfile(profileData);
+        if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
+        if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
+      }
+      const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", user.id);
+      if (favData) setFavIds(favData.map((d: any) => d.material_id));
+      setFavIdsLoaded(true);
+      const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", user.id);
+      if (dlData) setDlIds([...new Set(dlData.map((d: any) => d.material_id as string))]);
+      const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", user.id);
+      if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: any) => d.material_id as string))]);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
+        await loadUserData(session.user);
+      } else if (event === 'SIGNED_OUT') {
+        setIsLoggedIn(false);
+        setFavIds([]);
         setFavIdsLoaded(true);
-        const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
-        if (dlData) setDlIds([...new Set(dlData.map((d: any) => d.material_id as string))]);
-        const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
-        if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: any) => d.material_id as string))]);
+        setDlIds([]);
+        setPurchasedIds([]);
+        setProfile({ plan: "free" });
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   useEffect(() => {
