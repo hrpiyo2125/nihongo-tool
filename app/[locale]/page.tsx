@@ -293,7 +293,7 @@ const methodItems = [
         await loadProfile();
       }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
@@ -305,6 +305,11 @@ const methodItems = [
             provider: session.user.app_metadata?.provider || 'email',
           }));
         } catch {}
+      }
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUserId(session.user.id);
+        setUserEmail(session.user.email ?? '');
+        loadProfile();
       }
     });
     return () => subscription.unsubscribe();
