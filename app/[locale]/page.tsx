@@ -266,30 +266,36 @@ const methodItems = [
 
   useEffect(() => {
     const supabase = createClient();
-    // INITIAL_SESSION イベントが onAuthStateChange で処理されるため不要だが
-    // イベント前に isLoggedIn を確定させるために残す（UI のちらつき防止）
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) setTopFavIdsLoaded(true);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+
+    const loadUserData = async (userId: string) => {
+      const [favRes, dlRes, purchaseRes] = await Promise.all([
+        supabase.from("favorites").select("material_id").eq("user_id", userId),
+        supabase.from("download_history").select("material_id").eq("user_id", userId),
+        supabase.from("purchases").select("material_id").eq("user_id", userId),
+      ]);
+      if (favRes.data) setTopFavIds(favRes.data.map((d: { material_id: string }) => d.material_id));
+      setTopFavIdsLoaded(true);
+      if (dlRes.data) setTopDlIds([...new Set(dlRes.data.map((d: { material_id: string }) => d.material_id))]);
+      if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: { material_id: string }) => d.material_id))]);
+      await loadProfile();
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsLoggedIn(!!session);
-      if (session?.user?.email) {
+      if (session?.user) {
+        const name = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "";
         setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
-        setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
-      }
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
-        const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
-        if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+        setUserEmail(session.user.email ?? "");
+        setUserInitial(name.charAt(0).toUpperCase());
+        setUserName(name);
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+          loadUserData(session.user.id);
+        }
+      } else {
         setTopFavIdsLoaded(true);
-        const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
-        if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
-        const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
-        if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
-        await loadProfile();
       }
     });
+
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
