@@ -256,8 +256,8 @@ export default function MobileHome() {
               <h1 style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>にほんごの勉強が、もっとたのしくなる。</h1>
               <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 48 }}>日本語を学ぶ子供を支える方のための<br />日本語学習ツールサイト。</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 10 }}>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
+                <button onClick={() => { const el = document.getElementById("mobile-anchor-content"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
+                <button onClick={() => { const el = document.getElementById("mobile-anchor-method"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop, behavior: "smooth" }); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
@@ -278,7 +278,7 @@ export default function MobileHome() {
             </section>
 
             {/* 学習内容から探す */}
-            <section style={{ padding: "32px 0 24px" }}>
+            <section id="mobile-anchor-content" style={{ padding: "32px 0 24px" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Content</div>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習内容から探す</div>
@@ -296,7 +296,7 @@ export default function MobileHome() {
             </section>
 
             {/* 学習方法から探す */}
-            <section style={{ padding: "24px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+            <section id="mobile-anchor-method" style={{ padding: "24px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Method</div>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習方法から探す</div>
