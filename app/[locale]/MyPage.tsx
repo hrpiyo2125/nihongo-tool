@@ -453,14 +453,14 @@ export default function MyPage({
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [showPresetPicker, setShowPresetPicker] = useState(false);
   const PRESET_AVATARS = [
-    "/avatars/preset/avatar1.svg",
-    "/avatars/preset/avatar2.svg",
-    "/avatars/preset/avatar3.svg",
-    "/avatars/preset/avatar4.svg",
-    "/avatars/preset/avatar5.svg",
-    "/avatars/preset/avatar6.svg",
-    "/avatars/preset/avatar7.svg",
-    "/avatars/preset/avatar8.svg",
+    "/avatars/preset/avatar1.png",
+    "/avatars/preset/avatar2.png",
+    "/avatars/preset/avatar3.png",
+    "/avatars/preset/avatar4.png",
+    "/avatars/preset/avatar5.png",
+    "/avatars/preset/avatar6.png",
+    "/avatars/preset/avatar7.png",
+    "/avatars/preset/avatar8.png",
   ];
   const [savingProfile, setSavingProfile] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
