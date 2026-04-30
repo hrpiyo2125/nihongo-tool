@@ -135,18 +135,21 @@ export default function MobileHome() {
   const teaserMatRef = useRef<Material | null>(null);
   const authModalOpenRef = useRef(false);
   const selectedAnnouncementRef = useRef<typeof selectedAnnouncement>(null);
+  const mySubPageRef = useRef<string | null>(null);
+  const guestMenuOpenRef = useRef(false);
   useEffect(() => { materialsOpenRef.current = materialsModalOpen; }, [materialsModalOpen]);
   useEffect(() => { morePageRef.current = morePage; }, [morePage]);
-  const mySubPageRef = useRef<string | null>(null);
   useEffect(() => { myPageOpenRef.current = myPageOpen; }, [myPageOpen]);
   useEffect(() => { teaserMatRef.current = teaserMat; }, [teaserMat]);
   useEffect(() => { authModalOpenRef.current = authModalOpen; }, [authModalOpen]);
   useEffect(() => { selectedAnnouncementRef.current = selectedAnnouncement; }, [selectedAnnouncement]);
   useEffect(() => { mySubPageRef.current = mySubPage; }, [mySubPage]);
+  useEffect(() => { guestMenuOpenRef.current = guestMenuOpen; }, [guestMenuOpen]);
   useEffect(() => {
     const onPop = () => {
       if (suppressNextPop.current) { suppressNextPop.current = false; return; }
       historyDepth.current = Math.max(0, historyDepth.current - 1);
+      if (guestMenuOpenRef.current) { setGuestMenuOpen(false); return; }
       if (teaserMatRef.current) { setTeaserMat(null); return; }
       if (authModalOpenRef.current) { setAuthModalOpen(false); return; }
       if (selectedAnnouncementRef.current) { setSelectedAnnouncement(null); return; }
@@ -253,19 +256,19 @@ export default function MobileHome() {
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
-          <button onClick={() => isLoggedIn ? openScreen(() => setMyPageOpen(true)) : setGuestMenuOpen(v => !v)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          <button onClick={() => isLoggedIn ? openScreen(() => setMyPageOpen(true)) : (guestMenuOpen ? closeScreen(() => setGuestMenuOpen(false)) : openScreen(() => setGuestMenuOpen(true)))} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
             {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
             <>
-              <div onClick={() => setGuestMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+              <div onClick={() => closeScreen(() => setGuestMenuOpen(false))} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
                 <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
-                <button onClick={() => { setGuestMenuOpen(false); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+                <button onClick={() => { closeScreen(() => setGuestMenuOpen(false)); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
                   <BrandIcon name="key" size={14} color="#c9a0f0" />
                   ログイン
                 </button>
-                <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
+                <button onClick={() => { closeScreen(() => setGuestMenuOpen(false)); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
                   <BrandIcon name="sparkle" size={14} color="#9b6ed4" />
                   会員でない方はこちらから新規登録
                 </button>
