@@ -451,6 +451,17 @@ export default function MyPage({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [showPresetPicker, setShowPresetPicker] = useState(false);
+  const PRESET_AVATARS = [
+    "/avatars/preset/avatar1.svg",
+    "/avatars/preset/avatar2.svg",
+    "/avatars/preset/avatar3.svg",
+    "/avatars/preset/avatar4.svg",
+    "/avatars/preset/avatar5.svg",
+    "/avatars/preset/avatar6.svg",
+    "/avatars/preset/avatar7.svg",
+    "/avatars/preset/avatar8.svg",
+  ];
   const [savingProfile, setSavingProfile] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [draftResidence, setDraftResidence] = useState({ country: "", city: "" });
@@ -480,6 +491,17 @@ export default function MyPage({
   const [emailLoading, setEmailLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSent, setEmailSent] = useState(false);
+
+  const handlePresetSelect = async (presetUrl: string) => {
+    setShowPresetPicker(false);
+    setAvatarError(null);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { error } = await supabase.from("profiles").update({ avatar_url: presetUrl }).eq("id", session.user.id);
+    if (error) { setAvatarError("プロフィールの保存に失敗しました。もう一度お試しください。"); return; }
+    setAvatarUrl(presetUrl);
+  };
 
   const handleAvatarUpload = async (file: File) => {
     setUploadingAvatar(true);
@@ -544,7 +566,7 @@ export default function MyPage({
       <div style={{ padding: mobileMode ? "20px 16px 48px" : "32px 48px 56px", display: "flex", flexDirection: "column" as const, gap: 20, maxWidth: mobileMode ? undefined : 600, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 20, padding: "24px", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14 }}>
           <div
-            onClick={() => !uploadingAvatar && fileInputRef.current?.click()}
+            onClick={() => !uploadingAvatar && setShowPresetPicker(true)}
             style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden", cursor: "pointer", position: "relative" }}
           >
             {avatarUrl
@@ -556,7 +578,7 @@ export default function MyPage({
               </div>
             )}
           </div>
-          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); e.target.value = ""; }} />
+          <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) { setShowPresetPicker(false); handleAvatarUpload(f); } e.target.value = ""; }} />
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
@@ -567,10 +589,29 @@ export default function MyPage({
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>
               {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : tm("free_plan")}
             </div>
-            <button onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
+            <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
             {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
           </div>
         </div>
+        {showPresetPicker && (
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowPresetPicker(false)}>
+            <div style={{ background: "white", borderRadius: 18, padding: 24, maxWidth: 340, width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>アイコンを選択</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+                {PRESET_AVATARS.map((url) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt=""
+                    onClick={() => handlePresetSelect(url)}
+                    style={{ width: "100%", aspectRatio: "1", borderRadius: "50%", cursor: "pointer", border: avatarUrl === url ? "3px solid #9b6ed4" : "3px solid transparent", boxSizing: "border-box" as const }}
+                  />
+                ))}
+              </div>
+              <button onClick={() => fileInputRef.current?.click()} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>自分の写真をアップロード</button>
+            </div>
+          </div>
+        )}
         {/* 名前 / 学習レベル */}
         {[
           { label: tm("name"), value: profile.full_name || userName, col: "full_name" },
