@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { createClient } from "../lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile";
 
 export type AuthModalMode = "signup" | "login" | "reset-request";
+
+type SavedAccount = { email: string; name: string; provider: string };
 
 type Props = {
   initialMode?: AuthModalMode;
@@ -18,6 +20,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const locale = useLocale();
   const [view, setView] = useState<"signup" | "login" | "reset-request">(initialMode);
   const [step, setStep] = useState<1 | 2>(1);
+  const [savedAccount, setSavedAccount] = useState<SavedAccount | null>(null);
+  const [quickLoginLoading, setQuickLoginLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,6 +31,28 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('toolio_last_account');
+      if (raw) setSavedAccount(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  const handleQuickLogin = async () => {
+    if (!savedAccount) return;
+    setQuickLoginLoading(true);
+    if (savedAccount.provider === 'google') {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}` },
+      });
+    } else {
+      setView("login");
+      setEmail(savedAccount.email);
+      setQuickLoginLoading(false);
+    }
+  };
 
   const reasonText =
     reason === "favorite"
@@ -205,10 +231,62 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         >✕</button>
 
         {/* ロゴ */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: savedAccount ? 16 : 20 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/toolio_logo.png" alt="toolio" style={{ height: 36, width: "auto", objectFit: "contain" }} />
         </div>
+
+        {/* ========== 前回アカウントでの継続ログイン ========== */}
+        {savedAccount && (
+          <div style={{
+            marginBottom: 20,
+            padding: "14px 16px",
+            background: "linear-gradient(135deg, rgba(228,155,253,0.08), rgba(163,192,255,0.08))",
+            border: "0.5px solid rgba(200,180,230,0.4)",
+            borderRadius: 14,
+          }}>
+            <div style={{ fontSize: 11, color: "#b090c8", marginBottom: 10 }}>前回ログインしたアカウント</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+                background: "linear-gradient(135deg,#e49bfd,#a3c0ff)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 15, fontWeight: 700, color: "white",
+              }}>
+                {savedAccount.name.charAt(0).toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {savedAccount.name}
+                </div>
+                <div style={{ fontSize: 11, color: "#999", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {savedAccount.email}
+                </div>
+              </div>
+              <button
+                onClick={handleQuickLogin}
+                disabled={quickLoginLoading}
+                style={{
+                  flexShrink: 0, padding: "8px 16px", borderRadius: 20, border: "none",
+                  background: quickLoginLoading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                  color: "white", fontSize: 12, fontWeight: 700,
+                  cursor: quickLoginLoading ? "not-allowed" : "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {quickLoginLoading ? "..." : "このアカウントで"}
+              </button>
+            </div>
+            <div style={{ marginTop: 8, textAlign: "right" }}>
+              <span
+                onClick={() => setSavedAccount(null)}
+                style={{ fontSize: 10, color: "#c0a8e0", cursor: "pointer" }}
+              >
+                別のアカウントを使う
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* ========== パスワードリセット申請ビュー ========== */}
         {view === "reset-request" && (
@@ -363,8 +441,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                   </div>
                 )}
                 <form onSubmit={handleSubmit}>
-                  <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-                  <input type="password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+                  <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus={!email} style={inputStyle} />
+                  <input type="password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus={!!email} style={inputStyle} />
                   {error && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 11, color: "#c44a88", padding: "6px 10px", background: "#fff0f6", borderRadius: 6, marginBottom: 8 }}>{error}</div>
