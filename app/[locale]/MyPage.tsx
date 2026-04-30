@@ -490,9 +490,8 @@ export default function MyPage({
     const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      const url = `${publicUrl}?t=${Date.now()}`;
-      await supabase.from("profiles").upsert({ id: session.user.id, avatar_url: url });
-      setAvatarUrl(url);
+      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", session.user.id);
+      setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
     }
     setUploadingAvatar(false);
   };
