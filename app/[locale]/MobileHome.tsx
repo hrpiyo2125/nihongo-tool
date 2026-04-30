@@ -113,6 +113,21 @@ export default function MobileHome() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
+  // ブラウザ戻るボタンで画面を一段階閉じる
+  const openScreen = (open: () => void) => {
+    history.pushState({ toolioNav: true }, "");
+    open();
+  };
+  useEffect(() => {
+    const onPop = () => {
+      if (materialsModalOpen) { setMaterialsModalOpen(false); return; }
+      if (morePage !== null) { setMorePage(null); return; }
+      if (myPageOpen) { setMyPageOpen(false); return; }
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [materialsModalOpen, morePage, myPageOpen]);
+
   const contentItems = [
   { label: cl.hiragana, char: "あ", color: "#e8efff", imageSrc: "/hiragana.png", contentId: "hiragana" },
   { label: cl.katakana, char: "ア", color: "#f0e8ff", imageSrc: "/katakana.png", contentId: "katakana" },
@@ -207,7 +222,7 @@ export default function MobileHome() {
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
-          <button onClick={() => isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          <button onClick={() => isLoggedIn ? openScreen(() => setMyPageOpen(true)) : setGuestMenuOpen(v => !v)} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
             {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
@@ -241,12 +256,12 @@ export default function MobileHome() {
               <h1 style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>にほんごの勉強が、もっとたのしくなる。</h1>
               <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 48 }}>日本語を学ぶ子供を支える方のための<br />日本語学習ツールサイト。</p>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 10 }}>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
+                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
+                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 20px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
-                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
+                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
@@ -270,7 +285,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
-                  <div key={item.label} onClick={() => { setModalInitContent(item.contentId); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => { setModalInitContent(item.contentId); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -288,7 +303,7 @@ export default function MobileHome() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
-                  <div key={item.label} onClick={() => { setModalInitContent("all"); setModalInitMethod(item.methodId); setMaterialsModalOpen(true); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => { setModalInitContent("all"); setModalInitMethod(item.methodId); openScreen(() => setMaterialsModalOpen(true)); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -449,9 +464,9 @@ export default function MobileHome() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", action: () => setMorePage("dl") },
-              { icon: "guide"     as const, label: "よくある質問",    action: () => setMorePage("guide") },
-              { icon: "purchases" as const, label: "教材購入履歴",    action: () => setMorePage("purchases") },
+              { icon: "download" as const, label: "ダウンロード履歴", action: () => openScreen(() => setMorePage("dl")) },
+              { icon: "guide"     as const, label: "よくある質問",    action: () => openScreen(() => setMorePage("guide")) },
+              { icon: "purchases" as const, label: "教材購入履歴",    action: () => openScreen(() => setMorePage("purchases")) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -466,7 +481,7 @@ export default function MobileHome() {
             {morePage === "dl" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -524,7 +539,7 @@ export default function MobileHome() {
             {morePage === "purchases" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -583,7 +598,7 @@ export default function MobileHome() {
             {morePage === "guide" && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => setMorePage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => history.back()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto" }}>
@@ -600,7 +615,7 @@ export default function MobileHome() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (tab.id === "materials") { setModalInitContent("all"); setModalInitMethod("all"); openScreen(() => setMaterialsModalOpen(true)); return; } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
             {tab.icon(active)}
             <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
@@ -666,7 +681,7 @@ export default function MobileHome() {
       {/* マイページドロワー */}
       {myPageOpen && (
         <>
-          <div onClick={() => setMyPageOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
+          <div onClick={() => history.back()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
@@ -692,7 +707,7 @@ export default function MobileHome() {
                   const supabase = createClient();
                   await supabase.auth.signOut();
                   setIsLoggedIn(false);
-                  setMyPageOpen(false);
+                  history.back();
                 }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
                   ログアウト
                 </button>
@@ -801,9 +816,9 @@ export default function MobileHome() {
       }
     }}
     onCardClick={(mat) => setTeaserMat(mat)}
-    onClose={() => setMaterialsModalOpen(false)}
+    onClose={() => history.back()}
     onTabChange={(tabId) => setActiveTab(tabId)}
-    onOpenMyPage={() => setMyPageOpen(true)}
+    onOpenMyPage={() => openScreen(() => setMyPageOpen(true))}
   />
 )}
     </div>
