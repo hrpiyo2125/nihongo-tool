@@ -246,7 +246,7 @@ export default function MobileHome() {
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
-                <button onClick={() => setMaterialsModalOpen(true)} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
+                <button onClick={() => { setModalInitContent("all"); setModalInitMethod("all"); setMaterialsModalOpen(true); }} style={{ fontSize: 13, padding: "16px 36px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
