@@ -293,14 +293,23 @@ const methodItems = [
         await loadProfile();
       }
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setIsLoggedIn(!!session);
       if (session?.user?.email) {
+        setUserId(session.user.id);
+        setUserEmail(session.user.email);
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
       }
-      if (event === 'SIGNED_IN') {
-        window.location.reload();
+      if (event === 'SIGNED_IN' && session?.user) {
+        const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
+        if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
+        setTopFavIdsLoaded(true);
+        const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
+        if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
+        const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+        if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
+        await loadProfile();
       }
     });
     return () => subscription.unsubscribe();
@@ -749,7 +758,7 @@ if (isMobile) return <MobileHome />;
         <AuthModal
           initialMode={authModalMode}
           onClose={() => setAuthModalOpen(false)}
-          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
+          onLoggedIn={() => { setAuthModalOpen(false); }}
         />
       )}
     </div>
