@@ -450,6 +450,7 @@ export default function MyPage({
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [draftResidence, setDraftResidence] = useState({ country: "", city: "" });
@@ -482,17 +483,25 @@ export default function MyPage({
 
   const handleAvatarUpload = async (file: File) => {
     setUploadingAvatar(true);
+    setAvatarError(null);
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { setUploadingAvatar(false); return; }
-    const ext = file.name.split(".").pop() ?? "jpg";
-    const path = `${session.user.id}/avatar.${ext}`;
-    const { error } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
-    if (!error) {
-      const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-      await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", session.user.id);
-      setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
+    const path = `${session.user.id}/avatar.jpg`;
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
+    if (uploadError) {
+      setAvatarError("画像のアップロードに失敗しました。もう一度お試しください。");
+      setUploadingAvatar(false);
+      return;
     }
+    const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+    const { error: dbError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", session.user.id);
+    if (dbError) {
+      setAvatarError("プロフィールの保存に失敗しました。もう一度お試しください。");
+      setUploadingAvatar(false);
+      return;
+    }
+    setAvatarUrl(`${publicUrl}?t=${Date.now()}`);
     setUploadingAvatar(false);
   };
 
@@ -559,6 +568,7 @@ export default function MyPage({
               {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : tm("free_plan")}
             </div>
             <button onClick={() => fileInputRef.current?.click()} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
+            {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
           </div>
         </div>
         {/* 名前 / 学習レベル */}
