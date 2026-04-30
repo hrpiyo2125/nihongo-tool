@@ -142,6 +142,8 @@ function RelatedPanel({
             if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
             else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
           },
+          onOpenPlanModal: () => {},
+          onOpenPurchaseConfirm: () => {},
         };
         return isMobile
           ? <MobileTeaserModal {...commonProps} />
