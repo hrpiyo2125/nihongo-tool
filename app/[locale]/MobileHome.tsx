@@ -43,7 +43,22 @@ export default function MobileHome() {
   const [activeTab, setActiveTab] = useState("home");
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
-  const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); setAuthModalOpen(true); };
+  const historyDepth = useRef(0);
+  const suppressNextPop = useRef(false);
+  const openScreen = (open: () => void) => {
+    history.pushState({ toolioNav: true }, "");
+    historyDepth.current++;
+    open();
+  };
+  const closeScreen = (close: () => void) => {
+    close();
+    if (historyDepth.current > 0) {
+      historyDepth.current--;
+      suppressNextPop.current = true;
+      history.back();
+    }
+  };
+  const openAuth = (mode: AuthModalMode) => { setAuthModalMode(mode); openScreen(() => setAuthModalOpen(true)); };
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
   const [userName, setUserName] = useState("");
@@ -117,29 +132,22 @@ export default function MobileHome() {
   const materialsOpenRef = useRef(false);
   const morePageRef = useRef<string | null>(null);
   const myPageOpenRef = useRef(false);
-  const historyDepth = useRef(0);
-  const suppressNextPop = useRef(false);
+  const teaserMatRef = useRef<Material | null>(null);
+  const authModalOpenRef = useRef(false);
+  const selectedAnnouncementRef = useRef<typeof selectedAnnouncement>(null);
   useEffect(() => { materialsOpenRef.current = materialsModalOpen; }, [materialsModalOpen]);
   useEffect(() => { morePageRef.current = morePage; }, [morePage]);
   useEffect(() => { myPageOpenRef.current = myPageOpen; }, [myPageOpen]);
-
-  const openScreen = (open: () => void) => {
-    history.pushState({ toolioNav: true }, "");
-    historyDepth.current++;
-    open();
-  };
-  const closeScreen = (close: () => void) => {
-    close();
-    if (historyDepth.current > 0) {
-      historyDepth.current--;
-      suppressNextPop.current = true;
-      history.back();
-    }
-  };
+  useEffect(() => { teaserMatRef.current = teaserMat; }, [teaserMat]);
+  useEffect(() => { authModalOpenRef.current = authModalOpen; }, [authModalOpen]);
+  useEffect(() => { selectedAnnouncementRef.current = selectedAnnouncement; }, [selectedAnnouncement]);
   useEffect(() => {
     const onPop = () => {
       if (suppressNextPop.current) { suppressNextPop.current = false; return; }
       historyDepth.current = Math.max(0, historyDepth.current - 1);
+      if (teaserMatRef.current) { setTeaserMat(null); return; }
+      if (authModalOpenRef.current) { setAuthModalOpen(false); return; }
+      if (selectedAnnouncementRef.current) { setSelectedAnnouncement(null); return; }
       if (materialsOpenRef.current) { setMaterialsModalOpen(false); return; }
       if (morePageRef.current !== null) { setMorePage(null); return; }
       if (myPageOpenRef.current) { setMyPageOpen(false); return; }
@@ -340,7 +348,7 @@ export default function MobileHome() {
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />お知らせ
                 </div>
                 {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
+                  <div key={n.id} onClick={() => openScreen(() => setSelectedAnnouncement(n))} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
                     <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
                     <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
@@ -363,7 +371,7 @@ export default function MobileHome() {
                 locale={locale}
                 columns={2}
                 isMobile={true}
-                onCardClick={(mat) => setTeaserMat(mat)}
+                onCardClick={(mat) => openScreen(() => setTeaserMat(mat))}
                 onFavToggle={async (mat) => {
                   const supabase = createClient();
                   const { data: { session } } = await supabase.auth.getSession();
@@ -402,7 +410,7 @@ export default function MobileHome() {
                     <MaterialCard
                       key={mat.id}
                       mat={mat}
-                      onClick={() => setTeaserMat(mat)}
+                      onClick={() => openScreen(() => setTeaserMat(mat))}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
                       favIds={effectiveFavIds}
@@ -453,7 +461,7 @@ export default function MobileHome() {
                     <MaterialCard
                       key={mat.id}
                       mat={mat}
-                      onClick={() => setTeaserMat(mat)}
+                      onClick={() => openScreen(() => setTeaserMat(mat))}
                       locale={locale}
                       isLoggedIn={isLoggedIn}
                       favIds={effectiveFavIds}
@@ -527,7 +535,7 @@ export default function MobileHome() {
                             <MaterialCard
                               key={mat.id}
                               mat={mat}
-                              onClick={() => setTeaserMat(mat)}
+                              onClick={() => openScreen(() => setTeaserMat(mat))}
                               locale={locale}
                               isLoggedIn={isLoggedIn}
                               favIds={effectiveFavIds}
@@ -585,7 +593,7 @@ export default function MobileHome() {
                             <MaterialCard
                               key={mat.id}
                               mat={mat}
-                              onClick={() => setTeaserMat(mat)}
+                              onClick={() => openScreen(() => setTeaserMat(mat))}
                               locale={locale}
                               isLoggedIn={isLoggedIn}
                               favIds={effectiveFavIds}
@@ -658,7 +666,7 @@ export default function MobileHome() {
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
             locale={locale}
-            onClose={() => setTeaserMat(null)}
+            onClose={() => closeScreen(() => setTeaserMat(null))}
             tmm={tmm}
             onFavChange={(materialId, isFav) => {
               if (isFav) setFavIds(prev => [...prev, materialId]);
@@ -677,15 +685,15 @@ export default function MobileHome() {
           favIds={effectiveFavIds}
           purchasedIds={purchasedIds}
           locale={locale}
-          onClose={() => setSelectedAnnouncement(null)}
+          onClose={() => closeScreen(() => setSelectedAnnouncement(null))}
           onFavChange={(materialId, isFav) => {
             if (isFav) setFavIds(prev => [...prev, materialId]);
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
           onMaterialClick={(mat) => {
-            setSelectedAnnouncement(null);
-            setTeaserMat(mat as any);
+            closeScreen(() => setSelectedAnnouncement(null));
+            openScreen(() => setTeaserMat(mat as any));
           }}
         />
       )}
@@ -693,8 +701,8 @@ export default function MobileHome() {
       {authModalOpen && (
         <AuthModal
           initialMode={authModalMode}
-          onClose={() => setAuthModalOpen(false)}
-          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
+          onClose={() => closeScreen(() => setAuthModalOpen(false))}
+          onLoggedIn={() => { closeScreen(() => setAuthModalOpen(false)); window.location.reload(); }}
         />
       )}
 
@@ -835,7 +843,7 @@ export default function MobileHome() {
         setFavIds(prev => [...prev, m.id]);
       }
     }}
-    onCardClick={(mat) => setTeaserMat(mat)}
+    onCardClick={(mat) => openScreen(() => setTeaserMat(mat))}
     onClose={() => closeScreen(() => setMaterialsModalOpen(false))}
     onTabChange={(tabId) => setActiveTab(tabId)}
     onOpenMyPage={() => openScreen(() => setMyPageOpen(true))}
