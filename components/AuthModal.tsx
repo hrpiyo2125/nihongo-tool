@@ -116,7 +116,10 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}` },
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
+        queryParams: { prompt: 'select_account' },
+      },
     });
   };
 
