@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 
 const scrollbarStyle = `
@@ -71,6 +71,16 @@ export default function MobileMaterialsModal({
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
+  const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  useEffect(() => {
+    contentTabRefs.current.get(activeContentFilter)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeContentFilter]);
+
+  useEffect(() => {
+    methodTabRefs.current.get(activeMethodFilter)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeMethodFilter]);
 
   const executeSearch = (q: string) => {
     if (!q.trim()) return;
@@ -132,7 +142,7 @@ export default function MobileMaterialsModal({
           {methodTabs.map((tab) => {
             const active = searchResults === null && activeMethodFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethodFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} ref={(el) => { if (el) methodTabRefs.current.set(tab.id, el); else methodTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethodFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11, fontWeight: 700, color: "#555" }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                 </div>
@@ -151,7 +161,7 @@ export default function MobileMaterialsModal({
           {contentTabs.map((tab) => {
             const active = searchResults === null && activeContentFilter === tab.id;
             return (
-              <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContentFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} ref={(el) => { if (el) contentTabRefs.current.set(tab.id, el); else contentTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContentFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11 }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                 </div>

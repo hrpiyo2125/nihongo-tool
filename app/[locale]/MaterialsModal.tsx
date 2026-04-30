@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 import { getCardStyle } from "../../lib/materialUtils";
 import MaterialCard from "./MaterialCard";
@@ -69,6 +69,16 @@ export default function MaterialsModal({
   const [favIds, setFavIds] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
+  const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+
+  useEffect(() => {
+    contentTabRefs.current.get(activeContent)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeContent]);
+
+  useEffect(() => {
+    methodTabRefs.current.get(activeMethod)?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeMethod]);
 
   const executeSearch = (q: string) => {
     if (!q.trim()) return;
@@ -154,7 +164,7 @@ export default function MaterialsModal({
                 {methodTabs.map((tab) => {
                   const active = searchResults === null && activeMethod === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethod(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
+                    <button key={tab.id} ref={(el) => { if (el) methodTabRefs.current.set(tab.id, el); else methodTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethod(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 7, padding: "5px 10px", flexShrink: 0, background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer" }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", overflow: "hidden", flexShrink: 0, background: "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "#555", border: "1px solid rgba(0,0,0,0.06)" }}>
                         {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                       </div>
@@ -173,7 +183,7 @@ export default function MaterialsModal({
                 {contentTabs.map((tab) => {
                   const active = searchResults === null && activeContent === tab.id;
                   return (
-                    <button key={tab.id} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContent(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
+                    <button key={tab.id} ref={(el) => { if (el) contentTabRefs.current.set(tab.id, el); else contentTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContent(tab.id); }} style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 16px", margin: "0 8px", background: active ? "rgba(163,192,255,0.15)" : "transparent", border: "none", borderRadius: 10, cursor: "pointer", width: "calc(100% - 16px)", textAlign: "left" }}>
                       <div style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 13, fontWeight: 700, color: "#555" }}>
                         {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                       </div>
