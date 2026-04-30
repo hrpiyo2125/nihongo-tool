@@ -298,13 +298,6 @@ const methodItems = [
       if (session?.user?.email) {
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
-        try {
-          localStorage.setItem('toolio_last_account', JSON.stringify({
-            email: session.user.email,
-            name: session.user.user_metadata?.full_name || session.user.email.split("@")[0],
-            provider: session.user.app_metadata?.provider || 'email',
-          }));
-        } catch {}
       }
       if (event === 'SIGNED_IN' && session?.user) {
         setUserId(session.user.id);
