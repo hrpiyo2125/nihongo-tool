@@ -39,6 +39,7 @@ function MobileHomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const m = searchParams.get("m") ?? "";
+  const activeTab = searchParams.get("tab") ?? "home";
 
   const locale = useLocale();
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
@@ -48,7 +49,6 @@ function MobileHomeInner() {
   const tmm = useTranslations('materials_modal');
   const th = useTranslations('home');
 
-  const [activeTab, setActiveTab] = useState("home");
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userInitial, setUserInitial] = useState("？");
@@ -133,7 +133,10 @@ function MobileHomeInner() {
     if (!m && scrollRef.current) {
       sessionStorage.setItem("homeScroll", String(scrollRef.current.scrollTop));
     }
-    router.push(`?m=${screen}`);
+    router.push(`?tab=${activeTab}&m=${screen}`);
+  };
+  const switchTab = (tab: string) => {
+    router.push(`?tab=${tab}`);
   };
 
   const goBack = () => router.back();
@@ -684,7 +687,7 @@ function MobileHomeInner() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); return; } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); return; } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
             {tab.icon(active)}
             <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
@@ -888,7 +891,7 @@ function MobileHomeInner() {
           }}
           onCardClick={(mat) => openTeaser(mat)}
           onClose={() => goBack()}
-          onTabChange={(tabId) => setActiveTab(tabId)}
+          onTabChange={(tabId) => switchTab(tabId)}
           onOpenMyPage={() => navigate("mypage")}
         />
       )}
