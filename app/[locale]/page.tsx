@@ -272,26 +272,10 @@ const methodItems = [
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-      if (session) {
-      const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
-      if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
-      setTopFavIdsLoaded(true);
-      const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id);
-      if (dlData) setTopDlIds([...new Set(dlData.map((d: { material_id: string }) => d.material_id))]);
-      }
-      if (session) {
-      const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
-      if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: { material_id: string }) => d.material_id))]);
-      }
-      if (session?.user?.email) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email);
-        setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
-        setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
-        await loadProfile();
-      }
+    // INITIAL_SESSION イベントが onAuthStateChange で処理されるため不要だが
+    // イベント前に isLoggedIn を確定させるために残す（UI のちらつき防止）
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) setTopFavIdsLoaded(true);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setIsLoggedIn(!!session);
@@ -301,7 +285,7 @@ const methodItems = [
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
       }
-      if (event === 'SIGNED_IN' && session?.user) {
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
         const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", session.user.id);
         if (favData) setTopFavIds(favData.map((d: { material_id: string }) => d.material_id));
         setTopFavIdsLoaded(true);
