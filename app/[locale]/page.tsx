@@ -299,10 +299,8 @@ const methodItems = [
         setUserInitial((session.user.user_metadata?.full_name || session.user.email).charAt(0).toUpperCase());
         setUserName(session.user.user_metadata?.full_name || session.user.email.split("@")[0]);
       }
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUserId(session.user.id);
-        setUserEmail(session.user.email ?? '');
-        loadProfile();
+      if (event === 'SIGNED_IN') {
+        window.location.reload();
       }
     });
     return () => subscription.unsubscribe();
