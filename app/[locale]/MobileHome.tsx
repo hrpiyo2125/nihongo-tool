@@ -137,10 +137,12 @@ export default function MobileHome() {
   const selectedAnnouncementRef = useRef<typeof selectedAnnouncement>(null);
   useEffect(() => { materialsOpenRef.current = materialsModalOpen; }, [materialsModalOpen]);
   useEffect(() => { morePageRef.current = morePage; }, [morePage]);
+  const mySubPageRef = useRef<string | null>(null);
   useEffect(() => { myPageOpenRef.current = myPageOpen; }, [myPageOpen]);
   useEffect(() => { teaserMatRef.current = teaserMat; }, [teaserMat]);
   useEffect(() => { authModalOpenRef.current = authModalOpen; }, [authModalOpen]);
   useEffect(() => { selectedAnnouncementRef.current = selectedAnnouncement; }, [selectedAnnouncement]);
+  useEffect(() => { mySubPageRef.current = mySubPage; }, [mySubPage]);
   useEffect(() => {
     const onPop = () => {
       if (suppressNextPop.current) { suppressNextPop.current = false; return; }
@@ -148,6 +150,7 @@ export default function MobileHome() {
       if (teaserMatRef.current) { setTeaserMat(null); return; }
       if (authModalOpenRef.current) { setAuthModalOpen(false); return; }
       if (selectedAnnouncementRef.current) { setSelectedAnnouncement(null); return; }
+      if (mySubPageRef.current) { setMySubPage(null); return; }
       if (materialsOpenRef.current) { setMaterialsModalOpen(false); return; }
       if (morePageRef.current !== null) { setMorePage(null); return; }
       if (myPageOpenRef.current) { setMyPageOpen(false); return; }
@@ -713,9 +716,9 @@ export default function MobileHome() {
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
             {[
-              { icon: "user"    as const, label: "プロフィール", action: () => { setMySubPage("profile"); } },
-              { icon: "plan"    as const, label: "プラン確認・変更", action: () => { setMySubPage("plan"); } },
-              { icon: "billing" as const, label: "支払い履歴",   action: () => { setMySubPage("billing"); } },
+              { icon: "user"    as const, label: "プロフィール", action: () => openScreen(() => setMySubPage("profile")) },
+              { icon: "plan"    as const, label: "プラン確認・変更", action: () => openScreen(() => setMySubPage("plan")) },
+              { icon: "billing" as const, label: "支払い履歴",   action: () => openScreen(() => setMySubPage("billing")) },
             ].map((item) => (
               <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -749,7 +752,7 @@ export default function MobileHome() {
       {mySubPage && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => closeScreen(() => setMySubPage(null))} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
             </span>
@@ -768,7 +771,7 @@ export default function MobileHome() {
                     if (!session) return;
                     const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
                     if (data) setProfile(data);
-                    setMySubPage(null);
+                    closeScreen(() => setMySubPage(null));
                   }}
                 />
               </div>
