@@ -169,7 +169,7 @@ function AuthPageInner() {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/${locale}`,
+        redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
         queryParams: { prompt: 'select_account' },
       },
     });
