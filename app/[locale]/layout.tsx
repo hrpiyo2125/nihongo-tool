@@ -5,7 +5,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import ChatWidgetLoader from "@/components/ChatWidgetLoader";
 import DeployWatcher from "@/components/DeployWatcher";
-import GoogleOneTap from "@/components/GoogleOneTap";
 import { AuthProvider } from './AuthContext';
 
 
@@ -47,7 +46,6 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <AuthProvider>
             {children}
-            <GoogleOneTap />
           </AuthProvider>
           <ChatWidgetLoader />
           <DeployWatcher />
