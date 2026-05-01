@@ -196,6 +196,11 @@ function MobileHomeInner() {
       }
     });
 
+    // isMobileの切り替えでINITIAL_SESSIONを取り逃した場合のフォールバック
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) loadUserData(session.user);
+    });
+
     return () => subscription.unsubscribe();
   }, []);
 
