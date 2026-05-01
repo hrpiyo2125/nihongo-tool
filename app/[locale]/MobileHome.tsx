@@ -3,7 +3,6 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
 import { contentTabLabels, methodTabLabels, getContentTabs, getMethodTabs } from "../../lib/tabs";
@@ -11,6 +10,7 @@ import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
 import { FaqSection } from "./MobileTroubleGuide";
+import { PrivacyContent, TermsContent, TokushohoContent, AboutContent } from "./LegalPagesContent";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
@@ -85,6 +85,10 @@ function MobileHomeInner() {
   const mySubPageOpen = m === "mypage-profile" || m === "mypage-plan" || m === "mypage-billing";
   const morePageDl = m === "more-dl";
   const morePageGuide = m === "more-guide";
+  const legalPrivacy = m === "legal-privacy";
+  const legalTerms = m === "legal-terms";
+  const legalTokushoho = m === "legal-tokushoho";
+  const legalAbout = m === "legal-about";
   const morePagePurchases = m === "more-purchases";
   const teaserPlanOpen = m === "teaser-plan";
   const teaserPurchaseOpen = m === "teaser-purchase";
@@ -256,13 +260,6 @@ function MobileHomeInner() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
-      <nav aria-label="サイト内リンク" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap" }}>
-        <Link href="/faq">よくある質問</Link>
-        <Link href="/about">toolioとは</Link>
-        <Link href="/terms">利用規約</Link>
-        <Link href="/privacy">プライバシーポリシー</Link>
-        <Link href="/tokushoho">特定商取引法に基づく表示</Link>
-      </nav>
 
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
@@ -640,6 +637,24 @@ function MobileHomeInner() {
             )}
 
 
+            {/* リーガルページ */}
+            {(legalPrivacy || legalTerms || legalTokushoho || legalAbout) && (
+              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "#f8f4f4", display: "flex", flexDirection: "column" }}>
+                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12, background: "white" }}>
+                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
+                    {legalPrivacy ? "プライバシーポリシー" : legalTerms ? "利用規約" : legalTokushoho ? "特定商取引法に基づく表記" : "toolioとは"}
+                  </span>
+                </header>
+                <div style={{ flex: 1, overflowY: "auto", background: "white" }}>
+                  {legalPrivacy && <PrivacyContent onBack={goBack} />}
+                  {legalTerms && <TermsContent onBack={goBack} />}
+                  {legalTokushoho && <TokushohoContent onBack={goBack} />}
+                  {legalAbout && <AboutContent onBack={goBack} />}
+                </div>
+              </div>
+            )}
+
             {/* 使い方ガイドサブページ */}
             {morePageGuide && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
@@ -777,15 +792,13 @@ function MobileHomeInner() {
 
             {/* フッターリンク */}
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-              <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
+              <button onClick={() => navigate("legal-about")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>toolioとは</button>
               <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
-              <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
+              <button onClick={() => navigate("legal-terms")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>利用規約</button>
               <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
-              <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-                <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
-                <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-                <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
-              </span>
+              <button onClick={() => navigate("legal-privacy")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>プライバシー</button>
+              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
+              <button onClick={() => navigate("legal-tokushoho")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>特商法</button>
             </div>
             <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "center" }}>© 2026 toolio</div>
 
