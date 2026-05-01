@@ -16,8 +16,26 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Kaku Gothic ProN','Hiragino Sans','Noto Sans JP',sans-serif", background: "#fdf8ff" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .about-wrap { padding: 80px 16px 64px !important; background: white !important; }
+          .about-concept { padding: 20px 20px !important; }
+          .about-cta { padding: 28px 20px !important; }
+          .about-feat { padding: 18px 20px !important; }
+          .desktop-hero { display: none !important; }
+          .mobile-header { display: flex !important; }
+        }
+        @media (min-width: 641px) {
+          .mobile-header { display: none !important; }
+        }
+      `}</style>
 
-      <div style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+      <div className="mobile-header" style={{ display: "none", position: "fixed", top: 0, left: 0, right: 0, height: 56, alignItems: "center", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", zIndex: 50, gap: 12 }}>
+        <Link href="/" style={{ fontSize: 22, color: "#aaa", textDecoration: "none", lineHeight: 1 }}>‹</Link>
+        <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>toolioとは</span>
+      </div>
+
+      <div className="desktop-hero" style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
         <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
           ← ホームに戻る
         </Link>
@@ -31,7 +49,7 @@ export default function AboutPage() {
         <p style={{ fontSize: 13, color: "#bbb", marginTop: 10 }}>日本語を学ぶ子供のための教材サービス</p>
       </div>
 
-      <div style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 80px" }}>
+      <div className="about-wrap" style={{ maxWidth: 720, margin: "0 auto", padding: "48px 24px 80px" }}>
 
         {/* サービス概要 */}
         <section style={{ marginBottom: 56 }}>
@@ -88,7 +106,7 @@ export default function AboutPage() {
                 border: "#6dcfb8",
               },
             ].map((f) => (
-              <div key={f.title} style={{ background: f.color, border: `0.5px solid ${f.border}`, borderRadius: 16, padding: "24px 28px" }}>
+              <div key={f.title} className="about-feat" style={{ background: f.color, border: `0.5px solid ${f.border}`, borderRadius: 16, padding: "24px 28px" }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 8 }}>{f.title}</div>
                 <p style={{ fontSize: 14, color: "#666", lineHeight: 1.8, margin: 0 }}>{f.desc}</p>
               </div>
@@ -99,7 +117,7 @@ export default function AboutPage() {
         {/* 学びのコンセプト */}
         <section style={{ marginBottom: 56 }}>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 16 }}>学びのコンセプト</h2>
-          <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px" }}>
+          <div className="about-concept" style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px" }}>
             <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>
               子供たちは、楽しんでいる時ほど、自然に言葉を覚えています。かるたで遊びながら気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。
             </p>
@@ -110,7 +128,7 @@ export default function AboutPage() {
         </section>
 
         {/* CTA */}
-        <section style={{ textAlign: "center", background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 20, padding: "40px 32px" }}>
+        <section className="about-cta" style={{ textAlign: "center", background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 20, padding: "40px 32px" }}>
           <p style={{ fontSize: 16, fontWeight: 700, color: "#555", marginBottom: 8 }}>まず、無料で教材を試してみてください</p>
           <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24, lineHeight: 1.7 }}>登録不要・クレジットカード不要</p>
           <Link

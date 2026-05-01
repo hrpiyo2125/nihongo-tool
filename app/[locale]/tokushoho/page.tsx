@@ -22,7 +22,27 @@ const rows = [
 export default function TokushohoPage() {
   return (
     <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f8f4f4" }}>
-      <div style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .toku-row { grid-template-columns: 1fr !important; }
+          .toku-label { padding: 12px 16px 6px !important; border-bottom: none !important; }
+          .toku-value { padding: 0 16px 14px !important; }
+          .toku-wrap { padding: 80px 16px 64px !important; background: white !important; }
+          .desktop-hero { display: none !important; }
+          .mobile-header { display: flex !important; }
+        }
+        @media (min-width: 641px) {
+          .mobile-header { display: none !important; }
+        }
+      `}</style>
+
+      {/* モバイル用固定ヘッダー */}
+      <div className="mobile-header" style={{ display: "none", position: "fixed", top: 0, left: 0, right: 0, height: 56, alignItems: "center", padding: "0 16px", background: "white", borderBottom: "0.5px solid rgba(200,170,240,0.2)", zIndex: 50, gap: 12 }}>
+        <Link href="/" style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, textDecoration: "none" }}>‹</Link>
+        <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>特定商取引法に基づく表記</span>
+      </div>
+
+      <div className="desktop-hero" style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
         <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
           ← ホームに戻る
         </Link>
@@ -33,14 +53,14 @@ export default function TokushohoPage() {
         <p style={{ fontSize: 13, color: "#bbb", marginTop: 10 }}>Act on Specified Commercial Transactions</p>
       </div>
 
-      <div style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>
+      <div className="toku-wrap" style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>
         <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden" }}>
           {rows.map((row, i) => (
-            <div key={row.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", borderBottom: i < rows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-              <div style={{ padding: "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
+            <div key={row.label} className="toku-row" style={{ display: "grid", gridTemplateColumns: "200px 1fr", borderBottom: i < rows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
+              <div className="toku-label" style={{ padding: "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
                 {row.label}
               </div>
-              <div style={{ padding: "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
+              <div className="toku-value" style={{ padding: "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
                 {row.value}
               </div>
             </div>
