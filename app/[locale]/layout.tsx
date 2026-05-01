@@ -5,6 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import ChatWidgetLoader from "@/components/ChatWidgetLoader";
 import DeployWatcher from "@/components/DeployWatcher";
+import { AuthProvider } from './AuthContext';
 
 
 
@@ -43,7 +44,9 @@ export default async function RootLayout({
    <html lang={locale} className={`${libreBaskerville.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
           <ChatWidgetLoader />
           <DeployWatcher />
         </NextIntlClientProvider>
