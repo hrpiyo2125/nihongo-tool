@@ -9,6 +9,8 @@ import GoogleOneTap from "@/components/GoogleOneTap";
 import { AuthProvider } from './AuthContext';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import ErrorBoundary from "@/components/ErrorBoundary";
+import GlobalErrorHandler from "@/components/GlobalErrorHandler";
 
 
 
@@ -47,10 +49,13 @@ export default async function RootLayout({
    <html lang={locale} className={`${libreBaskerville.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <AuthProvider>
-            {children}
-            <GoogleOneTap />
-          </AuthProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              {children}
+              <GoogleOneTap />
+              <GlobalErrorHandler />
+            </AuthProvider>
+          </ErrorBoundary>
           <ChatWidgetLoader />
           <DeployWatcher />
           <Analytics />
