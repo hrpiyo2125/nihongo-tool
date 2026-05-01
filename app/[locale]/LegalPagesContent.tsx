@@ -4,15 +4,11 @@ import { useState } from "react";
 const HERO_BG = "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)";
 const GRAD_TEXT: React.CSSProperties = { background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" };
 
-function PageShell({ title, subtitle, onBack, children }: { title: string; subtitle: string; onBack: () => void; children: React.ReactNode }) {
+function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <div style={{ padding: "60px 48px 40px", background: HERO_BG, borderRadius: "16px 16px 0 0" }}>
-        <button onClick={onBack} style={{ border: "none", background: "transparent", fontSize: 12, color: "#bbb", cursor: "pointer", padding: 0, marginBottom: 20, display: "flex", alignItems: "center", gap: 6 }}>
-          ← ホームに戻る
-        </button>
-        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4, ...GRAD_TEXT }}>{title}</h2>
-        <p style={{ fontSize: 13, color: "#bbb" }}>{subtitle}</p>
+        <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 0, ...GRAD_TEXT }}>{title}</h2>
       </div>
       <div style={{ padding: "32px 48px 56px" }}>{children}</div>
     </div>
@@ -36,7 +32,7 @@ const privacySections = [
 
 export function PrivacyContent({ onBack }: { onBack: () => void }) {
   return (
-    <PageShell title="プライバシーポリシー" subtitle="Privacy Policy" onBack={onBack}>
+    <PageShell title="プライバシーポリシー">
       <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
         toolio（nihongo-tool.com、以下「当サービス」）は、お客様の個人情報の保護を重要と考え、以下のプライバシーポリシーに従って個人情報を適切に取り扱います。
       </p>
@@ -80,7 +76,7 @@ const termsSections = [
 
 export function TermsContent({ onBack }: { onBack: () => void }) {
   return (
-    <PageShell title="利用規約" subtitle="Terms of Service" onBack={onBack}>
+    <PageShell title="利用規約">
       <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
         本利用規約（以下「本規約」）は、toolioが提供するサービス（nihongo-tool.com）の利用条件を定めるものです。ご利用いただく前に必ずお読みください。
       </p>
@@ -119,7 +115,7 @@ const tokushohoRows = [
 
 export function TokushohoContent({ onBack }: { onBack: () => void }) {
   return (
-    <PageShell title="特定商取引法に基づく表記" subtitle="Act on Specified Commercial Transactions" onBack={onBack}>
+    <PageShell title="特定商取引法に基づく表記">
       <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden" }}>
         {tokushohoRows.map((row, i) => (
           <div key={row.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
@@ -183,7 +179,7 @@ const faqCategories = [
 
 export function FaqContent({ onBack }: { onBack: () => void }) {
   return (
-    <PageShell title="よくある質問" subtitle="Frequently Asked Questions" onBack={onBack}>
+    <PageShell title="よくある質問">
       {faqCategories.map((cat) => (
         <section key={cat.label} style={{ marginBottom: 40 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 12, paddingLeft: 4 }}>{cat.label}</h3>
@@ -214,7 +210,7 @@ export function FaqContent({ onBack }: { onBack: () => void }) {
 // ===== toolioとは =====
 export function AboutContent({ onBack }: { onBack: () => void }) {
   return (
-    <PageShell title="toolioとは" subtitle="日本語を学ぶ子供のための教材サービス" onBack={onBack}>
+    <PageShell title="toolioとは">
       <section style={{ marginBottom: 56 }}>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>サービス概要</h3>
         <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>toolioは、日本語を学ぶ子供を支える先生・保護者のための日本語学習ツールサイトです。学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
