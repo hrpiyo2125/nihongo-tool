@@ -23,6 +23,7 @@ type Profile = {
 }
 
 type AuthContextType = {
+  authReady: boolean
   isLoggedIn: boolean
   userId: string
   userEmail: string
@@ -50,6 +51,7 @@ const defaultProfile: Profile = {
 }
 
 const AuthContext = createContext<AuthContextType>({
+  authReady: false,
   isLoggedIn: false,
   userId: '',
   userEmail: '',
@@ -78,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userInitial, setUserInitial] = useState('？')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile>(defaultProfile)
+  const [authReady, setAuthReady] = useState(false)
   const [favIds, setFavIds] = useState<string[]>([])
   const [favIdsLoaded, setFavIdsLoaded] = useState(false)
   const [dlIds, setDlIds] = useState<string[]>([])
@@ -175,6 +178,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) loadUserData(session.user, session.access_token)
+      setAuthReady(true)
     })
 
     return () => subscription.unsubscribe()
@@ -182,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl,
+      authReady, isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl,
       profile, favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
       setFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile,
     }}>

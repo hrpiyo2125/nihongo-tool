@@ -19,10 +19,10 @@ declare global {
 }
 
 export default function GoogleOneTap() {
-  const { isLoggedIn } = useAuth();
+  const { authReady, isLoggedIn } = useAuth();
 
   useEffect(() => {
-    if (isLoggedIn) return;
+    if (!authReady || isLoggedIn) return;
 
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
@@ -57,7 +57,7 @@ export default function GoogleOneTap() {
     return () => {
       window.google?.accounts.id.cancel();
     };
-  }, [isLoggedIn]);
+  }, [authReady, isLoggedIn]);
 
   return null;
 }
