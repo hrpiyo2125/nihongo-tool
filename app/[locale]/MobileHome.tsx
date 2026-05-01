@@ -748,7 +748,7 @@ function MobileHomeInner() {
                 <button onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut();
-                  goBack();
+                  window.location.reload();
                 }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
                   ログアウト
                 </button>

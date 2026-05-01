@@ -119,8 +119,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient()
+    let loaded = false
 
     const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }, accessToken?: string) => {
+      if (loaded) return
+      loaded = true
       setIsLoggedIn(true)
       setUserId(user.id)
       setUserEmail(user.email ?? '')
@@ -155,6 +158,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await loadUserData(session.user, session.access_token)
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         // ゲストまたはログアウト時
+        loaded = false
         setIsLoggedIn(false)
         setFavIds([])
         setFavIdsLoaded(true)  // ← ゲストでも必ずtrueにしてUIのローディングを解除
