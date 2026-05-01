@@ -131,26 +131,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserName(displayName)
       setUserInitial(displayName.charAt(0).toUpperCase())
 
-      const profilePromise = accessToken
-        ? fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } })
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-              if (!data) return
-              if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
-              applyProfile(data)
-            })
-        : Promise.resolve()
+      if (!accessToken) { setFavIdsLoaded(true); return }
 
-      const [, favRes, dlRes, purchaseRes] = await Promise.all([
-        profilePromise,
-        supabase.from('favorites').select('material_id').eq('user_id', user.id),
-        supabase.from('download_history').select('material_id').eq('user_id', user.id),
-        supabase.from('purchases').select('material_id').eq('user_id', user.id),
+      const [profileRes, userDataRes] = await Promise.all([
+        fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+        fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
       ])
-      if (favRes.data) setFavIds(favRes.data.map((d: any) => d.material_id))
+
+      if (profileRes.ok) {
+        const data = await profileRes.json()
+        if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
+        applyProfile(data)
+      }
+
+      if (userDataRes.ok) {
+        const data = await userDataRes.json()
+        setFavIds(data.favIds ?? [])
+        setDlIds([...new Set((data.dlIds ?? []) as string[])])
+        setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+      }
       setFavIdsLoaded(true)
-      if (dlRes.data) setDlIds([...new Set(dlRes.data.map((d: any) => d.material_id as string))])
-      if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: any) => d.material_id as string))])
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
