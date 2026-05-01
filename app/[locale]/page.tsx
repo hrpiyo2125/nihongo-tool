@@ -272,12 +272,12 @@ const methodItems = [
         supabase.from("favorites").select("material_id").eq("user_id", userId),
         supabase.from("download_history").select("material_id").eq("user_id", userId),
         supabase.from("purchases").select("material_id").eq("user_id", userId),
+        loadProfile(),
       ]);
       if (favRes.data) setTopFavIds(favRes.data.map((d: { material_id: string }) => d.material_id));
       setTopFavIdsLoaded(true);
       if (dlRes.data) setTopDlIds([...new Set(dlRes.data.map((d: { material_id: string }) => d.material_id))]);
       if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: { material_id: string }) => d.material_id))]);
-      await loadProfile();
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {

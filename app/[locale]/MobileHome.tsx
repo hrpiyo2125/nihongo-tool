@@ -156,26 +156,31 @@ function MobileHomeInner() {
       const displayName = user.user_metadata?.full_name || (user.email ?? "").split("@")[0];
       setUserName(displayName);
       setUserInitial(displayName.charAt(0).toUpperCase());
+
       const { data: { session: currentSession } } = await supabase.auth.getSession();
-      if (currentSession?.access_token) {
-        const res = await fetch('/api/profile', {
-          headers: { Authorization: `Bearer ${currentSession.access_token}` },
-        });
-        if (res.ok) {
-          const profileData = await res.json();
-          if (profileData.deleted) { window.location.href = '/ja/welcome-back'; return; }
-          setProfile(profileData);
-          if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
-          if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
-        }
-      }
-      const { data: favData } = await supabase.from("favorites").select("material_id").eq("user_id", user.id);
-      if (favData) setFavIds(favData.map((d: any) => d.material_id));
+
+      const profilePromise = currentSession?.access_token
+        ? fetch('/api/profile', { headers: { Authorization: `Bearer ${currentSession.access_token}` } })
+            .then(res => res.ok ? res.json() : null)
+            .then(profileData => {
+              if (!profileData) return;
+              if (profileData.deleted) { window.location.href = '/ja/welcome-back'; return; }
+              setProfile(profileData);
+              if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
+              if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
+            })
+        : Promise.resolve();
+
+      const [, favRes, dlRes, purchaseRes] = await Promise.all([
+        profilePromise,
+        supabase.from("favorites").select("material_id").eq("user_id", user.id),
+        supabase.from("download_history").select("material_id").eq("user_id", user.id),
+        supabase.from("purchases").select("material_id").eq("user_id", user.id),
+      ]);
+      if (favRes.data) setFavIds(favRes.data.map((d: any) => d.material_id));
       setFavIdsLoaded(true);
-      const { data: dlData } = await supabase.from("download_history").select("material_id").eq("user_id", user.id);
-      if (dlData) setDlIds([...new Set(dlData.map((d: any) => d.material_id as string))]);
-      const { data: purchaseData } = await supabase.from("purchases").select("material_id").eq("user_id", user.id);
-      if (purchaseData) setPurchasedIds([...new Set(purchaseData.map((d: any) => d.material_id as string))]);
+      if (dlRes.data) setDlIds([...new Set(dlRes.data.map((d: any) => d.material_id as string))]);
+      if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: any) => d.material_id as string))]);
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
