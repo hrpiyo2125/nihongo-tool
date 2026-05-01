@@ -116,7 +116,7 @@ const tokushohoRows = [
 export function TokushohoContent({ onBack }: { onBack: () => void }) {
   return (
     <PageShell title="特定商取引法に基づく表記">
-      <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden" }}>
+      <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
         {tokushohoRows.map((row, i) => (
           <div key={row.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
             <div style={{ padding: "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
