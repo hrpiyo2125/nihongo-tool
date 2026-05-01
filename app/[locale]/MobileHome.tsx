@@ -730,9 +730,9 @@ function MobileHomeInner() {
       {myPageOpen && (
         <>
           <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
-          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "56px 24px 32px", display: "flex", flexDirection: "column", gap: 0, overflowY: "auto" }}>
+          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: 0, overflowY: "auto" }}>
             {/* ユーザー情報 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", marginBottom: 8 }}>
               <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
                 {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
               </div>
@@ -776,16 +776,18 @@ function MobileHomeInner() {
             </div>
 
             {/* フッターリンク */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 10px", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
-              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
               <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
-              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-              <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
-              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-              <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
+              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
+              <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
+                <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+                <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
+              </span>
             </div>
-            <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16 }}>© 2026 toolio</div>
+            <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "right" }}>© 2026 toolio</div>
 
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
