@@ -296,6 +296,11 @@ const methodItems = [
       }
     });
 
+    // INITIAL_SESSIONを取り逃した場合のフォールバック
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) loadUserData(session.user.id);
+    });
+
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
