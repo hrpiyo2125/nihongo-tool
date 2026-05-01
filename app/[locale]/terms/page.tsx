@@ -169,7 +169,6 @@ export default function TermsPage() {
           .legal-card { padding: 16px 16px !important; }
           .desktop-hero { display: none !important; }
           .mobile-header { display: flex !important; }
-          .desktop-wrapper { background: transparent !important; }
         }
         @media (min-width: 641px) {
           .mobile-header { display: none !important; }
@@ -181,18 +180,18 @@ export default function TermsPage() {
         <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>利用規約</span>
       </div>
 
-      <div className="desktop-wrapper" style={{ maxWidth: 760, margin: "0 auto" }}>
-        <div className="desktop-hero" style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-          <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 20 }}>
-            ← ホームに戻る
-          </Link>
-          <h1 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 4 }}>
-            利用規約
-          </h1>
-          <p style={{ fontSize: 13, color: "#bbb" }}>Terms of Service</p>
-        </div>
+      <div className="desktop-hero" style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
+          ← ホームに戻る
+        </Link>
+        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>Legal</p>
+        <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          利用規約
+        </h1>
+        <p style={{ fontSize: 13, color: "#bbb", marginTop: 10 }}>Terms of Service</p>
+      </div>
 
-      <div className="legal-wrap" style={{ padding: "32px 48px 56px", background: "white" }}>
+      <div className="legal-wrap" style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>
         <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "white", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
           本利用規約（以下「本規約」）は、toolioが提供するサービス（nihongo-tool.com）の利用条件を定めるものです。ご利用いただく前に必ずお読みください。
         </p>
@@ -212,7 +211,6 @@ export default function TermsPage() {
         <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>
           制定日：2026年●月●日　／　最終更新日：2026年4月16日
         </p>
-      </div>
       </div>
     </div>
   );
