@@ -21,6 +21,7 @@ import { useIsMobile } from "./useIsMobile";
 import MobileHome from "./MobileHome";
 import { FaqSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
+import { PrivacyContent, TermsContent, TokushohoContent, FaqContent, AboutContent } from "./LegalPagesContent";
 import PersonalizedSection from "./PersonalizedSection";
 import IconItem from "./IconItem";
 
@@ -339,13 +340,13 @@ if (isMobile) return <MobileHome />;
   </div>
   {sbOpen && (
   <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: "10px 0 4px", flexWrap: "wrap" }}>
-    <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
+    <button onClick={() => setActivePage("about")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>toolioとは</button>
     <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-    <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
+    <button onClick={() => setActivePage("terms")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>利用規約</button>
     <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-    <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
+    <button onClick={() => setActivePage("privacy")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>プライバシー</button>
     <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
-    <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
+    <button onClick={() => setActivePage("tokushoho")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>特商法</button>
   </div>
 )}
 <div style={{ textAlign: "center", padding: "2px 0 8px", fontSize: 11, color: "#ccc" }}>
@@ -551,8 +552,17 @@ if (isMobile) return <MobileHome />;
         {activePage !== "home" && (
           activePage === "guide" ? (
             <FaqSection />
-
-            ) : (
+          ) : activePage === "privacy" ? (
+            <PrivacyContent onBack={() => setActivePage("home")} />
+          ) : activePage === "terms" ? (
+            <TermsContent onBack={() => setActivePage("home")} />
+          ) : activePage === "tokushoho" ? (
+            <TokushohoContent onBack={() => setActivePage("home")} />
+          ) : activePage === "faq" ? (
+            <FaqContent onBack={() => setActivePage("home")} />
+          ) : activePage === "about" ? (
+            <AboutContent onBack={() => setActivePage("home")} />
+          ) : (
     <MyPage
       activePage={activePage}
       setActivePage={setActivePage}
