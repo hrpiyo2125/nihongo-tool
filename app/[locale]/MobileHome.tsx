@@ -776,7 +776,7 @@ function MobileHomeInner() {
             </div>
 
             {/* フッターリンク */}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
               <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
               <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
@@ -787,7 +787,7 @@ function MobileHomeInner() {
                 <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
               </span>
             </div>
-            <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "right" }}>© 2026 toolio</div>
+            <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "center" }}>© 2026 toolio</div>
 
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
