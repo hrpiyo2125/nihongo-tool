@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase";
+import { useAuth } from "./AuthContext";
 import { useState, useEffect, useRef } from "react";
 
 
@@ -170,16 +171,15 @@ const methodItems = [
   { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
 ];
 
+  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
+          favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
+          purchasedIds, loadProfile,
+          setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile } = useAuth();
+
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInitial, setUserInitial] = useState("？");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [userName, setUserName] = useState("ゲスト");
-  const [userEmail, setUserEmail] = useState("");
-  const [userId, setUserId] = useState("");
   const [materials, setMaterials] = useState<Material[]>([]);
   const [materialsLoading, setMaterialsLoading] = useState(true);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
@@ -189,11 +189,6 @@ const methodItems = [
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
   const [topTeaserMat, setTopTeaserMat] = useState<Material | null>(null);
-  const [topFavIds, setTopFavIds] = useState<string[]>([]);
-  const [topFavIdsLoaded, setTopFavIdsLoaded] = useState(false);
-  const [topDlIds, setTopDlIds] = useState<string[]>([]);
-  const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
-  const [profile, setProfile] = useState<Record<string, any>>({ full_name: "", country: "", city: "", purpose: [], occupation: "", student_level: "", occupation_other: "", purpose_other: "" });
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
@@ -225,90 +220,6 @@ const methodItems = [
     return () => window.removeEventListener("toolio:navigate-mypage", handler);
   }, []);
 
-  const loadProfile = async () => {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) return;
-
-    const res = await fetch('/api/profile', {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    });
-    if (!res.ok) return;
-    const data = await res.json();
-
-    if (data.deleted) {
-      window.location.href = `/${locale}/welcome-back`;
-      return;
-    }
-
-    setProfile({
-      full_name: data.full_name || "",
-      country: data.country || "",
-      city: data.city || "",
-      purpose: data.purpose || [],
-      occupation: data.occupation || "",
-      student_level: data.student_level || "",
-      occupation_other: data.occupation_other || "",
-      purpose_other: data.purpose_other || "",
-      plan: data.plan || "free",
-      plan_status: data.plan_status || "active",
-      cancel_at_period_end: data.cancel_at_period_end ?? false,
-      current_period_end: data.current_period_end || null,
-      trial_end: data.trial_end || null,
-      status: data.status || "active",
-    });
-    if (data.full_name) {
-      setUserName(data.full_name);
-      setUserInitial(data.full_name.charAt(0).toUpperCase());
-    }
-    if (data.avatar_url) setAvatarUrl(data.avatar_url);
-  };
-
-  const isMobileRef = useRef(false);
-  isMobileRef.current = isMobile;
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    const loadUserData = async (userId: string) => {
-      if (isMobileRef.current) return;
-      const [favRes, dlRes, purchaseRes] = await Promise.all([
-        supabase.from("favorites").select("material_id").eq("user_id", userId),
-        supabase.from("download_history").select("material_id").eq("user_id", userId),
-        supabase.from("purchases").select("material_id").eq("user_id", userId),
-        loadProfile(),
-      ]);
-      if (favRes.data) setTopFavIds(favRes.data.map((d: { material_id: string }) => d.material_id));
-      setTopFavIdsLoaded(true);
-      if (dlRes.data) setTopDlIds([...new Set(dlRes.data.map((d: { material_id: string }) => d.material_id))]);
-      if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: { material_id: string }) => d.material_id))]);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (isMobileRef.current) return;
-      setIsLoggedIn(!!session);
-      if (session?.user) {
-        const name = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "";
-        setUserId(session.user.id);
-        setUserEmail(session.user.email ?? "");
-        setUserInitial(name.charAt(0).toUpperCase());
-        setUserName(name);
-        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
-          loadUserData(session.user.id);
-        }
-      } else {
-        setTopFavIdsLoaded(true);
-      }
-    });
-
-    // INITIAL_SESSIONを取り逃した場合のフォールバック
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadUserData(session.user.id);
-    });
-
-    return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const openModal = (content = "all", method = "all") => setModal({ content, method });
   const closeModal = () => setModal(null);
@@ -395,7 +306,6 @@ if (isMobile) return <MobileHome />;
         setUserMenuOpen(false);
         const supabase = createClient();
         await supabase.auth.signOut();
-        setIsLoggedIn(false);
         router.refresh();
       }}
       sbOpen={sbOpen}

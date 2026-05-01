@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../lib/supabase";
+import { useAuth } from "./AuthContext";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { getCardStyle } from "../../lib/materialUtils";
@@ -49,12 +50,12 @@ function MobileHomeInner() {
   const tmm = useTranslations('materials_modal');
   const th = useTranslations('home');
 
+  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
+          favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
+          setFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile } = useAuth();
+  const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
+
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userInitial, setUserInitial] = useState("？");
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [scrolled, setScrolled] = useState(false);
   const [mySubPage, setMySubPage] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
@@ -64,13 +65,6 @@ function MobileHomeInner() {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
-  const [userId, setUserId] = useState("");
-  const [favIds, setFavIds] = useState<string[]>([]);
-  const [favIdsLoaded, setFavIdsLoaded] = useState(false);
-  const [dlIds, setDlIds] = useState<string[]>([]);
-  const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
-  const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
-  const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
   const [modalInitContent, setModalInitContent] = useState("all");
   const [modalInitMethod, setModalInitMethod] = useState("all");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -146,61 +140,6 @@ function MobileHomeInner() {
     navigate("auth");
   };
 
-  useEffect(() => {
-    const supabase = createClient();
-
-    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }, accessToken?: string) => {
-      setIsLoggedIn(true);
-      setUserId(user.id);
-      setUserEmail(user.email ?? "");
-      const displayName = user.user_metadata?.full_name || (user.email ?? "").split("@")[0];
-      setUserName(displayName);
-      setUserInitial(displayName.charAt(0).toUpperCase());
-
-      const profilePromise = accessToken
-        ? fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } })
-            .then(res => res.ok ? res.json() : null)
-            .then(profileData => {
-              if (!profileData) return;
-              if (profileData.deleted) { window.location.href = '/ja/welcome-back'; return; }
-              setProfile(profileData);
-              if (profileData.full_name) { setUserInitial(profileData.full_name.charAt(0).toUpperCase()); setUserName(profileData.full_name); }
-              if (profileData.avatar_url) setAvatarUrl(profileData.avatar_url);
-            })
-        : Promise.resolve();
-
-      const [, favRes, dlRes, purchaseRes] = await Promise.all([
-        profilePromise,
-        supabase.from("favorites").select("material_id").eq("user_id", user.id),
-        supabase.from("download_history").select("material_id").eq("user_id", user.id),
-        supabase.from("purchases").select("material_id").eq("user_id", user.id),
-      ]);
-      if (favRes.data) setFavIds(favRes.data.map((d: any) => d.material_id));
-      setFavIdsLoaded(true);
-      if (dlRes.data) setDlIds([...new Set(dlRes.data.map((d: any) => d.material_id as string))]);
-      if (purchaseRes.data) setPurchasedIds([...new Set(purchaseRes.data.map((d: any) => d.material_id as string))]);
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
-        await loadUserData(session.user, session.access_token);
-      } else if (event === 'SIGNED_OUT') {
-        setIsLoggedIn(false);
-        setFavIds([]);
-        setFavIdsLoaded(true);
-        setDlIds([]);
-        setPurchasedIds([]);
-        setProfile({ plan: "free" });
-      }
-    });
-
-    // isMobileの切り替えでINITIAL_SESSIONを取り逃した場合のフォールバック
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadUserData(session.user, session.access_token);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
@@ -809,7 +748,6 @@ function MobileHomeInner() {
                 <button onClick={async () => {
                   const supabase = createClient();
                   await supabase.auth.signOut();
-                  setIsLoggedIn(false);
                   goBack();
                 }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
                   ログアウト
