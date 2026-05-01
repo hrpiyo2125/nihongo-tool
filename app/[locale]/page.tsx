@@ -264,10 +264,14 @@ const methodItems = [
     if (data.avatar_url) setAvatarUrl(data.avatar_url);
   };
 
+  const isMobileRef = useRef(false);
+  isMobileRef.current = isMobile;
+
   useEffect(() => {
     const supabase = createClient();
 
     const loadUserData = async (userId: string) => {
+      if (isMobileRef.current) return;
       const [favRes, dlRes, purchaseRes] = await Promise.all([
         supabase.from("favorites").select("material_id").eq("user_id", userId),
         supabase.from("download_history").select("material_id").eq("user_id", userId),
@@ -281,6 +285,7 @@ const methodItems = [
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (isMobileRef.current) return;
       setIsLoggedIn(!!session);
       if (session?.user) {
         const name = session.user.user_metadata?.full_name || session.user.email?.split("@")[0] || "";
