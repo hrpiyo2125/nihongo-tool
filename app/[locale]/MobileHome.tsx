@@ -52,7 +52,7 @@ function MobileHomeInner() {
 
   const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
           favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
-          setFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile } = useAuth();
+          setFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
 
   const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
@@ -776,11 +776,7 @@ function MobileHomeInner() {
                   currentPeriodEnd={profile?.current_period_end ?? null}
                   isPendingDeletion={profile?.status === "pending_deletion"}
                   onSubscribed={async () => {
-                    const supabase = createClient();
-                    const { data: { session } } = await supabase.auth.getSession();
-                    if (!session) return;
-                    const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-                    if (data) setProfile(data);
+                    await loadProfile();
                     goBack();
                   }}
                 />
@@ -802,7 +798,7 @@ function MobileHomeInner() {
               setUserName={setUserName}
               userEmail={userEmail}
               profile={profile}
-              setProfile={setProfile}
+              updateProfile={updateProfile}
               editingField={editingField}
               setEditingField={setEditingField}
               editingValue={editingValue}
@@ -815,13 +811,7 @@ function MobileHomeInner() {
               tm={tm}
               navItems={[]}
               mobileMode={true}
-              onPlanChanged={async () => {
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                if (!session) return;
-                const { data } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
-                if (data) setProfile(data);
-              }}
+              onPlanChanged={loadProfile}
               onOpenAuth={openAuth}
             />
             )}

@@ -174,7 +174,7 @@ const methodItems = [
   const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
           favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
           purchasedIds, loadProfile,
-          setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile } = useAuth();
+          setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
@@ -565,7 +565,7 @@ if (isMobile) return <MobileHome />;
       setUserName={setUserName}
       userEmail={userEmail}
       profile={profile}
-      setProfile={setProfile}
+      updateProfile={updateProfile}
       editingField={editingField}
       setEditingField={setEditingField}
       editingValue={editingValue}

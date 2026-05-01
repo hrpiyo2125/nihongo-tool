@@ -18,12 +18,13 @@ type Profile = {
   current_period_end?: string | null
   trial_end?: string | null
   status?: string
-  avatar_url?: string
+  avatar_url?: string | null
   [key: string]: any
 }
 
 type AuthContextType = {
   isLoggedIn: boolean
+  isAuthLoading: boolean
   userId: string
   userEmail: string
   userName: string
@@ -35,22 +36,23 @@ type AuthContextType = {
   dlIds: string[]
   purchasedIds: string[]
   loadProfile: () => Promise<void>
+  updateProfile: (partial: Partial<Profile>) => void
   setFavIds: React.Dispatch<React.SetStateAction<string[]>>
   setUserName: React.Dispatch<React.SetStateAction<string>>
   setUserInitial: React.Dispatch<React.SetStateAction<string>>
   setAvatarUrl: React.Dispatch<React.SetStateAction<string | null>>
-  setProfile: React.Dispatch<React.SetStateAction<Profile>>
 }
 
 const defaultProfile: Profile = {
   full_name: '', country: '', city: '', purpose: [],
   occupation: '', student_level: '', occupation_other: '', purpose_other: '',
   plan: 'free', plan_status: 'active', cancel_at_period_end: false,
-  current_period_end: null, trial_end: null, status: 'active',
+  current_period_end: null, trial_end: null, status: 'active', avatar_url: null,
 }
 
 const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
+  isAuthLoading: true,
   userId: '',
   userEmail: '',
   userName: 'ゲスト',
@@ -62,11 +64,11 @@ const AuthContext = createContext<AuthContextType>({
   dlIds: [],
   purchasedIds: [],
   loadProfile: async () => {},
+  updateProfile: () => {},
   setFavIds: () => {},
   setUserName: () => {},
   setUserInitial: () => {},
   setAvatarUrl: () => {},
-  setProfile: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -99,9 +101,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       current_period_end: data.current_period_end || null,
       trial_end: data.trial_end || null,
       status: data.status || 'active',
+      avatar_url: data.avatar_url ?? null,
     })
     if (data.full_name) { setUserName(data.full_name); setUserInitial(data.full_name.charAt(0).toUpperCase()) }
     if (data.avatar_url) setAvatarUrl(data.avatar_url)
+  }, [])
+
+  // partial update — keeps profile and avatarUrl in sync
+  const updateProfile = useCallback((partial: Partial<Profile>) => {
+    setProfile(prev => ({ ...prev, ...partial }))
+    if (partial.avatar_url !== undefined) setAvatarUrl(partial.avatar_url ?? null)
   }, [])
 
   const loadProfile = useCallback(async () => {
@@ -153,15 +162,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setFavIdsLoaded(true)
     }
 
+    // TOKEN_REFRESHED: プロファイル・ユーザーデータだけ再取得（プラン変更等を即反映）
+    const refreshUserData = async (accessToken: string) => {
+      const [profileRes, userDataRes] = await Promise.all([
+        fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+        fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
+      ])
+      if (profileRes.ok) {
+        const data = await profileRes.json()
+        if (!data.deleted) applyProfile(data)
+      }
+      if (userDataRes.ok) {
+        const data = await userDataRes.json()
+        setFavIds(data.favIds ?? [])
+        setDlIds([...new Set((data.dlIds ?? []) as string[])])
+        setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
+      if (event === 'TOKEN_REFRESHED' && session?.user) {
+        await refreshUserData(session.access_token)
+      } else if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
         await loadUserData(session.user, session.access_token)
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
-        // ゲストまたはログアウト時
         loaded = false
         setIsLoggedIn(false)
         setFavIds([])
-        setFavIdsLoaded(true)  // ← ゲストでも必ずtrueにしてUIのローディングを解除
+        setFavIdsLoaded(true)
         setDlIds([])
         setPurchasedIds([])
         setProfile(defaultProfile)
@@ -175,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) loadUserData(session.user, session.access_token)
-      else setFavIdsLoaded(true) // getSessionでもゲスト確定時に解除
+      else setFavIdsLoaded(true)
     })
 
     return () => subscription.unsubscribe()
@@ -183,9 +211,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl,
-      profile, favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
-      setFavIds, setUserName, setUserInitial, setAvatarUrl, setProfile,
+      isLoggedIn, isAuthLoading: !favIdsLoaded,
+      userId, userEmail, userName, userInitial, avatarUrl,
+      profile, favIds, favIdsLoaded, dlIds, purchasedIds,
+      loadProfile, updateProfile,
+      setFavIds, setUserName, setUserInitial, setAvatarUrl,
     }}>
       {children}
     </AuthContext.Provider>

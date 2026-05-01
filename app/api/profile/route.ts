@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { rateLimit } from '../../../lib/rateLimit'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -16,6 +17,10 @@ export async function GET(req: NextRequest) {
   const { data: { user }, error } = await supabase.auth.getUser(token)
   if (error || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  if (!rateLimit(user.id, 60, 60_000)) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 })
   }
 
   let { data: profile } = await supabase

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from 'next/navigation';
 import { createClient } from "../../lib/supabase";
@@ -403,7 +403,7 @@ type MyPageProps = {
   setUserName: (name: string) => void;
   userEmail: string;
   profile: Record<string, any>;
-  setProfile: Dispatch<SetStateAction<Record<string, any>>>;
+  updateProfile: (partial: Record<string, any>) => void;
   editingField: string | null;
   setEditingField: (field: string | null) => void;
   editingValue: string;
@@ -432,7 +432,7 @@ export default function MyPage({
   setUserName,
   userEmail,
   profile,
-  setProfile,
+  updateProfile,
   editingField,
   setEditingField,
   editingValue,
@@ -542,7 +542,7 @@ export default function MyPage({
       });
       const data = await res.json();
       if (data.success) {
-        setProfile((prev: any) => ({ ...prev, cancel_at_period_end: true, current_period_end: data.currentPeriodEnd ?? prev.current_period_end }));
+        updateProfile({ cancel_at_period_end: true, current_period_end: data.currentPeriodEnd ?? profile.current_period_end });
         setFreePlanSuccess(true);
         setFreePlanLoading(false);
         setTimeout(() => { setFreePlanSuccess(false); setConfirmFreePlan(false); }, 2500);
@@ -645,7 +645,7 @@ export default function MyPage({
                     const col = field.col;
                     const value = editingValue;
                     await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
-                    setProfile((prev) => ({ ...prev, [col]: value }));
+                    updateProfile({ [col]: value });
                     if (col === "full_name") { setUserName(editingValue); if (editingValue) setUserInitial(editingValue.charAt(0).toUpperCase()); }
                     setSavingProfile(false);
                     setEditingField(null);
@@ -698,7 +698,7 @@ export default function MyPage({
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
-                      setProfile((prev: any) => ({ ...prev, country: draftResidence.country, city: draftResidence.city }));
+                      updateProfile({ country: draftResidence.country, city: draftResidence.city });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
@@ -748,7 +748,7 @@ export default function MyPage({
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
-                      setProfile((prev: any) => ({ ...prev, occupation: draftOccupation, occupation_other: draftOccupationOther }));
+                      updateProfile({ occupation: draftOccupation, occupation_other: draftOccupationOther });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
@@ -796,7 +796,7 @@ export default function MyPage({
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
-                      setProfile((prev: any) => ({ ...prev, purpose: draftPurpose, purpose_other: draftPurposeOther }));
+                      updateProfile({ purpose: draftPurpose, purpose_other: draftPurposeOther });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
@@ -1129,7 +1129,7 @@ export default function MyPage({
     <BillingSection
       profile={profile as any}
       onChangePlan={() => setActivePage("plan")}
-      onProfileUpdate={(updates) => setProfile((prev: any) => ({ ...prev, ...updates }))}
+      onProfileUpdate={updateProfile}
       mobileMode={mobileMode}
     />
   );
