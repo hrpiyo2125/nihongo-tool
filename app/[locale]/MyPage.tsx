@@ -464,6 +464,7 @@ export default function MyPage({
     "/avatars/preset/avatar8.png",
   ];
   const [savingProfile, setSavingProfile] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [editingSection, setEditingSection] = useState<string | null>(null);
   const [draftResidence, setDraftResidence] = useState({ country: "", city: "" });
   const [draftOccupation, setDraftOccupation] = useState("");
@@ -639,12 +640,14 @@ export default function MyPage({
                   disabled={savingProfile}
                   onClick={async () => {
                     setSavingProfile(true);
+                    setSaveError(null);
                     const supabase = createClient();
                     const { data: { session } } = await supabase.auth.getSession();
                     if (!session) { setSavingProfile(false); return; }
                     const col = field.col;
                     const value = editingValue;
-                    await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
+                    const { error } = await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
+                    if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingProfile(false); return; }
                     updateProfile({ [col]: value });
                     if (col === "full_name") { setUserName(editingValue); if (editingValue) setUserInitial(editingValue.charAt(0).toUpperCase()); }
                     setSavingProfile(false);
@@ -652,7 +655,8 @@ export default function MyPage({
                   }}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingProfile ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingProfile ? "not-allowed" : "pointer", fontWeight: 700 }}
                 >{savingProfile ? "保存中..." : tm("save")}</button>
-                <button onClick={() => setEditingField(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                <button onClick={() => { setEditingField(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
               </div>
             ) : (
               <button onClick={() => { setEditingField(field.label); setEditingValue(field.value === "未設定" ? "" : field.value); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
@@ -695,14 +699,19 @@ export default function MyPage({
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
                       setSavingSection(true);
+                      setSaveError(null);
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
-                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
+                      if (session) {
+                        const { error } = await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
+                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                      }
                       updateProfile({ country: draftResidence.country, city: draftResidence.city });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
-                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
                 )}
               </div>
@@ -745,14 +754,19 @@ export default function MyPage({
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
                       setSavingSection(true);
+                      setSaveError(null);
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
-                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
+                      if (session) {
+                        const { error } = await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
+                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                      }
                       updateProfile({ occupation: draftOccupation, occupation_other: draftOccupationOther });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
-                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
                 )}
               </div>
@@ -793,14 +807,19 @@ export default function MyPage({
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
                       setSavingSection(true);
+                      setSaveError(null);
                       const supabase = createClient();
                       const { data: { session } } = await supabase.auth.getSession();
-                      if (session) await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
+                      if (session) {
+                        const { error } = await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
+                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                      }
                       updateProfile({ purpose: draftPurpose, purpose_other: draftPurposeOther });
                       setSavingSection(false);
                       setEditingSection(null);
                     }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
-                    <button onClick={() => setEditingSection(null)} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
+                    {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
                 )}
               </div>

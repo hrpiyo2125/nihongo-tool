@@ -114,16 +114,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const loadProfile = useCallback(async () => {
-    const supabase = createClient()
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.access_token) return
-    const res = await fetch('/api/profile', {
-      headers: { Authorization: `Bearer ${session.access_token}` },
-    })
-    if (!res.ok) return
-    const data = await res.json()
-    if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
-    applyProfile(data)
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) return
+      const res = await fetch('/api/profile', {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      })
+      if (!res.ok) return
+      const data = await res.json()
+      if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
+      applyProfile(data)
+    } catch {
+      // バックグラウンド更新なので失敗しても継続
+    }
   }, [locale, applyProfile])
 
   useEffect(() => {
@@ -142,41 +146,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!accessToken) { setFavIdsLoaded(true); return }
 
-      const [profileRes, userDataRes] = await Promise.all([
-        fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
-        fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
-      ])
+      try {
+        const [profileRes, userDataRes] = await Promise.all([
+          fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
+        ])
 
-      if (profileRes.ok) {
-        const data = await profileRes.json()
-        if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
-        applyProfile(data)
-      }
+        if (profileRes.ok) {
+          const data = await profileRes.json()
+          if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
+          applyProfile(data)
+        }
 
-      if (userDataRes.ok) {
-        const data = await userDataRes.json()
-        setFavIds(data.favIds ?? [])
-        setDlIds([...new Set((data.dlIds ?? []) as string[])])
-        setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+        if (userDataRes.ok) {
+          const data = await userDataRes.json()
+          setFavIds(data.favIds ?? [])
+          setDlIds([...new Set((data.dlIds ?? []) as string[])])
+          setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+        }
+      } catch {
+        // ネットワーク障害時もUIのロックを防ぐため必ず解除
+      } finally {
+        setFavIdsLoaded(true)
       }
-      setFavIdsLoaded(true)
     }
 
     // TOKEN_REFRESHED: プロファイル・ユーザーデータだけ再取得（プラン変更等を即反映）
     const refreshUserData = async (accessToken: string) => {
-      const [profileRes, userDataRes] = await Promise.all([
-        fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
-        fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
-      ])
-      if (profileRes.ok) {
-        const data = await profileRes.json()
-        if (!data.deleted) applyProfile(data)
-      }
-      if (userDataRes.ok) {
-        const data = await userDataRes.json()
-        setFavIds(data.favIds ?? [])
-        setDlIds([...new Set((data.dlIds ?? []) as string[])])
-        setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+      try {
+        const [profileRes, userDataRes] = await Promise.all([
+          fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
+        ])
+        if (profileRes.ok) {
+          const data = await profileRes.json()
+          if (!data.deleted) applyProfile(data)
+        }
+        if (userDataRes.ok) {
+          const data = await userDataRes.json()
+          setFavIds(data.favIds ?? [])
+          setDlIds([...new Set((data.dlIds ?? []) as string[])])
+          setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+        }
+      } catch {
+        // バックグラウンド更新なので失敗しても継続
       }
     }
 
