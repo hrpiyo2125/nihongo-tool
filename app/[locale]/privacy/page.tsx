@@ -87,7 +87,7 @@ const sections = [
 
 export default function PrivacyPage() {
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f8f4f4" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "white" }}>
       <style>{`
         @media (max-width: 640px) {
           .legal-wrap { padding: 80px 16px 64px !important; background: white !important; }
@@ -105,15 +105,14 @@ export default function PrivacyPage() {
         <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>プライバシーポリシー</span>
       </div>
 
-      <div className="desktop-hero" style={{ padding: "48px 0 36px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 80%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
+      <div className="desktop-hero" style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 20 }}>
           ← ホームに戻る
         </Link>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>Legal</p>
-        <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block", marginBottom: 4 }}>
           プライバシーポリシー
         </h1>
-        <p style={{ fontSize: 13, color: "#bbb", marginTop: 10 }}>Privacy Policy</p>
+        <p style={{ fontSize: 13, color: "#bbb" }}>Privacy Policy</p>
       </div>
 
       <div className="legal-wrap" style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px 80px" }}>

@@ -113,22 +113,21 @@ export default function GuidePage() {
   const [activeTab, setActiveTab] = useState("start");
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "#f8f4f4" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", background: "white" }}>
       {/* ヘッダー */}
-      <div style={{ padding: "48px 0 0", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 85%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 24 }}>
+      <div style={{ padding: "60px 48px 0", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, color: "#bbb", textDecoration: "none", marginBottom: 20 }}>
           ← ホームに戻る
         </Link>
-        <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 10 }}>Guide</p>
-        <h1 style={{ fontSize: 28, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+        <h1 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block", marginBottom: 4 }}>
           使い方ガイド
         </h1>
-        <p style={{ fontSize: 14, color: "#aaa", marginTop: 10, marginBottom: 36, lineHeight: 1.8 }}>
+        <p style={{ fontSize: 13, color: "#bbb", marginBottom: 28 }}>
           お悩みに合わせて、toolioの使い方をご案内します。
         </p>
 
         {/* 横タブ */}
-        <div style={{ display: "flex", justifyContent: "center", borderBottom: "0.5px solid rgba(200,170,240,0.25)", background: "white" }}>
+        <div style={{ display: "flex", borderBottom: "0.5px solid rgba(200,170,240,0.25)" }}>
           {tabs.map((tab) => {
             const active = activeTab === tab.id;
             return (
