@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from 'next/navigation';
 import { createClient } from "../../lib/supabase";
 import { getCardStyle } from "../../lib/materialUtils";
@@ -593,8 +594,8 @@ export default function MyPage({
             {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
           </div>
         </div>
-        {showPresetPicker && (
-          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowPresetPicker(false)}>
+        {showPresetPicker && typeof document !== "undefined" && createPortal(
+          <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowPresetPicker(false)}>
             <div style={{ background: "white", borderRadius: 18, padding: 24, maxWidth: 340, width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }} onClick={(e) => e.stopPropagation()}>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>アイコンを選択</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
@@ -610,7 +611,8 @@ export default function MyPage({
               </div>
               <button onClick={() => fileInputRef.current?.click()} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>自分の写真をアップロード</button>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
         {/* 名前 / 学習レベル */}
         {[
