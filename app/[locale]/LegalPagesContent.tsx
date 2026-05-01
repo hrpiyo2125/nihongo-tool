@@ -43,7 +43,7 @@ export function PrivacyContent({ onBack, compact }: { onBack: () => void; compac
         {privacySections.map((s, i) => (
           <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
             <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
               {s.title}
             </h3>
             <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
@@ -122,7 +122,7 @@ export function TokushohoContent({ onBack, compact }: { onBack: () => void; comp
       <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
         {tokushohoRows.map((row, i) => (
           <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-            <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
+            <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>
               {row.label}
             </div>
             <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
