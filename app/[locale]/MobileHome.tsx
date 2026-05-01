@@ -637,24 +637,6 @@ function MobileHomeInner() {
             )}
 
 
-            {/* リーガルページ */}
-            {(legalPrivacy || legalTerms || legalTokushoho || legalAbout) && (
-              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "#f8f4f4", display: "flex", flexDirection: "column" }}>
-                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12, background: "white" }}>
-                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-                    {legalPrivacy ? "プライバシーポリシー" : legalTerms ? "利用規約" : legalTokushoho ? "特定商取引法に基づく表記" : "toolioとは"}
-                  </span>
-                </header>
-                <div style={{ flex: 1, overflowY: "auto", background: "white" }}>
-                  {legalPrivacy && <PrivacyContent onBack={goBack} />}
-                  {legalTerms && <TermsContent onBack={goBack} />}
-                  {legalTokushoho && <TokushohoContent onBack={goBack} />}
-                  {legalAbout && <AboutContent onBack={goBack} />}
-                </div>
-              </div>
-            )}
-
             {/* 使い方ガイドサブページ */}
             {morePageGuide && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
@@ -670,6 +652,24 @@ function MobileHomeInner() {
           </div>
         )}
       </div>
+
+      {/* リーガルページ */}
+      {(legalPrivacy || legalTerms || legalTokushoho || legalAbout) && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
+              {legalPrivacy ? "プライバシーポリシー" : legalTerms ? "利用規約" : legalTokushoho ? "特定商取引法に基づく表記" : "toolioとは"}
+            </span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto" }}>
+            {legalPrivacy && <PrivacyContent onBack={goBack} />}
+            {legalTerms && <TermsContent onBack={goBack} />}
+            {legalTokushoho && <TokushohoContent onBack={goBack} />}
+            {legalAbout && <AboutContent onBack={goBack} />}
+          </div>
+        </div>
+      )}
 
       {/* 下部タブバー */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 80, background: "white", borderTop: "0.5px solid rgba(200,170,240,0.25)", display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 16, zIndex: 50 }}>
