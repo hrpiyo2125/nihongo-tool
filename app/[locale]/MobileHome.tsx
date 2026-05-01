@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
 import Link from "next/link";
@@ -43,6 +43,12 @@ function MobileHomeInner() {
   const activeTab = searchParams.get("tab") ?? "home";
 
   const locale = useLocale();
+  const pathname = usePathname();
+  const switchLanguage = () => {
+    const nextLocale = locale === 'ja' ? 'en' : 'ja';
+    const newPath = pathname.replace(`/${locale}`, '') || '/';
+    router.push(`/${nextLocale}${newPath}`);
+  };
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
 
@@ -724,8 +730,30 @@ function MobileHomeInner() {
       {myPageOpen && (
         <>
           <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
-          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "60px 24px 40px", display: "flex", flexDirection: "column", gap: 0 }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>マイページ</div>
+          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "56px 24px 32px", display: "flex", flexDirection: "column", gap: 0, overflowY: "auto" }}>
+            {/* ユーザー情報 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", marginBottom: 8 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
+                {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isLoggedIn ? userName : "ゲスト"}</div>
+                <div style={{ fontSize: 11, color: "#999" }}>
+                  {isLoggedIn ? (
+                    <>
+                      {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}
+                      {profile.cancel_at_period_end && profile.current_period_end && (
+                        <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>
+                          {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能
+                        </span>
+                      )}
+                    </>
+                  ) : "未登録"}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#555", marginBottom: 8, marginTop: 4 }}>マイページ</div>
             {[
               { icon: "user"    as const, label: "プロフィール", action: () => navigate("mypage-profile") },
               { icon: "plan"    as const, label: "プラン確認・変更", action: () => navigate("mypage-plan") },
@@ -739,6 +767,26 @@ function MobileHomeInner() {
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
               </div>
             ))}
+
+            {/* 言語切替 */}
+            <div style={{ marginTop: 20 }}>
+              <button onClick={switchLanguage} style={{ fontSize: 12, padding: "8px 14px", width: "100%", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 8, background: "rgba(200,170,240,0.06)", color: "#888", cursor: "pointer" }}>
+                {locale === 'ja' ? "🌐 日本語 / EN" : "🌐 EN / 日本語"}
+              </button>
+            </div>
+
+            {/* フッターリンク */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 10px", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+              <Link href="/about" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>toolioとは</Link>
+              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+              <Link href="/terms" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>利用規約</Link>
+              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+              <Link href="/privacy" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>プライバシー</Link>
+              <span style={{ fontSize: 11, color: "#ddd" }}>|</span>
+              <Link href="/tokushoho" style={{ fontSize: 11, color: "#ccc", textDecoration: "none" }}>特商法</Link>
+            </div>
+            <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16 }}>© 2026 toolio</div>
+
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
                 <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
