@@ -149,7 +149,7 @@ function MobileHomeInner() {
   useEffect(() => {
     const supabase = createClient();
 
-    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }) => {
+    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }, accessToken?: string) => {
       setIsLoggedIn(true);
       setUserId(user.id);
       setUserEmail(user.email ?? "");
@@ -157,10 +157,8 @@ function MobileHomeInner() {
       setUserName(displayName);
       setUserInitial(displayName.charAt(0).toUpperCase());
 
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-
-      const profilePromise = currentSession?.access_token
-        ? fetch('/api/profile', { headers: { Authorization: `Bearer ${currentSession.access_token}` } })
+      const profilePromise = accessToken
+        ? fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } })
             .then(res => res.ok ? res.json() : null)
             .then(profileData => {
               if (!profileData) return;
@@ -185,7 +183,7 @@ function MobileHomeInner() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session?.user) {
-        await loadUserData(session.user);
+        await loadUserData(session.user, session.access_token);
       } else if (event === 'SIGNED_OUT') {
         setIsLoggedIn(false);
         setFavIds([]);
@@ -198,7 +196,7 @@ function MobileHomeInner() {
 
     // isMobileの切り替えでINITIAL_SESSIONを取り逃した場合のフォールバック
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadUserData(session.user);
+      if (session?.user) loadUserData(session.user, session.access_token);
     });
 
     return () => subscription.unsubscribe();
