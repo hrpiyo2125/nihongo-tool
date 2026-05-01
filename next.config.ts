@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
@@ -22,7 +23,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.tidio.co",
       "font-src 'self' https://*.tidio.co",
       "frame-src https://js.stripe.com https://hooks.stripe.com https://*.tidio.co",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.tidio.co wss://*.tidio.co",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://*.tidio.co wss://*.tidio.co https://*.sentry.io https://o*.ingest.sentry.io",
       "media-src https://*.tidio.co",
     ].join('; '),
   },
@@ -43,4 +44,8 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+export default withSentryConfig(withNextIntl(nextConfig), {
+  silent: true,
+  disableLogger: true,
+  tunnelRoute: "/monitoring",
+});

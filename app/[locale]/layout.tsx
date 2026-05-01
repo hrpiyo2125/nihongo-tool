@@ -7,6 +7,8 @@ import ChatWidgetLoader from "@/components/ChatWidgetLoader";
 import DeployWatcher from "@/components/DeployWatcher";
 import GoogleOneTap from "@/components/GoogleOneTap";
 import { AuthProvider } from './AuthContext';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 
 
@@ -51,6 +53,8 @@ export default async function RootLayout({
           </AuthProvider>
           <ChatWidgetLoader />
           <DeployWatcher />
+          <Analytics />
+          <SpeedInsights />
         </NextIntlClientProvider>
       </body>
     </html>
