@@ -4,7 +4,10 @@ import { useState } from "react";
 const HERO_BG = "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)";
 const GRAD_TEXT: React.CSSProperties = { background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" };
 
-function PageShell({ title, children }: { title: string; children: React.ReactNode }) {
+function PageShell({ title, children, compact }: { title: string; children: React.ReactNode; compact?: boolean }) {
+  if (compact) {
+    return <div style={{ padding: "24px 20px 56px" }}>{children}</div>;
+  }
   return (
     <div>
       <div style={{ padding: "60px 48px 40px", background: HERO_BG, borderRadius: "16px 16px 0 0" }}>
@@ -30,9 +33,9 @@ const privacySections = [
   { title: "お問い合わせ", content: `本ポリシーに関するお問い合わせは、support@nihongo-tool.com までご連絡ください。` },
 ];
 
-export function PrivacyContent({ onBack }: { onBack: () => void }) {
+export function PrivacyContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
   return (
-    <PageShell title="プライバシーポリシー">
+    <PageShell title="プライバシーポリシー" compact={compact}>
       <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
         toolio（nihongo-tool.com、以下「当サービス」）は、お客様の個人情報の保護を重要と考え、以下のプライバシーポリシーに従って個人情報を適切に取り扱います。
       </p>
@@ -74,9 +77,9 @@ const termsSections = [
   { title: "お問い合わせ", content: `本規約に関するお問い合わせは、support@nihongo-tool.com までご連絡ください。` },
 ];
 
-export function TermsContent({ onBack }: { onBack: () => void }) {
+export function TermsContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
   return (
-    <PageShell title="利用規約">
+    <PageShell title="利用規約" compact={compact}>
       <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
         本利用規約（以下「本規約」）は、toolioが提供するサービス（nihongo-tool.com）の利用条件を定めるものです。ご利用いただく前に必ずお読みください。
       </p>
@@ -113,16 +116,16 @@ const tokushohoRows = [
   { label: "動作環境", value: "最新バージョンのChrome・Safari・Firefox・Edgeを推奨します" },
 ];
 
-export function TokushohoContent({ onBack }: { onBack: () => void }) {
+export function TokushohoContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
   return (
-    <PageShell title="特定商取引法に基づく表記">
+    <PageShell title="特定商取引法に基づく表記" compact={compact}>
       <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
         {tokushohoRows.map((row, i) => (
-          <div key={row.label} style={{ display: "grid", gridTemplateColumns: "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-            <div style={{ padding: "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
+          <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
+            <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(163,192,255,0.06)", fontSize: 13, fontWeight: 700, color: "#7a50b0", display: "flex", alignItems: "flex-start" }}>
               {row.label}
             </div>
-            <div style={{ padding: "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
+            <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
               {row.value}
             </div>
           </div>
@@ -177,9 +180,9 @@ const faqCategories = [
   },
 ];
 
-export function FaqContent({ onBack }: { onBack: () => void }) {
+export function FaqContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
   return (
-    <PageShell title="よくある質問">
+    <PageShell title="よくある質問" compact={compact}>
       {faqCategories.map((cat) => (
         <section key={cat.label} style={{ marginBottom: 40 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 12, paddingLeft: 4 }}>{cat.label}</h3>
@@ -208,9 +211,9 @@ export function FaqContent({ onBack }: { onBack: () => void }) {
 }
 
 // ===== toolioとは =====
-export function AboutContent({ onBack }: { onBack: () => void }) {
+export function AboutContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
   return (
-    <PageShell title="toolioとは">
+    <PageShell title="toolioとは" compact={compact}>
       <section style={{ marginBottom: 56 }}>
         <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>サービス概要</h3>
         <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>toolioは、日本語を学ぶ子供を支える先生・保護者のための日本語学習ツールサイトです。学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>

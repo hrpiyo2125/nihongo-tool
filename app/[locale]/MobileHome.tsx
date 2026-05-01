@@ -663,10 +663,10 @@ function MobileHomeInner() {
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {legalPrivacy && <PrivacyContent onBack={goBack} />}
-            {legalTerms && <TermsContent onBack={goBack} />}
-            {legalTokushoho && <TokushohoContent onBack={goBack} />}
-            {legalAbout && <AboutContent onBack={goBack} />}
+            {legalPrivacy && <PrivacyContent onBack={goBack} compact />}
+            {legalTerms && <TermsContent onBack={goBack} compact />}
+            {legalTokushoho && <TokushohoContent onBack={goBack} compact />}
+            {legalAbout && <AboutContent onBack={goBack} compact />}
           </div>
         </div>
       )}
