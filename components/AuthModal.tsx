@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useLocale } from "next-intl";
 import { createClient } from "../lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -26,6 +26,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const handleCaptchaSuccess = useCallback((token: string) => setCaptchaToken(token), []);
   const [agreedGoogle, setAgreedGoogle] = useState(false);
   const [agreedEmail, setAgreedEmail] = useState(false);
   const [legalModal, setLegalModal] = useState<"terms" | "privacy" | null>(null);
@@ -374,7 +375,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                     </div>
                   )}
                   {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
-                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={(token) => setCaptchaToken(token)} options={{ appearance: "interaction-only" }} />
+                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
                   <button type="submit" disabled={loading || !agreedEmail} style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
                     background: (loading || !agreedEmail) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -407,7 +408,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                       </div>
                     </div>
                   )}
-                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={(token) => setCaptchaToken(token)} options={{ appearance: "interaction-only" }} />
+                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
                   <button type="submit" disabled={loading} style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
                     background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
