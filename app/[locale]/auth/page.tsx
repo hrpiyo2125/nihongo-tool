@@ -54,7 +54,8 @@ function AuthPageInner() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const [agreed, setAgreed] = useState(false);
+  const [agreedGoogle, setAgreedGoogle] = useState(false);
+  const [agreedEmail, setAgreedEmail] = useState(false);
   const [legalModal, setLegalModal] = useState<"terms" | "privacy" | null>(null);
 
   const isLogin = mode === "login";
@@ -213,16 +214,16 @@ function AuthPageInner() {
     </div>
   );
 
-  const AgreeCheckbox = () => (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "12px 0 8px", cursor: "pointer" }} onClick={() => setAgreed(v => !v)}>
+  const makeAgreeCheckbox = (checked: boolean, toggle: () => void) => (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 10, margin: "12px 0 8px", cursor: "pointer" }} onClick={toggle}>
       <div style={{
         width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
-        border: agreed ? "none" : "1.5px solid rgba(200,180,230,0.7)",
-        background: agreed ? "linear-gradient(135deg,#e49bfd,#a3c0ff)" : "white",
+        border: checked ? "none" : "1.5px solid rgba(200,180,230,0.7)",
+        background: checked ? "linear-gradient(135deg,#e49bfd,#a3c0ff)" : "white",
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "all 0.15s",
       }}>
-        {agreed && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+        {checked && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
       </div>
       <span style={{ fontSize: 12, color: "#888", lineHeight: 1.6 }}>
         <span
@@ -301,19 +302,19 @@ function AuthPageInner() {
         </div>
 
         {/* Googleボタン（共通） */}
-        {!isLogin && <AgreeCheckbox />}
-        <button onClick={handleGoogle} disabled={loading || (!isLogin && !agreed)} style={{
+        {!isLogin && makeAgreeCheckbox(agreedGoogle, () => setAgreedGoogle(v => !v))}
+        <button onClick={handleGoogle} disabled={loading || (!isLogin && !agreedGoogle)} style={{
           width: "100%", height: 44, borderRadius: 10,
           border: "0.5px solid rgba(0,0,0,0.12)",
-          background: (!isLogin && !agreed) ? "#f5f5f5" : "white",
-          cursor: (loading || (!isLogin && !agreed)) ? "not-allowed" : "pointer",
+          background: (!isLogin && !agreedGoogle) ? "#f5f5f5" : "white",
+          cursor: (loading || (!isLogin && !agreedGoogle)) ? "not-allowed" : "pointer",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
           fontSize: 13, fontWeight: 600,
-          color: (!isLogin && !agreed) ? "#bbb" : "#333",
+          color: (!isLogin && !agreedGoogle) ? "#bbb" : "#333",
           marginBottom: 14,
           transition: "all 0.15s",
         }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" style={{ flexShrink: 0, opacity: (!isLogin && !agreed) ? 0.35 : 1 }}>
+          <svg width="18" height="18" viewBox="0 0 18 18" style={{ flexShrink: 0, opacity: (!isLogin && !agreedGoogle) ? 0.35 : 1 }}>
             <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/>
             <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z"/>
             <path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/>
@@ -457,11 +458,12 @@ function AuthPageInner() {
                 onSuccess={(token) => setCaptchaToken(token)}
                 options={{ appearance: "interaction-only" }}
               />
-              <button type="submit" disabled={loading || !agreed} style={{
+              {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
+              <button type="submit" disabled={loading || !agreedEmail} style={{
                 width: "100%", height: 46, borderRadius: 24, border: "none",
-                background: (loading || !agreed) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                background: (loading || !agreedEmail) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
                 color: "white", fontSize: 14, fontWeight: 700,
-                cursor: (loading || !agreed) ? "not-allowed" : "pointer",
+                cursor: (loading || !agreedEmail) ? "not-allowed" : "pointer",
                 marginTop: 8, transition: "opacity 0.15s",
               }}>
                 {loading ? "処理中..." : "無料で始める →"}
