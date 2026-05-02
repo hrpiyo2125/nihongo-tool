@@ -171,11 +171,10 @@ function AuthPageInner() {
 
   const handleGoogle = async () => {
     setLoading(true);
-    const agreedAt = new Date().toISOString();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}&agreed_at=${agreedAt}`,
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}`,
         queryParams: { prompt: 'select_account' },
       },
     });
