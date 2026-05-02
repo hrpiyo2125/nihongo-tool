@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Libre_Baskerville, Josefin_Sans } from "next/font/google";
+import { Libre_Baskerville } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
@@ -19,13 +19,6 @@ const libreBaskerville = Libre_Baskerville({
   weight: ["400", "700"],
   style: ["normal", "italic"],
   variable: "--font-libre",
-  display: "swap",
-});
-
-const josefinSans = Josefin_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
-  variable: "--font-josefin",
   display: "swap",
 });
 

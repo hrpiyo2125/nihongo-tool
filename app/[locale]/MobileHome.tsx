@@ -360,7 +360,7 @@ function MobileHomeInner() {
             {announcements.length > 0 && (
               <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#f4b9b9" }} />お知らせ
+                  お知らせ
                 </div>
                 {announcements.slice(0, 3).map((n) => (
                   <div key={n.id} onClick={() => { sessionStorage.setItem("selectedAnnouncement", JSON.stringify(n)); setSelectedAnnouncement(n); navigate("announcement"); }} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>

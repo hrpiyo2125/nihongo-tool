@@ -228,8 +228,8 @@ export default function PersonalizedSection({
       <div style={{ marginBottom: isMobile ? 40 : 0 }}>
         <div style={{ position: "relative", marginBottom: isMobile ? 18 : 32, display: isMobile ? "flex" : "block", alignItems: isMobile ? "center" : undefined }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: isMobile ? "flex-start" : "center", gap: 8, flex: isMobile ? 1 : undefined }}>
-            {!isMobile && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0 }} />}
-            <div style={{ textAlign: isMobile ? "left" : "left" }}>
+
+            <div style={{ textAlign: isMobile ? "left" : "center" }}>
               <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: isMobile ? 4 : 0, fontFamily: "var(--font-libre)" }}>Recommended for you</div>
               <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>あなたへのおすすめ</div>
             </div>
