@@ -193,6 +193,7 @@ const methodItems = [
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const userIconRef = useRef<HTMLDivElement | null>(null);
   const isMobile = useIsMobile();
 
@@ -205,10 +206,13 @@ const methodItems = [
   }, []);
 
   useEffect(() => {
-  fetch("/api/announcements")
-    .then((res) => res.json())
-    .then((data) => setAnnouncements(Array.isArray(data) ? data : []));
-}, []);
+    fetch("/api/announcements")
+      .then((res) => res.json())
+      .then((data) => setAnnouncements(Array.isArray(data) ? data : []));
+    fetch("/api/legal-content")
+      .then((res) => res.json())
+      .then((data) => setLegalContent(data));
+  }, []);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -551,13 +555,13 @@ if (isMobile) return <MobileHome />;
           activePage === "guide" ? (
             <FaqSection />
           ) : activePage === "privacy" ? (
-            <PrivacyContent onBack={() => setActivePage("home")} />
+            <PrivacyContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['プライバシーポリシー']} />
           ) : activePage === "terms" ? (
-            <TermsContent onBack={() => setActivePage("home")} />
+            <TermsContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['利用規約']} />
           ) : activePage === "tokushoho" ? (
-            <TokushohoContent onBack={() => setActivePage("home")} />
+            <TokushohoContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} />
           ) : activePage === "faq" ? (
-            <FaqContent onBack={() => setActivePage("home")} />
+            <FaqContent onBack={() => setActivePage("home")} notionFaqs={legalContent?.faqs} />
           ) : activePage === "about" ? (
             <AboutContent onBack={() => setActivePage("home")} />
           ) : (

@@ -96,6 +96,40 @@ export async function getMaterials() {
     }
   })
 }
+export async function getTextContents(): Promise<Record<string, string>> {
+  const dbId = process.env.NOTION_TEXT_CONTENT_DB_ID!
+  const response = await notion.databases.query({ database_id: dbId })
+  const result: Record<string, string> = {}
+  for (const page of response.results as any[]) {
+    const title = page.properties['名前']?.title?.[0]?.plain_text ?? ''
+    const body = (page.properties['本文']?.rich_text ?? []).map((r: any) => r.plain_text).join('')
+    if (title) result[title] = body
+  }
+  return result
+}
+
+export async function getFAQs(): Promise<{ question: string; answer: string; category: string }[]> {
+  const dbId = process.env.NOTION_FAQ_DB_ID!
+  const response = await notion.databases.query({ database_id: dbId })
+  return (response.results as any[]).map((page) => ({
+    question: page.properties['質問']?.title?.[0]?.plain_text ?? '',
+    answer: (page.properties['回答']?.rich_text ?? []).map((r: any) => r.plain_text).join(''),
+    category: page.properties['カテゴリ']?.select?.name ?? '',
+  })).filter((f) => f.question)
+}
+
+export async function getAnnouncements(): Promise<{ title: string; body: string }[]> {
+  const dbId = process.env.NOTION_ANNOUNCEMENTS_DB_ID!
+  const response = await notion.databases.query({
+    database_id: dbId,
+    sorts: [{ timestamp: 'created_time', direction: 'descending' }],
+  } as any)
+  return (response.results as any[]).map((page) => ({
+    title: page.properties['名前']?.title?.[0]?.plain_text ?? page.properties['title']?.title?.[0]?.plain_text ?? '',
+    body: (page.properties['本文']?.rich_text ?? page.properties['内容']?.rich_text ?? []).map((r: any) => r.plain_text).join(''),
+  })).filter((a) => a.title)
+}
+
 export async function getMaterialById(id: string) {
   console.log('getMaterialById called with id:', id)
   try {

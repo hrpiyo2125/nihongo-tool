@@ -33,24 +33,30 @@ const privacySections = [
   { title: "お問い合わせ", content: `本ポリシーに関するお問い合わせは、support@nihongo-tool.com までご連絡ください。` },
 ];
 
-export function PrivacyContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
+export function PrivacyContent({ onBack, compact, notionBody }: { onBack: () => void; compact?: boolean; notionBody?: string }) {
   return (
     <PageShell title="プライバシーポリシー" compact={compact}>
-      <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
-        toolio（nihongo-tool.com、以下「当サービス」）は、お客様の個人情報の保護を重要と考え、以下のプライバシーポリシーに従って個人情報を適切に取り扱います。
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {privacySections.map((s, i) => (
-          <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
-              {s.title}
-            </h3>
-            <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
+      {notionBody ? (
+        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
+      ) : (
+        <>
+          <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
+            toolio（nihongo-tool.com、以下「当サービス」）は、お客様の個人情報の保護を重要と考え、以下のプライバシーポリシーに従って個人情報を適切に取り扱います。
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {privacySections.map((s, i) => (
+              <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+                  {s.title}
+                </h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>制定日：2026年●月●日　／　最終更新日：2026年●月●日</p>
+          <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>制定日：2026年●月●日　／　最終更新日：2026年●月●日</p>
+        </>
+      )}
     </PageShell>
   );
 }
@@ -77,24 +83,30 @@ const termsSections = [
   { title: "お問い合わせ", content: `本規約に関するお問い合わせは、support@nihongo-tool.com までご連絡ください。` },
 ];
 
-export function TermsContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
+export function TermsContent({ onBack, compact, notionBody }: { onBack: () => void; compact?: boolean; notionBody?: string }) {
   return (
     <PageShell title="利用規約" compact={compact}>
-      <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
-        本利用規約（以下「本規約」）は、toolioが提供するサービス（nihongo-tool.com）の利用条件を定めるものです。ご利用いただく前に必ずお読みください。
-      </p>
-      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-        {termsSections.map((s, i) => (
-          <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
-              第{i + 1}条　{s.title}
-            </h3>
-            <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
+      {notionBody ? (
+        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
+      ) : (
+        <>
+          <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
+            本利用規約（以下「本規約」）は、toolioが提供するサービス（nihongo-tool.com）の利用条件を定めるものです。ご利用いただく前に必ずお読みください。
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            {termsSections.map((s, i) => (
+              <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+                  第{i + 1}条　{s.title}
+                </h3>
+                <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>制定日：2026年●月●日　／　最終更新日：2026年4月16日</p>
+          <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>制定日：2026年●月●日　／　最終更新日：2026年4月16日</p>
+        </>
+      )}
     </PageShell>
   );
 }
@@ -116,22 +128,28 @@ const tokushohoRows = [
   { label: "動作環境", value: "最新バージョンのChrome・Safari・Firefox・Edgeを推奨します" },
 ];
 
-export function TokushohoContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
+export function TokushohoContent({ onBack, compact, notionBody }: { onBack: () => void; compact?: boolean; notionBody?: string }) {
   return (
     <PageShell title="特定商取引法に基づく表記" compact={compact}>
-      <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
-        {tokushohoRows.map((row, i) => (
-          <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-            <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>
-              {row.label}
-            </div>
-            <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
-              {row.value}
-            </div>
+      {notionBody ? (
+        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
+      ) : (
+        <>
+          <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
+            {tokushohoRows.map((row, i) => (
+              <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>
+                  {row.label}
+                </div>
+                <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
+                  {row.value}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>最終更新日：2026年●月●日</p>
+          <p style={{ textAlign: "center", fontSize: 12, color: "#ccc", marginTop: 40 }}>最終更新日：2026年●月●日</p>
+        </>
+      )}
     </PageShell>
   );
 }
@@ -180,10 +198,12 @@ const faqCategories = [
   },
 ];
 
-export function FaqContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
+type NotionFaq = { question: string; answer: string; category: string };
+
+function FaqList({ categories }: { categories: { label: string; faqs: { q: string; a: string }[] }[] }) {
   return (
-    <PageShell title="よくある質問" compact={compact}>
-      {faqCategories.map((cat) => (
+    <>
+      {categories.map((cat) => (
         <section key={cat.label} style={{ marginBottom: 40 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 12, paddingLeft: 4 }}>{cat.label}</h3>
           <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden" }}>
@@ -199,6 +219,21 @@ export function FaqContent({ onBack, compact }: { onBack: () => void; compact?: 
           </div>
         </section>
       ))}
+    </>
+  );
+}
+
+export function FaqContent({ onBack, compact, notionFaqs }: { onBack: () => void; compact?: boolean; notionFaqs?: NotionFaq[] }) {
+  const categories = notionFaqs && notionFaqs.length > 0
+    ? Array.from(new Set(notionFaqs.map((f) => f.category))).map((cat) => ({
+        label: cat || 'その他',
+        faqs: notionFaqs.filter((f) => f.category === cat).map((f) => ({ q: f.question, a: f.answer })),
+      }))
+    : faqCategories;
+
+  return (
+    <PageShell title="よくある質問" compact={compact}>
+      <FaqList categories={categories} />
       <div style={{ marginTop: 40, background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px", textAlign: "center" }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: "#555", marginBottom: 8 }}>解決しない場合はお気軽にご連絡ください</div>
         <div style={{ fontSize: 13, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>画面右下のチャットからお気軽にご連絡ください。</div>

@@ -73,6 +73,7 @@ function MobileHomeInner() {
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [modalInitContent, setModalInitContent] = useState("all");
   const [modalInitMethod, setModalInitMethod] = useState("all");
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // URL から derived な open 状態
@@ -154,6 +155,7 @@ function MobileHomeInner() {
   useEffect(() => {
     fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
     fetch("/api/announcements").then(r => r.json()).then(data => setAnnouncements(Array.isArray(data) ? data : []));
+    fetch("/api/legal-content").then(r => r.json()).then(data => setLegalContent(data));
   }, []);
 
   useEffect(() => {
@@ -663,9 +665,9 @@ function MobileHomeInner() {
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {legalPrivacy && <PrivacyContent onBack={goBack} compact />}
-            {legalTerms && <TermsContent onBack={goBack} compact />}
-            {legalTokushoho && <TokushohoContent onBack={goBack} compact />}
+            {legalPrivacy && <PrivacyContent onBack={goBack} compact notionBody={legalContent?.textContents?.['プライバシーポリシー']} />}
+            {legalTerms && <TermsContent onBack={goBack} compact notionBody={legalContent?.textContents?.['利用規約']} />}
+            {legalTokushoho && <TokushohoContent onBack={goBack} compact notionBody={legalContent?.textContents?.['特定商取引法']} />}
             {legalAbout && <AboutContent onBack={goBack} compact />}
           </div>
         </div>
