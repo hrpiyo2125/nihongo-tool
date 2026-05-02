@@ -94,7 +94,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         },
       });
       if (signUpError) {
-        setError("登録に失敗しました。もう一度お試しください");
+        setError(`登録に失敗しました: ${signUpError.message}`);
         setLoading(false);
         return;
       }
@@ -117,6 +117,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   };
 
   const handleGoogle = async () => {
+    if (view === "signup" && !agreedGoogle) return;
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -287,7 +288,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
             {/* Googleボタン */}
             {view === "signup" && makeAgreeCheckbox(agreedGoogle, () => setAgreedGoogle(v => !v))}
-            <button onClick={handleGoogle} disabled={loading || (view === "signup" && !agreedGoogle)} style={{
+            <button onClick={handleGoogle} disabled={loading} style={{
               width: "100%", height: 44, borderRadius: 10,
               border: "0.5px solid rgba(0,0,0,0.12)",
               background: (view === "signup" && !agreedGoogle) ? "#f5f5f5" : "white",
