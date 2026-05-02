@@ -25,13 +25,15 @@ export async function GET(request: NextRequest) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      const response = NextResponse.redirect(`${origin}${next}`)
-      pendingCookies.forEach(({ name, value, options }) => {
-        response.cookies.set(name, value, { ...options, maxAge: 60 * 60 * 24 * 365 })
-      })
-      return response
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession error:', error.message)
+      return NextResponse.redirect(`${origin}${next}?auth_error=${encodeURIComponent(error.message)}`)
     }
+    const response = NextResponse.redirect(`${origin}${next}`)
+    pendingCookies.forEach(({ name, value, options }) => {
+      response.cookies.set(name, value, { ...options, maxAge: 60 * 60 * 24 * 365 })
+    })
+    return response
   }
 
   return NextResponse.redirect(`${origin}/ja`)
