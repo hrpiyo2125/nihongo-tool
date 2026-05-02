@@ -1,8 +1,9 @@
 import type { Metadata } from 'next'
+import { pageTitle } from '@/lib/site.config'
 
 export const metadata: Metadata = {
-  title: 'プライバシーポリシー | にほんごツール',
-  description: 'にほんごツールのプライバシーポリシーです。',
+  title: pageTitle('プライバシーポリシー'),
+  description: 'toolioのプライバシーポリシーです。',
 }
 
 export default function Layout({ children }: { children: React.ReactNode }) {

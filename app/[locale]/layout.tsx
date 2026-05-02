@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { siteConfig } from "@/lib/site.config";
 import { Libre_Baskerville } from "next/font/google";
 import "../globals.css";
 import { NextIntlClientProvider } from 'next-intl';
@@ -23,8 +24,8 @@ const libreBaskerville = Libre_Baskerville({
 });
 
 export const metadata: Metadata = {
-  title: "にほんごツール | 日本語教育の教材・ツールが見つかるサービス",
-  description: "日本語教師のための教材・ツール検索サービス。授業で使えるワークシートや教材をすぐに見つけて活用できます。",
+  title: `${siteConfig.name} | ${siteConfig.tagline}`,
+  description: siteConfig.description,
 };
 
 export default async function RootLayout({
