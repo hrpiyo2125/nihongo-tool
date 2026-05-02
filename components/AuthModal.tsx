@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useLocale } from "next-intl";
 import { createClient } from "../lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -25,8 +25,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const handleCaptchaSuccess = useCallback((token: string) => setCaptchaToken(token), []);
+  const captchaTokenRef = useRef<string | null>(null);
+  const handleCaptchaSuccess = useCallback((token: string) => { captchaTokenRef.current = token; }, []);
   const [agreedGoogle, setAgreedGoogle] = useState(false);
   const [agreedEmail, setAgreedEmail] = useState(false);
   const [legalModal, setLegalModal] = useState<"terms" | "privacy" | null>(null);
@@ -69,7 +69,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
     if (view === "login") {
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email, password, options: { captchaToken: captchaToken ?? undefined },
+        email, password, options: { captchaToken: captchaTokenRef.current ?? undefined },
       });
       if (signInError) {
         setError("メールアドレスまたはパスワードが間違っています");
@@ -91,7 +91,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         options: {
           data: { full_name: name.trim() },
           emailRedirectTo: `${window.location.origin}/${locale}/auth?mode=login`,
-          captchaToken: captchaToken ?? undefined,
+          captchaToken: captchaTokenRef.current ?? undefined,
         },
       });
       if (signUpError) {
