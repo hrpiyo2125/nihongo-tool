@@ -455,12 +455,12 @@ function AuthPageInner() {
                 </div>
               )}
 
+              {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
               <Turnstile
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
                 onSuccess={(token) => setCaptchaToken(token)}
                 options={{ appearance: "interaction-only" }}
               />
-              {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
               <button type="submit" disabled={loading || !agreedEmail} style={{
                 width: "100%", height: 46, borderRadius: 24, border: "none",
                 background: (loading || !agreedEmail) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",

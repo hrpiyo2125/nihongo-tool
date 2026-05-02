@@ -373,8 +373,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                       <span onClick={() => switchView("login")} style={{ fontSize: 11, color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>→ ログインはこちら</span>
                     </div>
                   )}
-                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={(token) => setCaptchaToken(token)} options={{ appearance: "interaction-only" }} />
                   {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
+                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={(token) => setCaptchaToken(token)} options={{ appearance: "interaction-only" }} />
                   <button type="submit" disabled={loading || !agreedEmail} style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
                     background: (loading || !agreedEmail) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
