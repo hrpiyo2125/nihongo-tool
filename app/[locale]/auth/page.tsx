@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { createClient } from "../../../lib/supabase";
@@ -53,7 +53,8 @@ function AuthPageInner() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaTokenRef = useRef<string | null>(null);
+  const handleCaptchaSuccess = useCallback((token: string) => { captchaTokenRef.current = token; }, []);
   const [agreedGoogle, setAgreedGoogle] = useState(false);
   const [agreedEmail, setAgreedEmail] = useState(false);
   const [legalModal, setLegalModal] = useState<"terms" | "privacy" | null>(null);
@@ -106,7 +107,7 @@ function AuthPageInner() {
     setLoading(true);
 
     if (isLogin) {
-      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken: captchaToken ?? undefined } });
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password, options: { captchaToken: captchaTokenRef.current ?? undefined } });
       if (error) {
         setError("メールアドレスまたはパスワードが間違っています");
         setLoading(false);
@@ -132,7 +133,7 @@ function AuthPageInner() {
         options: {
           data: { full_name: name.trim() },
           emailRedirectTo: `${window.location.origin}/${locale}/auth?mode=login`,
-          captchaToken: captchaToken ?? undefined,
+          captchaToken: captchaTokenRef.current ?? undefined,
         },
       });
       if (error) {
@@ -457,7 +458,7 @@ function AuthPageInner() {
               {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
               <Turnstile
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                onSuccess={(token) => setCaptchaToken(token)}
+                onSuccess={handleCaptchaSuccess}
                 options={{ appearance: "interaction-only" }}
               />
               <button type="submit" disabled={loading || !agreedEmail} style={{
@@ -514,7 +515,7 @@ function AuthPageInner() {
 
               <Turnstile
                 siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-                onSuccess={(token) => setCaptchaToken(token)}
+                onSuccess={handleCaptchaSuccess}
                 options={{ appearance: "interaction-only" }}
               />
               <button type="submit" disabled={loading} style={{
