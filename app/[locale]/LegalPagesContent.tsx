@@ -4,6 +4,40 @@ import { useState } from "react";
 const HERO_BG = "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)";
 const GRAD_TEXT: React.CSSProperties = { background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" };
 
+function parseSections(body: string): { title: string; content: string }[] {
+  const regex = /【([^】]+)】([^【]*)/g;
+  const sections: { title: string; content: string }[] = [];
+  let match;
+  while ((match = regex.exec(body)) !== null) {
+    sections.push({ title: match[1].trim(), content: match[2].trim() });
+  }
+  return sections;
+}
+
+function parseRows(body: string): { label: string; value: string }[] {
+  return body.split('\n').filter(Boolean).map(line => {
+    const idx = line.indexOf('：');
+    if (idx === -1) return null;
+    return { label: line.slice(0, idx), value: line.slice(idx + 1) };
+  }).filter(Boolean) as { label: string; value: string }[];
+}
+
+function SectionCards({ sections }: { sections: { title: string; content: string }[] }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {sections.map((s, i) => (
+        <div key={s.title} style={{ background: "#fafafa", borderRadius: 14, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: "#7a50b0", marginBottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 24, height: 24, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{i + 1}</span>
+            {s.title}
+          </h3>
+          <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line", margin: 0 }}>{s.content}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PageShell({ title, children, compact }: { title: string; children: React.ReactNode; compact?: boolean }) {
   if (compact) {
     return <div style={{ padding: "24px 20px 56px" }}>{children}</div>;
@@ -37,7 +71,7 @@ export function PrivacyContent({ onBack, compact, notionBody }: { onBack: () => 
   return (
     <PageShell title="プライバシーポリシー" compact={compact}>
       {notionBody ? (
-        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
+        <SectionCards sections={parseSections(notionBody)} />
       ) : (
         <>
           <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
@@ -87,7 +121,7 @@ export function TermsContent({ onBack, compact, notionBody }: { onBack: () => vo
   return (
     <PageShell title="利用規約" compact={compact}>
       {notionBody ? (
-        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
+        <SectionCards sections={parseSections(notionBody)} />
       ) : (
         <>
           <p style={{ fontSize: 14, color: "#888", lineHeight: 1.9, marginBottom: 40, background: "#fafafa", borderRadius: 12, padding: "20px 24px", border: "0.5px solid rgba(200,170,240,0.2)" }}>
@@ -131,9 +165,19 @@ const tokushohoRows = [
 export function TokushohoContent({ onBack, compact, notionBody }: { onBack: () => void; compact?: boolean; notionBody?: string }) {
   return (
     <PageShell title="特定商取引法に基づく表記" compact={compact}>
-      {notionBody ? (
-        <p style={{ fontSize: 14, color: "#666", lineHeight: 2, whiteSpace: "pre-line" }}>{notionBody}</p>
-      ) : (
+      {notionBody ? (() => {
+        const rows = parseRows(notionBody);
+        return (
+          <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
+            {rows.map((row, i) => (
+              <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < rows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
+                <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>{row.label}</div>
+                <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>{row.value}</div>
+              </div>
+            ))}
+          </div>
+        );
+      })() : (
         <>
           <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
             {tokushohoRows.map((row, i) => (
@@ -246,53 +290,59 @@ export function FaqContent({ onBack, compact, notionFaqs }: { onBack: () => void
 }
 
 // ===== toolioとは =====
-export function AboutContent({ onBack, compact }: { onBack: () => void; compact?: boolean }) {
+export function AboutContent({ onBack, compact, notionBody }: { onBack: () => void; compact?: boolean; notionBody?: string }) {
   return (
     <PageShell title="toolioとは" compact={compact}>
-      <section style={{ marginBottom: 56 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>サービス概要</h3>
-        <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>toolioは、日本語を学ぶ子供を支える先生・保護者のための日本語学習ツールサイトです。学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
-        <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>かるた・ゲーム・ロールプレイなど、子供が自然に楽しめる活動ベースの教材をPDF形式で提供。ダウンロードしてすぐに授業や家庭学習に取り入れられます。</p>
-      </section>
-      <section style={{ marginBottom: 56 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>こんな方におすすめ</h3>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
-          {["日本語補習校・国際校・日本語学校の先生", "日本語を学ぶお子さんをお持ちの保護者", "海外在住・国内在住どちらも対応", "就学前〜小学生のお子さんの指導に"].map((item) => (
-            <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 15, color: "#555", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 20px" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0, display: "inline-block" }} />{item}
-            </li>
-          ))}
-        </ul>
-      </section>
-      <section style={{ marginBottom: 56 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolioの特徴</h3>
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {[
-            { title: "楽しい活動ベースの教材", desc: "かるた・ゲーム・ロールプレイなど、子供が自分から「やりたい！」と言える教材を揃えています。説明は最小限で、楽しみながら自然に日本語が身につきます。", color: "#fce4f8", border: "#e49bfd" },
-            { title: "ダウンロードしてすぐ使える", desc: "PDF形式でご提供。教材づくりに追われる時間をゼロに。印刷してそのまま授業・家庭学習に取り入れられます。", color: "#ddeeff", border: "#a3c0ff" },
-            { title: "無料から始められる", desc: "登録なしでも教材を試せます。無料アカウントを作成すると、お気に入り保存・ダウンロード履歴などの機能も使えます。", color: "#d6f5ee", border: "#6dcfb8" },
-          ].map((f) => (
-            <div key={f.title} style={{ background: f.color, border: `0.5px solid ${f.border}`, borderRadius: 16, padding: "24px 28px" }}>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 8 }}>{f.title}</div>
-              <p style={{ fontSize: 14, color: "#666", lineHeight: 1.8, margin: 0 }}>{f.desc}</p>
+      {notionBody ? (
+        <SectionCards sections={parseSections(notionBody)} />
+      ) : (
+        <>
+          <section style={{ marginBottom: 56 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>サービス概要</h3>
+            <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>toolioは、日本語を学ぶ子供を支える先生・保護者のための日本語学習ツールサイトです。学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
+            <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>かるた・ゲーム・ロールプレイなど、子供が自然に楽しめる活動ベースの教材をPDF形式で提供。ダウンロードしてすぐに授業や家庭学習に取り入れられます。</p>
+          </section>
+          <section style={{ marginBottom: 56 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>こんな方におすすめ</h3>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              {["日本語補習校・国際校・日本語学校の先生", "日本語を学ぶお子さんをお持ちの保護者", "海外在住・国内在住どちらも対応", "就学前〜小学生のお子さんの指導に"].map((item) => (
+                <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 15, color: "#555", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 20px" }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0, display: "inline-block" }} />{item}
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section style={{ marginBottom: 56 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolioの特徴</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {[
+                { title: "楽しい活動ベースの教材", desc: "かるた・ゲーム・ロールプレイなど、子供が自分から「やりたい！」と言える教材を揃えています。説明は最小限で、楽しみながら自然に日本語が身につきます。", color: "#fce4f8", border: "#e49bfd" },
+                { title: "ダウンロードしてすぐ使える", desc: "PDF形式でご提供。教材づくりに追われる時間をゼロに。印刷してそのまま授業・家庭学習に取り入れられます。", color: "#ddeeff", border: "#a3c0ff" },
+                { title: "無料から始められる", desc: "登録なしでも教材を試せます。無料アカウントを作成すると、お気に入り保存・ダウンロード履歴などの機能も使えます。", color: "#d6f5ee", border: "#6dcfb8" },
+              ].map((f) => (
+                <div key={f.title} style={{ background: f.color, border: `0.5px solid ${f.border}`, borderRadius: 16, padding: "24px 28px" }}>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 8 }}>{f.title}</div>
+                  <p style={{ fontSize: 14, color: "#666", lineHeight: 1.8, margin: 0 }}>{f.desc}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-      <section style={{ marginBottom: 56 }}>
-        <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>学びのコンセプト</h3>
-        <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px" }}>
-          <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>子供たちは、楽しんでいる時ほど、自然に言葉を覚えています。かるたで遊びながら気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。</p>
-          <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>「楽しい活動」→「気づいたら日本語に触れてる」→「あれ、できた！」→「またやりたい！」——このループを繰り返すことで、勉強した感覚がないまま、できることが増えていく。それがtoolioの学び方です。</p>
-        </div>
-      </section>
-      <section style={{ textAlign: "center", background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 20, padding: "40px 32px" }}>
-        <p style={{ fontSize: 16, fontWeight: 700, color: "#555", marginBottom: 8 }}>まず、無料で教材を試してみてください</p>
-        <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24, lineHeight: 1.7 }}>登録不要・クレジットカード不要</p>
-        <button onClick={onBack} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, border: "none", cursor: "pointer" }}>
-          教材を見てみる →
-        </button>
-      </section>
+          </section>
+          <section style={{ marginBottom: 56 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>学びのコンセプト</h3>
+            <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px" }}>
+              <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>子供たちは、楽しんでいる時ほど、自然に言葉を覚えています。かるたで遊びながら気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。</p>
+              <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>「楽しい活動」→「気づいたら日本語に触れてる」→「あれ、できた！」→「またやりたい！」——このループを繰り返すことで、勉強した感覚がないまま、できることが増えていく。それがtoolioの学び方です。</p>
+            </div>
+          </section>
+          <section style={{ textAlign: "center", background: "linear-gradient(135deg,rgba(244,185,185,0.1),rgba(228,155,253,0.1))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 20, padding: "40px 32px" }}>
+            <p style={{ fontSize: 16, fontWeight: 700, color: "#555", marginBottom: 8 }}>まず、無料で教材を試してみてください</p>
+            <p style={{ fontSize: 13, color: "#aaa", marginBottom: 24, lineHeight: 1.7 }}>登録不要・クレジットカード不要</p>
+            <button onClick={onBack} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, border: "none", cursor: "pointer" }}>
+              教材を見てみる →
+            </button>
+          </section>
+        </>
+      )}
     </PageShell>
   );
 }

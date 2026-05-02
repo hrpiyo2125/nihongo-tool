@@ -668,7 +668,7 @@ function MobileHomeInner() {
             {legalPrivacy && <PrivacyContent onBack={goBack} compact notionBody={legalContent?.textContents?.['プライバシーポリシー']} />}
             {legalTerms && <TermsContent onBack={goBack} compact notionBody={legalContent?.textContents?.['利用規約']} />}
             {legalTokushoho && <TokushohoContent onBack={goBack} compact notionBody={legalContent?.textContents?.['特定商取引法']} />}
-            {legalAbout && <AboutContent onBack={goBack} compact />}
+            {legalAbout && <AboutContent onBack={goBack} compact notionBody={legalContent?.textContents?.['toolioとは']} />}
           </div>
         </div>
       )}

@@ -563,7 +563,7 @@ if (isMobile) return <MobileHome />;
           ) : activePage === "faq" ? (
             <FaqContent onBack={() => setActivePage("home")} notionFaqs={legalContent?.faqs} />
           ) : activePage === "about" ? (
-            <AboutContent onBack={() => setActivePage("home")} />
+            <AboutContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['toolioとは']} />
           ) : (
     <MyPage
       activePage={activePage}
