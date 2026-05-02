@@ -95,7 +95,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         },
       });
       if (signUpError) {
-        setError("登録に失敗しました。もう一度お試しください");
+        setError(`登録に失敗しました: ${signUpError.message}`);
         setLoading(false);
         return;
       }
