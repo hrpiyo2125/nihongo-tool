@@ -26,8 +26,7 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
-      console.error('[auth/callback] exchangeCodeForSession error:', error.message)
-      return NextResponse.redirect(`${origin}${next}?auth_error=${encodeURIComponent(error.message)}`)
+      return NextResponse.redirect(`${origin}/ja`)
     }
     const response = NextResponse.redirect(`${origin}${next}`)
     pendingCookies.forEach(({ name, value, options }) => {
