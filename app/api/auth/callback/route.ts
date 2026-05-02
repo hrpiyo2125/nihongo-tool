@@ -24,8 +24,19 @@ export async function GET(request: NextRequest) {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data: sessionData, error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const agreedAt = searchParams.get('agreed_at')
+      if (agreedAt && sessionData.user) {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('agreed_at')
+          .eq('id', sessionData.user.id)
+          .single()
+        if (!existingProfile?.agreed_at) {
+          await supabase.from('profiles').upsert({ id: sessionData.user.id, agreed_at: agreedAt })
+        }
+      }
       const response = NextResponse.redirect(`${origin}${next}`)
       pendingCookies.forEach(({ name, value, options }) => {
         response.cookies.set(name, value, { ...options, maxAge: 60 * 60 * 24 * 365 })

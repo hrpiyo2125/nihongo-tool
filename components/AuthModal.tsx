@@ -109,7 +109,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
           window.location.href = `/${locale}/welcome-back`;
           return;
         }
-        await supabase.from("profiles").upsert({ id: signUpData.user.id, full_name: name.trim(), status: "active" });
+        await supabase.from("profiles").upsert({ id: signUpData.user.id, full_name: name.trim(), status: "active", agreed_at: new Date().toISOString() });
       }
       setMessage("確認メールを送信しました。メールのリンクをクリックして登録を完了してください。");
     }
@@ -118,10 +118,11 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
   const handleGoogle = async () => {
     setLoading(true);
+    const agreedAt = new Date().toISOString();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}`,
+        redirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}&agreed_at=${agreedAt}`,
         queryParams: { prompt: 'select_account' },
       },
     });
