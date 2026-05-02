@@ -306,18 +306,16 @@ export default function TeaserModal({
               <>
                 <div onClick={() => setDownTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "fixed", top: "50%", left: "calc(50% + 80px)", transform: "translateY(-50%)", zIndex: 300, background: "white", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 32px", width: 380, border: "0.5px solid rgba(200,170,240,0.35)" }}>
-                  <div style={{ fontSize: 12, color: "#7a50b0", fontWeight: 700, marginBottom: 6 }}>
-                    {mat.requiredPlan === "light" ? "ライトプラン" : mat.requiredPlan === "standard" ? "スタンダードプラン" : "プレミアムプラン"}から使えます
+                  <div style={{ fontSize: 13, color: "#7a50b0", fontWeight: 700, marginBottom: 10, lineHeight: 1.6 }}>
+                    {mat.requiredPlan === "light" ? "ライト" : mat.requiredPlan === "standard" ? "スタンダード" : "プレミアム"}プランにするとこの教材がすぐに使えます
                   </div>
                   {!isLoggedIn ? (
                     <>
-                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>登録するとすべての教材がダウンロードし放題になります。</div>
                       <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/auth"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
                       <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/auth?mode=login"); }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
                     </>
                   ) : (
                     <>
-                      <div style={{ fontSize: 11, color: "#999", lineHeight: 1.7, marginBottom: 12 }}>プランをアップグレードするか、この教材を単品購入できます。</div>
                       <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
                      {purchaseStep === "idle" && (
                       <div style={{ position: "relative" }}>
@@ -381,6 +379,7 @@ export default function TeaserModal({
       {showPlanModal && (
         <PlanModal
           currentPlan={userPlan}
+          requiredPlan={mat.requiredPlan}
           onSubscribed={() => {
             setShowPlanModal(false);
             setDownTooltip(false);

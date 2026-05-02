@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from "react";
-import { BrandIcon } from "./BrandIcon";
 import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
 import dynamic from "next/dynamic";
@@ -11,61 +10,30 @@ const CheckoutModal = dynamic(() => import("./CheckoutModal"), { ssr: false });
 const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: false });
 const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
 
-const UNIT_PRICE = 350;
 
-const plans = [
-  {
-    key: "free",
-    name: "無料",
-    price: null,
-    priceId: null,
-    color: "#5580cc",
-    border: "#c0d4ff",
-    bg: "#f0f5ff",
-    featured: false,
-  },
-  {
-    key: "light",
-    name: "ライト",
-    price: 500,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID ?? null,
-    color: "#7a50b0",
-    border: "#ddc8ff",
-    bg: "#fdf8ff",
-    featured: false,
-  },
-  {
-    key: "standard",
-    name: "スタンダード",
-    price: 980,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID ?? null,
-    color: "#7a50b0",
-    border: "#c9a0f0",
-    bg: "#fdf8ff",
-    featured: true,
-  },
-  {
-    key: "premium",
-    name: "プレミアム",
-    price: 1480,
-    priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID ?? null,
-    color: "#c44a88",
-    border: "#f4b9b9",
-    bg: "#fff8fd",
-    featured: false,
-  },
+const PLAN_STYLE: Record<string, { color: string; border: string; bg: string; featured: boolean; priceId: string | null }> = {
+  free:     { color: "#5580cc", border: "#c0d4ff", bg: "#f0f5ff", featured: false, priceId: null },
+  light:    { color: "#7a50b0", border: "#ddc8ff", bg: "#fdf8ff", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID ?? null },
+  standard: { color: "#7a50b0", border: "#c9a0f0", bg: "#fdf8ff", featured: true,  priceId: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID ?? null },
+  premium:  { color: "#c44a88", border: "#f4b9b9", bg: "#fff8fd", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID ?? null },
+};
+
+const FALLBACK_PLANS = [
+  { key: "free",     name: "無料",       price: null },
+  { key: "light",    name: "ライト",     price: 500 },
+  { key: "standard", name: "スタンダード", price: 980 },
+  { key: "premium",  name: "プレミアム",  price: 1480 },
 ];
 
-// 各featureがどのプランからOKか
-const features = [
+const FALLBACK_FEATURES = [
   { label: "お気に入り",       from: "free",     freeNote: "最大5件", paidNote: "無制限" },
   { label: "DL履歴",           from: "free",     freeNote: "最大5件", paidNote: "無制限" },
-  { label: "単品購入",         from: "light" },
-  { label: "おすすめ教材表示", from: "light" },
-  { label: "無料教材",         from: "free" },
-  { label: "ライト教材",       from: "light" },
-  { label: "スタンダード教材", from: "standard" },
-  { label: "プレミアム教材",   from: "premium" },
+  { label: "単品購入",         from: "light",    freeNote: "",        paidNote: "" },
+  { label: "おすすめ教材表示", from: "light",    freeNote: "",        paidNote: "" },
+  { label: "無料教材",         from: "free",     freeNote: "",        paidNote: "" },
+  { label: "ライト教材",       from: "light",    freeNote: "",        paidNote: "" },
+  { label: "スタンダード教材", from: "standard", freeNote: "",        paidNote: "" },
+  { label: "プレミアム教材",   from: "premium",  freeNote: "",        paidNote: "" },
 ] as { label: string; from: string; freeNote?: string; paidNote?: string }[];
 
 const planOrder = ["free", "light", "standard", "premium"];
@@ -76,15 +44,22 @@ function isFeatureAvailable(featureFrom: string, planKey: string) {
 
 type Props = {
   currentPlan?: string;
+  requiredPlan?: string;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
   onSubscribed?: () => void;
   isPendingDeletion?: boolean;
 };
 
-export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed, isPendingDeletion = false }: Props) {
+type Plan = { key: string; name: string; price: number | null; priceId: string | null; color: string; border: string; bg: string; featured: boolean };
+type Feature = { label: string; from: string; freeNote?: string; paidNote?: string };
+
+export default function PlanSelector({ currentPlan = "free", requiredPlan, cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed, isPendingDeletion = false }: Props) {
   const router = useRouter();
-  const [monthlyCount, setMonthlyCount] = useState<number>(0);
+  const [plans, setPlans] = useState<Plan[]>(
+    FALLBACK_PLANS.map(p => ({ ...p, ...PLAN_STYLE[p.key] }))
+  );
+  const [features, setFeatures] = useState<Feature[]>(FALLBACK_FEATURES);
   const [loading, setLoading] = useState<string | null>(null);
   const [checkoutModal, setCheckoutModal] = useState<{ planName: string; clientSecret: string; setupIntentId?: string } | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -99,40 +74,29 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
   const [showFreeDowngradeNotice, setShowFreeDowngradeNotice] = useState(false);
 
   useEffect(() => {
-    const fetchMonthlyPurchases = async () => {
-      const supabase = createClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-      const { count } = await supabase
-        .from("purchases")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", session.user.id)
-        .gte("purchased_at", startOfMonth.toISOString());
-      setMonthlyCount(count ?? 0);
-    };
-    fetchMonthlyPurchases();
+    fetch("/api/notion/plans")
+      .then(r => r.json())
+      .then(({ plans: notionPlans, features: notionFeatures }) => {
+        if (Array.isArray(notionPlans) && notionPlans.length > 0) {
+          setPlans(notionPlans.map((p: any) => ({
+            key: p.key,
+            name: p.displayName || p.key,
+            price: p.key === "free" ? null : p.price,
+            ...PLAN_STYLE[p.key],
+          })));
+        }
+        if (Array.isArray(notionFeatures) && notionFeatures.length > 0) {
+          setFeatures(notionFeatures.map((f: any) => ({
+            label: f.label,
+            from: f.fromPlan,
+            freeNote: f.freeNote || undefined,
+            paidNote: f.paidNote || undefined,
+          })));
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const monthlyCost = monthlyCount * UNIT_PRICE;
-
-  const getSavingText = (_planKey: string, price: number) => {
-    if (monthlyCount === 0) {
-      const breakEven = Math.ceil(price / UNIT_PRICE);
-      return `月${breakEven}本以上でお得`;
-    }
-    const saving = monthlyCost - price;
-    if (saving > 0) return `今月だったら ¥${saving.toLocaleString()} 節約できます`;
-    const breakEven = Math.ceil(price / UNIT_PRICE);
-    return `月${breakEven}本以上からおすすめ`;
-  };
-
-  const isPositiveSaving = (price: number) => {
-    if (monthlyCount === 0) return false;
-    return monthlyCost - price > 0;
-  };
   const handleChangePlan = async (newPlanKey: string) => {
     setLoading(newPlanKey)
     const supabase = createClient()
@@ -161,7 +125,7 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
     }
   }
 
-  const handleSubscribe = async (plan: typeof plans[0]) => {
+  const handleSubscribe = async (plan: Plan) => {
     if (!plan.priceId) return;
     setLoading(plan.key);
     const supabase = createClient();
@@ -358,27 +322,6 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
 
       <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif" }}>
 
-        {/* 今月の使い方サマリー */}
-        {monthlyCount > 0 && (
-          <div style={{
-            background: "linear-gradient(135deg, #fdf4ff, #f0ebff)",
-            border: "1px solid #e8d8ff",
-            borderRadius: 12,
-            padding: "14px 18px",
-            marginBottom: 24,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-          }}>
-            <BrandIcon name="lightbulb" size={20} color="#c9a0f0" />
-            <div>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>あなたの今月の使い方　</span>
-              <span style={{ fontSize: 13, color: "#666" }}>
-                単品購入 {monthlyCount}本 = <strong style={{ color: "#7a50b0" }}>¥{monthlyCost.toLocaleString()}</strong>
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* 比較テーブル */}
         <div style={{ overflowX: "auto" }}>
@@ -389,16 +332,25 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                 <th style={{ width: "16%", padding: "8px 0" }} />
                 {plans.map((plan) => {
                   const isCurrent = plan.key === currentPlan;
-                  const positive = plan.price !== null && isPositiveSaving(plan.price);
-                  const savingText = plan.price !== null ? getSavingText(plan.key, plan.price) : null;
+
+                  // 吹き出し文言を決定
+                  let bubbleText: string | null = null;
+                  if (requiredPlan) {
+                    // 教材から開いた場合
+                    if (plan.key === requiredPlan) {
+                      bubbleText = "この教材がすぐに使えます";
+                    } else if (plan.key === "premium" && requiredPlan !== "premium") {
+                      bubbleText = "すべての教材を制限なく使いたい方へ";
+                    }
+                  }
 
                   return (
-                    <th key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{ width: "18%", padding: "0 6px 12px", textAlign: "center", verticalAlign: "bottom", cursor: "pointer" }}>
+                    <th key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{ width: "18%", padding: "14px 6px 12px", textAlign: "center", verticalAlign: "bottom", cursor: "pointer" }}>
                       {/* 吹き出し */}
-                      {savingText && (
+                      {bubbleText && (
                         <div style={{
-                          background: positive ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#f0f0f0",
-                          color: positive ? "white" : "#999",
+                          background: plan.key === requiredPlan ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#f0f0f0",
+                          color: plan.key === requiredPlan ? "white" : "#999",
                           fontSize: 9,
                           fontWeight: 700,
                           padding: "4px 8px",
@@ -408,13 +360,13 @@ export default function PlanSelector({ currentPlan = "free", cancelAtPeriodEnd =
                           position: "relative",
                           whiteSpace: "nowrap",
                         }}>
-                          {savingText}
+                          {bubbleText}
                           <div style={{
                             position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
                             width: 0, height: 0,
                             borderLeft: "5px solid transparent",
                             borderRight: "5px solid transparent",
-                            borderTop: `5px solid ${positive ? "#e49bfd" : "#f0f0f0"}`,
+                            borderTop: `5px solid ${plan.key === requiredPlan ? "#e49bfd" : "#f0f0f0"}`,
                           }} />
                         </div>
                       )}

@@ -23,14 +23,14 @@ type Invoice = {
   description: string;
 };
 
-const PLAN_LABEL: Record<string, string> = {
+const FALLBACK_PLAN_LABEL: Record<string, string> = {
   free: "無料プラン",
   light: "ライトプラン",
   standard: "スタンダードプラン",
   premium: "プレミアムプラン",
 };
 
-const PLAN_PRICE: Record<string, string> = {
+const FALLBACK_PLAN_PRICE: Record<string, string> = {
   free: "無料",
   light: "¥500 / 月",
   standard: "¥980 / 月",
@@ -73,6 +73,8 @@ export default function BillingSection({
   onProfileUpdate: (updates: Partial<Profile>) => void;
   mobileMode?: boolean;
 }) {
+  const [planLabel, setPlanLabel] = useState<Record<string, string>>(FALLBACK_PLAN_LABEL);
+  const [planPrice, setPlanPrice] = useState<Record<string, string>>(FALLBACK_PLAN_PRICE);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -86,6 +88,23 @@ export default function BillingSection({
   const [withdrawalSuccess, setWithdrawalSuccess] = useState(false);
   const [confirmWithdrawalCancel, setConfirmWithdrawalCancel] = useState(false);
   const [withdrawalError, setWithdrawalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/notion/plans")
+      .then(r => r.json())
+      .then(({ plans }) => {
+        if (!Array.isArray(plans) || plans.length === 0) return;
+        const label: Record<string, string> = {};
+        const price: Record<string, string> = {};
+        for (const p of plans) {
+          label[p.key] = `${p.displayName}プラン`;
+          price[p.key] = p.key === "free" ? "無料" : `¥${Number(p.price).toLocaleString()} / 月`;
+        }
+        setPlanLabel(label);
+        setPlanPrice(price);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -220,7 +239,7 @@ export default function BillingSection({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{PLAN_LABEL[profile.plan] ?? "無料プラン"}</div>
+                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{planLabel[profile.plan] ?? "無料プラン"}</div>
                 <StatusBadge
                   plan_status={profile.plan_status}
                   cancel_at_period_end={profile.cancel_at_period_end}
@@ -228,7 +247,7 @@ export default function BillingSection({
                   isPendingDeletion={isPendingDeletion}
                 />
               </div>
-              <div style={{ fontSize: 12, color: "#aaa" }}>{PLAN_PRICE[profile.plan] ?? "無料"}</div>
+              <div style={{ fontSize: 12, color: "#aaa" }}>{planPrice[profile.plan] ?? "無料"}</div>
               {profile.plan_status === "trialing" && profile.trial_end && (
                 <div style={{ fontSize: 11, color: "#2a6a44", background: "#e8f8ee", padding: "5px 10px", borderRadius: 8 }}>
                   トライアル終了日：{formatDate(profile.trial_end)}

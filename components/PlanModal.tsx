@@ -5,11 +5,12 @@ import PlanSelector from "./PlanSelector";
 
 type Props = {
   currentPlan: string;
+  requiredPlan?: string;
   onSubscribed: () => void;
   onClose: () => void;
 };
 
-export default function PlanModal({ currentPlan, onSubscribed, onClose }: Props) {
+export default function PlanModal({ currentPlan, requiredPlan, onSubscribed, onClose }: Props) {
   const [cancelAtPeriodEnd, setCancelAtPeriodEnd] = useState(false);
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [isPendingDeletion, setIsPendingDeletion] = useState(false);
@@ -82,6 +83,7 @@ export default function PlanModal({ currentPlan, onSubscribed, onClose }: Props)
 
         <PlanSelector
           currentPlan={currentPlan}
+          requiredPlan={requiredPlan}
           cancelAtPeriodEnd={cancelAtPeriodEnd}
           currentPeriodEnd={currentPeriodEnd}
           isPendingDeletion={isPendingDeletion}

@@ -922,6 +922,7 @@ function MobileHomeInner() {
       {teaserPlanOpen && teaserMat && (
         <PlanModal
           currentPlan={profile.plan ?? "free"}
+          requiredPlan={teaserMat.requiredPlan}
           onSubscribed={() => { goBack(); }}
           onClose={() => goBack()}
         />

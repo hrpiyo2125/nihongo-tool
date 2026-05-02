@@ -130,6 +130,35 @@ export async function getAnnouncements(): Promise<{ title: string; body: string 
   })).filter((a) => a.title)
 }
 
+export async function getPlans(): Promise<{ key: string; displayName: string; price: number; sortOrder: number }[]> {
+  const dbId = process.env.NOTION_PLANS_DB_ID!
+  const response = await notion.databases.query({
+    database_id: dbId,
+    sorts: [{ property: 'sortOrder', direction: 'ascending' }],
+  } as any)
+  return (response.results as any[]).map((page) => ({
+    key: page.properties['名前']?.title?.[0]?.plain_text ?? '',
+    displayName: page.properties['displayName']?.rich_text?.[0]?.plain_text ?? '',
+    price: page.properties['price']?.number ?? 0,
+    sortOrder: page.properties['sortOrder']?.number ?? 0,
+  })).filter((p) => p.key)
+}
+
+export async function getPlanFeatures(): Promise<{ label: string; fromPlan: string; freeNote: string; paidNote: string; sortOrder: number }[]> {
+  const dbId = process.env.NOTION_PLAN_FEATURES_DB_ID!
+  const response = await notion.databases.query({
+    database_id: dbId,
+    sorts: [{ property: 'sortOrder', direction: 'ascending' }],
+  } as any)
+  return (response.results as any[]).map((page) => ({
+    label: page.properties['名前']?.title?.[0]?.plain_text ?? '',
+    fromPlan: page.properties['fromPlan']?.select?.name ?? 'free',
+    freeNote: page.properties['freeNote']?.rich_text?.[0]?.plain_text ?? '',
+    paidNote: page.properties['paidNote']?.rich_text?.[0]?.plain_text ?? '',
+    sortOrder: page.properties['sortOrder']?.number ?? 0,
+  })).filter((f) => f.label)
+}
+
 export async function getMaterialById(id: string) {
   console.log('getMaterialById called with id:', id)
   try {
