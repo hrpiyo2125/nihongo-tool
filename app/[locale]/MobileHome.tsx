@@ -311,7 +311,6 @@ function MobileHomeInner() {
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
                   <div style={{ marginBottom: 12, textAlign: "center" }}>
-                    <div style={{ fontSize: 11, color: "#b090d0", marginBottom: 4 }}>会員登録すると全機能が使えます</div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成</div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>

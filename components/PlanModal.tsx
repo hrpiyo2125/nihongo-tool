@@ -77,9 +77,6 @@ export default function PlanModal({ currentPlan, requiredPlan, onSubscribed, onC
         <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 4, textAlign: "center" }}>
           プランを選ぶ
         </div>
-        <div style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 24 }}>
-          いつでもキャンセル可能です
-        </div>
 
         <PlanSelector
           currentPlan={currentPlan}

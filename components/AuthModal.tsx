@@ -33,15 +33,6 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
 
   const supabase = createClient();
 
-  const reasonText =
-    reason === "favorite"
-      ? "お気に入り保存に登録が必要です"
-      : reason === "history"
-      ? "ダウンロード履歴に登録が必要です"
-      : reason === "chat"
-      ? "サポートチャットのご利用に登録が必要です"
-      : "お気に入り保存・ダウンロード履歴が使えます";
-
   const switchView = (v: "signup" | "login" | "reset-request") => {
     setView(v);
     setStep(1);
@@ -276,17 +267,6 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         {/* ========== ログイン / 新規登録ビュー ========== */}
         {view !== "reset-request" && (
           <>
-            <div style={{ fontSize: 13, color: "#7a50b0", fontWeight: 600, marginBottom: 6, lineHeight: 1.5 }}>
-              {reasonText}
-            </div>
-            <div style={{
-              fontSize: 11, color: "#b090c8", marginBottom: 18,
-              padding: "6px 10px", background: "rgba(228,155,253,0.07)",
-              borderRadius: 8, border: "0.5px solid rgba(228,155,253,0.2)", lineHeight: 1.6,
-            }}>
-              ✦ 海外在住の日本語教師・保護者に人気のサービスです
-            </div>
-
             {/* Googleボタン */}
             {view === "signup" && makeAgreeCheckbox(agreedGoogle, () => setAgreedGoogle(v => !v))}
             <button onClick={handleGoogle} disabled={loading} style={{

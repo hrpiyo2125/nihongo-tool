@@ -593,7 +593,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
         </div>
 
         <div style={{ textAlign: "center", fontSize: 10, color: "#ccc", marginTop: 16 }}>
-          クレジットカードで安全に決済。いつでもキャンセル可能です。
+          クレジットカードで安全に決済。いつでもプランを変更できます。
         </div>
       </div>
     </>

@@ -153,7 +153,7 @@ export default function CheckoutModal({
       >
         {succeeded ? (
           <>
-            <SuccessOverlay label={`${planName}プランへようこそ。\n今すぐすべての教材が使えます。`} />
+            <SuccessOverlay label={`${planName}プランへようこそ。\n${planName}プランまでの教材がすぐにご利用いただけます。`} />
             <button
               onClick={onSuccess}
               style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
@@ -165,9 +165,6 @@ export default function CheckoutModal({
           <>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 4, textAlign: "center" }}>
               {planName}プランへ登録
-            </div>
-            <div style={{ fontSize: 12, color: "#bbb", textAlign: "center", marginBottom: 24 }}>
-              いつでもキャンセル可能です
             </div>
             <Elements
               stripe={stripePromise}

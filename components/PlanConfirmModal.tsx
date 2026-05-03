@@ -122,7 +122,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
       return (
         <>
           <SuccessOverlay
-            label={`${PLAN_LABELS[plan]}プランへようこそ。\n今すぐすべての教材が使えます。`}
+            label={`${PLAN_LABELS[plan]}プランへようこそ。\n${PLAN_LABELS[plan]}プランまでの教材がすぐにご利用いただけます。`}
           />
           <button
             onClick={onSuccess}
@@ -140,7 +140,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
 
         <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><BrandIcon name="sparkle" size={40} color="#e49bfd" /></div>
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 6 }}>プランに登録する</div>
-        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>登録後すぐにすべての教材が使えます。</div>
+        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>登録後すぐに{PLAN_LABELS[plan]}プランまでの教材が使えます。</div>
 
         <div style={{ background: "#f8f6ff", borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 4 }}>登録するプラン</div>
@@ -173,7 +173,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
           今すぐ¥{PLAN_PRICES[plan].toLocaleString()}で登録する
         </button>
         <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 12 }}>
-          いつでもマイページからキャンセルできます。
+          いつでもプランを変更できます。
         </div>
       </>
     );

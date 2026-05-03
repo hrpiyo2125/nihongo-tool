@@ -50,7 +50,7 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
         <div style={{ fontSize: 13, color: "#999", marginBottom: showCard ? 16 : 32, lineHeight: 1.8 }}>
           {isCancel
             ? `現在のプランは${periodEndText ?? "現在の期間終了日"}まで引き続きご利用いただけます。期間終了後、自動的に無料プランへ移行します。`
-            : `月額 ¥${price.toLocaleString()} で、いつでもキャンセルできます。`}
+            : `月額 ¥${price.toLocaleString()} で、いつでもプランを変更できます。`}
         </div>
 
         {showCard && (
