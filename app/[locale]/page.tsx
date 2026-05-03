@@ -120,18 +120,18 @@ const navItems: NavItem[] = [
 
 const methodTabs: { id: string; label: string; char: string; imageSrc: string | null }[] = [
   { id: "all",      label: ml.all,      char: "✦", imageSrc: "/contents/all.png" },
-  { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method_drill.png" },
-  { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method_test.png" },
-  { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method_card.png" },
-  { id: "nurie",     label: ml.nurie,     char: "◎", imageSrc: null },
-  { id: "roleplay",  label: ml.roleplay,  char: "🎭", imageSrc: "/method_roleplay.png" },
-  { id: "bingo",     label: ml.bingo,     char: "🎯", imageSrc: null },
-  { id: "interview", label: ml.interview, char: "🎤", imageSrc: null },
-  { id: "sentence",  label: ml.sentence,  char: "文", imageSrc: null },
-  { id: "essay",     label: ml.essay,     char: "✍", imageSrc: null },
-  { id: "check",     label: ml.check,     char: "✓", imageSrc: null },
-  { id: "sugoroku",  label: ml.sugoroku,  char: "🎲", imageSrc: null },
-  { id: "poster",    label: ml.poster,    char: "📄", imageSrc: null },
+  { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method/drill.png" },
+  { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method/test.png" },
+  { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method/card.png" },
+  { id: "nurie",     label: ml.nurie,     char: "◎", imageSrc: "/method/nurie.png" },
+  { id: "roleplay",  label: ml.roleplay,  char: "🎭", imageSrc: "/method/roleplay.png" },
+  { id: "bingo",     label: ml.bingo,     char: "🎯", imageSrc: "/method/bingo.png" },
+  { id: "interview", label: ml.interview, char: "🎤", imageSrc: "/method/interview.png" },
+  { id: "sentence",  label: ml.sentence,  char: "文", imageSrc: "/method/sentense.png" },
+  { id: "essay",     label: ml.essay,     char: "✍", imageSrc: "/method/sakubun.png" },
+  { id: "check",     label: ml.check,     char: "✓", imageSrc: "/method/checklist.png" },
+  { id: "sugoroku",  label: ml.sugoroku,  char: "🎲", imageSrc: "/method/sugoroku.png" },
+  { id: "poster",    label: ml.poster,    char: "📄", imageSrc: "/method/poster.png" },
 ];
 
   const contentItems = [
@@ -157,18 +157,18 @@ const methodTabs: { id: string; label: string; char: string; imageSrc: string | 
 ];
 
 const methodItems = [
-  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method_drill.png",   methodId: "drill" },
-  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method_test.png",    methodId: "test" },
-  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method_card.png",    methodId: "card" },
-  { label: ml.nurie,     char: "◎", color: "#fff0ec", imageSrc: null,                   methodId: "nurie" },
-  { label: ml.roleplay,  char: "🎭", color: "#f8e8ff", imageSrc: "/method_roleplay.png", methodId: "roleplay" },
-  { label: ml.bingo,     char: "🎯", color: "#e8efff", imageSrc: null,                   methodId: "bingo" },
-  { label: ml.interview, char: "🎤", color: "#fff8e0", imageSrc: null,                   methodId: "interview" },
-  { label: ml.sentence,  char: "文", color: "#f0ffe8", imageSrc: null,                   methodId: "sentence" },
-  { label: ml.essay,     char: "✍", color: "#fff0ec", imageSrc: null,                   methodId: "essay" },
-  { label: ml.check,     char: "✓", color: "#e8f8ee", imageSrc: null,                   methodId: "check" },
-  { label: ml.sugoroku,  char: "🎲", color: "#f0e8ff", imageSrc: null,                   methodId: "sugoroku" },
-  { label: ml.poster,    char: "📄", color: "#e8f8ff", imageSrc: null,                   methodId: "poster" },
+  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method/drill.png",     methodId: "drill" },
+  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method/test.png",      methodId: "test" },
+  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method/card.png",      methodId: "card" },
+  { label: ml.nurie,     char: "◎", color: "#fff0ec", imageSrc: "/method/nurie.png",     methodId: "nurie" },
+  { label: ml.roleplay,  char: "🎭", color: "#f8e8ff", imageSrc: "/method/roleplay.png", methodId: "roleplay" },
+  { label: ml.bingo,     char: "🎯", color: "#e8efff", imageSrc: "/method/bingo.png",    methodId: "bingo" },
+  { label: ml.interview, char: "🎤", color: "#fff8e0", imageSrc: "/method/interview.png",methodId: "interview" },
+  { label: ml.sentence,  char: "文", color: "#f0ffe8", imageSrc: "/method/sentense.png",   methodId: "sentence" },
+  { label: ml.essay,     char: "✍", color: "#fff0ec", imageSrc: "/method/sakubun.png",   methodId: "essay" },
+  { label: ml.check,     char: "✓", color: "#e8f8ee", imageSrc: "/method/checklist.png", methodId: "check" },
+  { label: ml.sugoroku,  char: "🎲", color: "#f0e8ff", imageSrc: "/method/sugoroku.png", methodId: "sugoroku" },
+  { label: ml.poster,    char: "📄", color: "#e8f8ff", imageSrc: "/method/poster.png",   methodId: "poster" },
   { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
 ];
 

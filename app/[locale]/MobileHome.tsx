@@ -188,18 +188,18 @@ function MobileHomeInner() {
 ];
 
   const methodItems = [
-  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method_drill.png",    methodId: "drill" },
-  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method_test.png",     methodId: "test" },
-  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method_card.png",     methodId: "card" },
-  { label: ml.nurie,     char: "◎", color: "#fff0ec", imageSrc: null,                    methodId: "nurie" },
-  { label: ml.roleplay,  char: "🎭", color: "#f8e8ff", imageSrc: "/method_roleplay.png",  methodId: "roleplay" },
-  { label: ml.bingo,     char: "🎯", color: "#e8efff", imageSrc: null,                    methodId: "bingo" },
-  { label: ml.interview, char: "🎤", color: "#fff8e0", imageSrc: null,                    methodId: "interview" },
-  { label: ml.sentence,  char: "文", color: "#f0ffe8", imageSrc: null,                    methodId: "sentence" },
-  { label: ml.essay,     char: "✍", color: "#fff0ec", imageSrc: null,                    methodId: "essay" },
-  { label: ml.check,     char: "✓", color: "#e8f8ee", imageSrc: null,                    methodId: "check" },
-  { label: ml.sugoroku,  char: "🎲", color: "#f0e8ff", imageSrc: null,                    methodId: "sugoroku" },
-  { label: ml.poster,    char: "📄", color: "#e8f8ff", imageSrc: null,                    methodId: "poster" },
+  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method/drill.png",      methodId: "drill" },
+  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method/test.png",       methodId: "test" },
+  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method/card.png",       methodId: "card" },
+  { label: ml.nurie,     char: "◎", color: "#fff0ec", imageSrc: "/method/nurie.png",      methodId: "nurie" },
+  { label: ml.roleplay,  char: "🎭", color: "#f8e8ff", imageSrc: "/method/roleplay.png",  methodId: "roleplay" },
+  { label: ml.bingo,     char: "🎯", color: "#e8efff", imageSrc: "/method/bingo.png",     methodId: "bingo" },
+  { label: ml.interview, char: "🎤", color: "#fff8e0", imageSrc: "/method/interview.png", methodId: "interview" },
+  { label: ml.sentence,  char: "文", color: "#f0ffe8", imageSrc: "/method/sentense.png",    methodId: "sentence" },
+  { label: ml.essay,     char: "✍", color: "#fff0ec", imageSrc: "/method/sakubun.png",    methodId: "essay" },
+  { label: ml.check,     char: "✓", color: "#e8f8ee", imageSrc: "/method/checklist.png",  methodId: "check" },
+  { label: ml.sugoroku,  char: "🎲", color: "#f0e8ff", imageSrc: "/method/sugoroku.png",  methodId: "sugoroku" },
+  { label: ml.poster,    char: "📄", color: "#e8f8ff", imageSrc: "/method/poster.png",    methodId: "poster" },
 ];
 
   const filteredMaterials = materials.filter(mat => {

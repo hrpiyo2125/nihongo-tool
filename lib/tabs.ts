@@ -37,19 +37,19 @@ export function getContentTabs(cl: Record<string, string>) {
 // ===== メソッドタブ定義 =====
 export function getMethodTabs(ml: Record<string, string>) {
   return [
-    { id: "all",      label: ml.all,      char: "✦", imageSrc: "/all.png" },
-    { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method_drill.png" },
-    { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method_test.png" },
-    { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method_card.png" },
-    { id: "nurie",     label: ml.nurie,     char: "◎", imageSrc: null },
-    { id: "roleplay",  label: ml.roleplay,  char: "🎭", imageSrc: "/method_roleplay.png" },
-    { id: "bingo",     label: ml.bingo,     char: "🎯", imageSrc: null },
-    { id: "interview", label: ml.interview, char: "🎤", imageSrc: null },
-    { id: "sentence",  label: ml.sentence,  char: "文", imageSrc: null },
-    { id: "essay",     label: ml.essay,     char: "✍", imageSrc: null },
-    { id: "check",     label: ml.check,     char: "✓", imageSrc: null },
-    { id: "sugoroku",  label: ml.sugoroku,  char: "🎲", imageSrc: null },
-    { id: "poster",    label: ml.poster,    char: "📄", imageSrc: null },
+    { id: "all",      label: ml.all,      char: "✦", imageSrc: "/contents/all.png" },
+    { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method/drill.png" },
+    { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method/test.png" },
+    { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method/card.png" },
+    { id: "nurie",     label: ml.nurie,     char: "◎", imageSrc: "/method/nurie.png" },
+    { id: "roleplay",  label: ml.roleplay,  char: "🎭", imageSrc: "/method/roleplay.png" },
+    { id: "bingo",     label: ml.bingo,     char: "🎯", imageSrc: "/method/bingo.png" },
+    { id: "interview", label: ml.interview, char: "🎤", imageSrc: "/method/interview.png" },
+    { id: "sentence",  label: ml.sentence,  char: "文", imageSrc: "/method/sentense.png" },
+    { id: "essay",     label: ml.essay,     char: "✍", imageSrc: "/method/sakubun.png" },
+    { id: "check",     label: ml.check,     char: "✓", imageSrc: "/method/checklist.png" },
+    { id: "sugoroku",  label: ml.sugoroku,  char: "🎲", imageSrc: "/method/sugoroku.png" },
+    { id: "poster",    label: ml.poster,    char: "📄", imageSrc: "/method/poster.png" },
   ];
 }
 
