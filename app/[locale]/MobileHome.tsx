@@ -216,28 +216,28 @@ function MobileHomeInner() {
   const tabs = [
     { id: "home", label: "ホーム", icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? "#9b6ed4" : "#bbb"} />
-        <path d="M9 22V12h6v10" stroke={active ? "#9b6ed4" : "#bbb"} />
+        <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? "#7a50b0" : "#bbb"} />
+        <path d="M9 22V12h6v10" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
     { id: "materials", label: "教材", icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? "#9b6ed4" : "#bbb"} />
-        <rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? "#9b6ed4" : "#bbb"} />
-        <rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? "#9b6ed4" : "#bbb"} />
-        <rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? "#9b6ed4" : "#bbb"} />
+        <rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
+        <rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
+        <rect x="3" y="14" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
+        <rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
     { id: "fav", label: "お気に入り", icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? "#9b6ed4" : "#bbb"} />
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
     { id: "more", label: "もっと見る", icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="5" cy="12" r="1.5" fill={active ? "#9b6ed4" : "#bbb"} />
-        <circle cx="12" cy="12" r="1.5" fill={active ? "#9b6ed4" : "#bbb"} />
-        <circle cx="19" cy="12" r="1.5" fill={active ? "#9b6ed4" : "#bbb"} />
+        <circle cx="5" cy="12" r="1.5" fill={active ? "#7a50b0" : "#bbb"} />
+        <circle cx="12" cy="12" r="1.5" fill={active ? "#7a50b0" : "#bbb"} />
+        <circle cx="19" cy="12" r="1.5" fill={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
   ];
@@ -680,7 +680,7 @@ function MobileHomeInner() {
           return (
             <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); return; } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
             {tab.icon(active)}
-            <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
+            <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
           );
         })}

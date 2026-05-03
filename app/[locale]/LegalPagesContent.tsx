@@ -171,7 +171,7 @@ export function TokushohoContent({ onBack, compact, notionBody }: { onBack: () =
           <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
             {rows.map((row, i) => (
               <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < rows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-                <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>{row.label}</div>
+                <div style={{ padding: compact ? "8px 16px 8px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>{row.label}</div>
                 <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>{row.value}</div>
               </div>
             ))}
@@ -182,7 +182,7 @@ export function TokushohoContent({ onBack, compact, notionBody }: { onBack: () =
           <div style={{ background: "white", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", overflow: "hidden", maxWidth: 640, margin: "0 auto" }}>
             {tokushohoRows.map((row, i) => (
               <div key={row.label} style={{ display: "grid", gridTemplateColumns: compact ? "1fr" : "200px 1fr", borderBottom: i < tokushohoRows.length - 1 ? "0.5px solid rgba(0,0,0,0.05)" : "none" }}>
-                <div style={{ padding: compact ? "14px 16px 4px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>
+                <div style={{ padding: compact ? "8px 16px 8px" : "18px 20px", background: "rgba(228,155,253,0.06)", fontSize: 13, fontWeight: 700, color: "#9b6ed4", display: "flex", alignItems: "flex-start" }}>
                   {row.label}
                 </div>
                 <div style={{ padding: compact ? "4px 16px 14px" : "18px 24px", fontSize: 14, color: "#555", lineHeight: 1.8 }}>
@@ -298,12 +298,12 @@ export function AboutContent({ onBack, compact, notionBody }: { onBack: () => vo
       ) : (
         <>
           <section style={{ marginBottom: 56 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>サービス概要</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#7a50b0", marginBottom: 16 }}>サービス概要</h3>
             <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>toolioは、日本語を学ぶ子供を支える先生・保護者のための日本語学習ツールサイトです。学校でも・ご家庭でもすぐに使えるツールを提供しています。</p>
             <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>かるた・ゲーム・ロールプレイなど、子供が自然に楽しめる活動ベースの教材をPDF形式で提供。ダウンロードしてすぐに授業や家庭学習に取り入れられます。</p>
           </section>
           <section style={{ marginBottom: 56 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>こんな方におすすめ</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#7a50b0", marginBottom: 16 }}>こんな方におすすめ</h3>
             <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
               {["日本語補習校・国際校・日本語学校の先生", "日本語を学ぶお子さんをお持ちの保護者", "海外在住・国内在住どちらも対応", "就学前〜小学生のお子さんの指導に"].map((item) => (
                 <li key={item} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 15, color: "#555", background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 12, padding: "14px 20px" }}>
@@ -313,7 +313,7 @@ export function AboutContent({ onBack, compact, notionBody }: { onBack: () => vo
             </ul>
           </section>
           <section style={{ marginBottom: 56 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolioの特徴</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#7a50b0", marginBottom: 16 }}>toolioの特徴</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
                 { title: "楽しい活動ベースの教材", desc: "かるた・ゲーム・ロールプレイなど、子供が自分から「やりたい！」と言える教材を揃えています。説明は最小限で、楽しみながら自然に日本語が身につきます。", color: "#fce4f8", border: "#e49bfd" },
@@ -328,7 +328,7 @@ export function AboutContent({ onBack, compact, notionBody }: { onBack: () => vo
             </div>
           </section>
           <section style={{ marginBottom: 56 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>学びのコンセプト</h3>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#7a50b0", marginBottom: 16 }}>学びのコンセプト</h3>
             <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 16, padding: "28px 32px" }}>
               <p style={{ fontSize: 15, color: "#555", lineHeight: 2, marginBottom: 16 }}>子供たちは、楽しんでいる時ほど、自然に言葉を覚えています。かるたで遊びながら気づいたら単語を言えるようになっていた。ゲームに夢中になりながら、気づいたら文が出てきた。</p>
               <p style={{ fontSize: 15, color: "#555", lineHeight: 2 }}>「楽しい活動」→「気づいたら日本語に触れてる」→「あれ、できた！」→「またやりたい！」——このループを繰り返すことで、勉強した感覚がないまま、できることが増えていく。それがtoolioの学び方です。</p>
