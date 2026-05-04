@@ -914,7 +914,7 @@ function MobileHomeInner() {
           }}
           onCardClick={(mat) => openTeaser(mat)}
           onClose={() => goBack()}
-          onTabChange={(tabId) => switchTab(tabId)}
+          onTabChange={(tabId) => router.push(`?tab=${tabId}`)}
           onOpenMyPage={() => navigate("mypage")}
         />
       )}
