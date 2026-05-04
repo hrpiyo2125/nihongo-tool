@@ -112,6 +112,8 @@ function MobileHomeInner() {
   const [activeCardTab, setActiveCardTab] = useState("pickup");
   const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ─── データ取得 ──────────────────────────────────────────
   useEffect(() => {
@@ -120,14 +122,13 @@ function MobileHomeInner() {
     fetch("/api/legal-content").then(r => r.json()).then(data => setLegalContent(data));
   }, []);
 
-  // ─── スクロール検知 ──────────────────────────────────────
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 10);
-    el.addEventListener("scroll", onScroll);
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
+  // ─── スクロール検知 + ghost tap ガード ──────────────────
+  const handleMainScroll = () => {
+    isScrollingRef.current = true;
+    clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 200);
+    if (scrollRef.current) setScrolled(scrollRef.current.scrollTop > 10);
+  };
 
   // ─── スクロール位置保存・復元 ────────────────────────────
   // モーダルを最初に開くとき保存
@@ -291,7 +292,7 @@ function MobileHomeInner() {
       </header>
 
       {/* メインコンテンツ */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }}>
+      <div ref={scrollRef} onScroll={handleMainScroll} style={{ flex: 1, overflowY: "auto", paddingBottom: 80 }}>
 
         {/* ホームタブ */}
         {activeTab === "home" && (
@@ -329,7 +330,7 @@ function MobileHomeInner() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
-                  <div key={item.label} onClick={() => openMaterialsModal(item.contentId, "all")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <div key={item.label} onClick={() => { if (!isScrollingRef.current) openMaterialsModal(item.contentId, "all"); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -347,7 +348,7 @@ function MobileHomeInner() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
-                  <div key={item.label} onClick={() => openMaterialsModal("all", item.methodId)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
+                  <div key={item.label} onClick={() => { if (!isScrollingRef.current) openMaterialsModal("all", item.methodId); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -540,7 +541,7 @@ function MobileHomeInner() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id && !materialsEntry;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
