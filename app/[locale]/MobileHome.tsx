@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
 import { useLocale, useTranslations } from "next-intl";
@@ -57,13 +57,11 @@ async function toggleFav(
 
 function MobileHomeInner() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const activeTab = searchParams.get("tab") ?? "home";
   const locale = useLocale();
   const pathname = usePathname();
 
   // ─── Zustand store ───────────────────────────────────────
-  const { modalStack, push, pop, reset, updateMaterialsFilter } = useMobileStore();
+  const { activeTab, setTab, modalStack, push, pop, updateMaterialsFilter } = useMobileStore();
   const topModal = modalStack.at(-1);
   const materialsEntry = findModal(modalStack, "materials");
   const teaserEntry = findModal(modalStack, "teaser");
@@ -151,8 +149,7 @@ function MobileHomeInner() {
 
   // ─── ナビゲーション関数 ──────────────────────────────────
   const switchTab = (tab: string) => {
-    reset();
-    router.push(`?tab=${tab}`);
+    setTab(tab as import("../../lib/mobileStore").TabId);
   };
 
   const switchLanguage = () => {

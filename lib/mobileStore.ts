@@ -50,8 +50,12 @@ export type Modal =
 
 // ─── Store ────────────────────────────────────────────────
 
+export type TabId = "home" | "materials" | "fav" | "more";
+
 interface MobileStore {
+  activeTab: TabId;
   modalStack: Modal[];
+  setTab: (tab: TabId) => void;
   push: (modal: Modal) => void;
   pop: () => void;
   reset: () => void;
@@ -59,7 +63,10 @@ interface MobileStore {
 }
 
 export const useMobileStore = create<MobileStore>((set) => ({
+  activeTab: "home",
   modalStack: [],
+
+  setTab: (tab) => set({ activeTab: tab, modalStack: [] }),
 
   push: (modal) =>
     set((state) => ({ modalStack: [...state.modalStack, modal] })),
