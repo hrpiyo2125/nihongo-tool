@@ -916,6 +916,12 @@ function MobileHomeInner() {
           onClose={() => goBack()}
           onTabChange={(tabId) => router.push(`?tab=${tabId}`)}
           onOpenMyPage={() => navigate("mypage")}
+          onFilterChange={(content, method) => {
+            setModalInitContent(content);
+            setModalInitMethod(method);
+            sessionStorage.setItem("modalInitContent", content);
+            sessionStorage.setItem("modalInitMethod", method);
+          }}
         />
       )}
 

@@ -59,13 +59,14 @@ type Props = {
   onClose: () => void;
   onTabChange: (tabId: string) => void;
   onOpenMyPage: () => void;
+  onFilterChange?: (content: string, method: string) => void;
 };
 
 export default function MobileMaterialsModal({
   materials, locale, isLoggedIn, userPlan, favIds, purchasedIds,
   contentTabs, methodTabs, avatarUrl, userInitial, tabs,
   initContent = "all", initMethod = "all",
-  onFavToggle, onCardClick, onClose, onTabChange, onOpenMyPage,
+  onFavToggle, onCardClick, onClose, onTabChange, onOpenMyPage, onFilterChange,
 }: Props) {
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
@@ -157,7 +158,7 @@ export default function MobileMaterialsModal({
           {methodTabs.map((tab) => {
             const active = searchResults === null && activeMethodFilter === tab.id;
             return (
-              <button key={tab.id} ref={(el) => { if (el) methodTabRefs.current.set(tab.id, el); else methodTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethodFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} ref={(el) => { if (el) methodTabRefs.current.set(tab.id, el); else methodTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveMethodFilter(tab.id); onFilterChange?.(activeContentFilter, tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", flexShrink: 0, border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : "#f0eeff", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11, fontWeight: 700, color: "#555" }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span>{tab.char}</span>}
                 </div>
@@ -176,7 +177,7 @@ export default function MobileMaterialsModal({
           {contentTabs.map((tab) => {
             const active = searchResults === null && activeContentFilter === tab.id;
             return (
-              <button key={tab.id} ref={(el) => { if (el) contentTabRefs.current.set(tab.id, el); else contentTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContentFilter(tab.id); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
+              <button key={tab.id} ref={(el) => { if (el) contentTabRefs.current.set(tab.id, el); else contentTabRefs.current.delete(tab.id); }} onClick={() => { setSearchQuery(""); setSearchResults(null); setActiveContentFilter(tab.id); onFilterChange?.(tab.id, activeMethodFilter); }} style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4, padding: "10px 12px", width: "100%", border: "none", background: active ? "rgba(163,192,255,0.15)" : "transparent", cursor: "pointer" }}>
                 <div style={{ width: 28, height: 28, borderRadius: "50%", background: tab.id === "all" ? "linear-gradient(135deg,#f4b9b9,#a3c0ff)" : tab.color, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 11 }}>
                   {tab.imageSrc ? <img src={tab.imageSrc} alt={tab.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : tab.char}
                 </div>
