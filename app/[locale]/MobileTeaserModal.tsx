@@ -89,6 +89,7 @@ type Material = {
   content: string[];
   method: string[];
   ageGroup: string;
+  studyTime?: string;
   requiredPlan: string;
   pdfFile?: string;
   isPickup: boolean;
@@ -212,8 +213,9 @@ export default function TeaserModal({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
             {[
               { label: tmm("age"), value: mat.ageGroup || "－" },
-              { label: tmm("content"), value: (mat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+              { label: tmm("duration"), value: mat.studyTime || "－" },
               { label: tmm("method"), value: (mat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
+              { label: tmm("content"), value: (mat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
             ].map(({ label, value }) => (
               <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                 <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>

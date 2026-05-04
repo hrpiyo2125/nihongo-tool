@@ -93,6 +93,7 @@
     "age": "Age group",
     "content": "Content",
     "method": "Method",
+    "duration": "Study time",
     "level": "Level"
   }
 }

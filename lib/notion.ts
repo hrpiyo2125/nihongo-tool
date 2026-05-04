@@ -108,6 +108,7 @@ export async function getMaterials() {
       features:    props.features?.rich_text?.[0]?.plain_text ?? '',
       howto:       props.howto?.rich_text?.[0]?.plain_text ?? '',
       searchKeywords: props.searchKeywords?.rich_text?.[0]?.plain_text ?? '',
+      studyTime:    props.studyTime?.rich_text?.[0]?.plain_text ?? '',
     }
   })
 }

@@ -10,6 +10,7 @@ export type Material = {
   content: string[];
   method: string[];
   ageGroup: string;
+  studyTime?: string;
   requiredPlan: string;
   pdfFile?: string;
   isPickup: boolean;

@@ -93,6 +93,7 @@
     "age": "対象年齢",
     "content": "学習内容",
     "method": "学習方法",
+    "duration": "学習時間",
     "level": "レベル"
   }
 
