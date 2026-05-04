@@ -938,7 +938,7 @@ function MobileHomeInner() {
       {/* teaser内購入確認モーダル */}
       {teaserPurchaseOpen && (() => {
         const raw = sessionStorage.getItem("teaserMat");
-        const mat = raw ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : teaserMat;
+        const mat = teaserMat ?? (raw ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : null);
         if (!mat) return null;
         return (
           <PurchaseConfirmModal
