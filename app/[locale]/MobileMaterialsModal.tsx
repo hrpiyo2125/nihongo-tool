@@ -73,6 +73,19 @@ export default function MobileMaterialsModal({
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const isScrollingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
+  const handleScroll = () => {
+    isScrollingRef.current = true;
+    clearTimeout(scrollTimerRef.current);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 200);
+  };
+
+  const safeCardClick = (mat: Parameters<typeof onCardClick>[0]) => {
+    if (isScrollingRef.current) return;
+    onCardClick(mat);
+  };
 
   useEffect(() => {
     contentTabRefs.current.get(activeContentFilter)?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -159,7 +172,7 @@ export default function MobileMaterialsModal({
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
         {/* 内容タブ（縦） */}
         <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column" as const, borderRight: "0.5px solid rgba(0,0,0,0.06)" }}>
-          <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto" }}>
+          <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto" }} onScroll={handleScroll}>
           {contentTabs.map((tab) => {
             const active = searchResults === null && activeContentFilter === tab.id;
             return (
@@ -175,7 +188,7 @@ export default function MobileMaterialsModal({
         </div>
 
         {/* カード一覧 */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "12px" }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "12px" }} onScroll={handleScroll}>
           <div style={{ padding: "0 0 12px", fontSize: 12, color: "#bbb" }}>
             {searchResults !== null
               ? `検索結果 — ${filtered.length}件`
@@ -189,7 +202,7 @@ export default function MobileMaterialsModal({
                 <MaterialCard
                   key={mat.id}
                   mat={mat}
-                  onClick={() => onCardClick(mat)}
+                  onClick={() => safeCardClick(mat)}
                   locale={locale}
                   isLoggedIn={isLoggedIn}
                   userPlan={userPlan}
@@ -210,7 +223,7 @@ export default function MobileMaterialsModal({
         {tabs.map((tab) => {
           const active = tab.id === "materials";
           return (
-            <button key={tab.id} onClick={() => { if (tab.id !== "materials") { onTabChange(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onClick={() => { if (tab.id !== "materials" && !isScrollingRef.current) { onTabChange(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
