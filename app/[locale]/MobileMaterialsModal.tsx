@@ -80,7 +80,7 @@ export default function MobileMaterialsModal({
   const handleScroll = () => {
     isScrollingRef.current = true;
     clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 200);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 300);
   };
 
   const safeCardClick = (mat: Parameters<typeof onCardClick>[0]) => {
@@ -154,7 +154,7 @@ export default function MobileMaterialsModal({
         <div style={{ width: 80, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <img src="/toolio_logo_mini.png" alt="toolio" style={{ width: 48, height: 48, objectFit: "contain" }} />
         </div>
-        <div className="toolio-scroll-x" style={{ display: "flex", overflowX: "auto", flex: 1 }}>
+        <div className="toolio-scroll-x" onScroll={handleScroll} style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {
             const active = searchResults === null && activeMethodFilter === tab.id;
             return (

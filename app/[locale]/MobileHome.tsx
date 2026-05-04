@@ -126,7 +126,7 @@ function MobileHomeInner() {
   const handleMainScroll = () => {
     isScrollingRef.current = true;
     clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 200);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 300);
     if (scrollRef.current) setScrolled(scrollRef.current.scrollTop > 10);
   };
 
