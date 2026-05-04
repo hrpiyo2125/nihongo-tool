@@ -19,6 +19,7 @@ import PlanSelector from "../../components/PlanSelector";
 import PlanModal from "../../components/PlanModal";
 import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import { BrandIcon } from "../../components/BrandIcon";
+import { useMobileStore, findModal } from "../../lib/mobileStore";
 
 type Material = {
   id: string;
@@ -36,128 +37,90 @@ type Material = {
   isNew: boolean;
 };
 
+// ─── お気に入りトグル共通ロジック ────────────────────────────
+async function toggleFav(
+  mat: Material,
+  favIds: string[],
+  setFavIds: (fn: (prev: string[]) => string[]) => void
+) {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) return;
+  if (favIds.includes(mat.id)) {
+    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+    setFavIds(prev => prev.filter(id => id !== mat.id));
+  } else {
+    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+    setFavIds(prev => [...prev, mat.id]);
+  }
+}
+
 function MobileHomeInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const m = searchParams.get("m") ?? "";
   const activeTab = searchParams.get("tab") ?? "home";
-
   const locale = useLocale();
   const pathname = usePathname();
-  const switchLanguage = () => {
-    const nextLocale = locale === 'ja' ? 'en' : 'ja';
-    const newPath = pathname.replace(`/${locale}`, '') || '/';
-    router.push(`/${nextLocale}${newPath}`);
-  };
+
+  // ─── Zustand store ───────────────────────────────────────
+  const { modalStack, push, pop, reset, updateMaterialsFilter } = useMobileStore();
+  const topModal = modalStack.at(-1);
+  const materialsEntry = findModal(modalStack, "materials");
+  const teaserEntry = findModal(modalStack, "teaser");
+
+  // モーダル表示フラグ（スタックから導出）
+  const guestMenuOpen    = topModal?.type === "guest";
+  const myPageOpen       = topModal?.type === "mypage";
+  const mySubPageOpen    = topModal?.type === "mypage-profile" || topModal?.type === "mypage-plan" || topModal?.type === "mypage-billing";
+  const announcementOpen = topModal?.type === "announcement";
+  const authModalOpen    = topModal?.type === "auth";
+  const morePageDl       = topModal?.type === "more-dl";
+  const morePageGuide    = topModal?.type === "more-guide";
+  const morePagePurchases = topModal?.type === "more-purchases";
+  const legalPrivacy     = topModal?.type === "legal-privacy";
+  const legalTerms       = topModal?.type === "legal-terms";
+  const legalTokushoho   = topModal?.type === "legal-tokushoho";
+  const legalAbout       = topModal?.type === "legal-about";
+  const teaserPlanOpen   = topModal?.type === "teaser-plan";
+  const teaserPurchaseOpen = topModal?.type === "teaser-purchase";
+
+  // mySubPage を topModal から導出
+  const mySubPage =
+    topModal?.type === "mypage-profile" ? "profile" :
+    topModal?.type === "mypage-plan"    ? "plan"    :
+    topModal?.type === "mypage-billing" ? "billing" : null;
+
+  // ─── i18n ────────────────────────────────────────────────
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
+  const tm  = useTranslations("mypage");
+  const tmm = useTranslations("materials_modal");
+  const th  = useTranslations("home");
 
-  const tm = useTranslations('mypage');
-  const tmm = useTranslations('materials_modal');
-  const th = useTranslations('home');
-
+  // ─── Auth ────────────────────────────────────────────────
   const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
           favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
           setFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
 
-  const [authModalMode, setAuthModalMode] = useState<AuthModalMode>("signup");
-  const [scrolled, setScrolled] = useState(false);
-  const [mySubPage, setMySubPage] = useState<string | null>(null);
+  // ─── ローカル state（モーダルに依存しないもの） ──────────
+  const [scrolled, setScrolled]         = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
-  const [materials, setMaterials] = useState<Material[]>([]);
+  const [materials, setMaterials]       = useState<Material[]>([]);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
-  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
-  const [modalInitContent, setModalInitContent] = useState("all");
-  const [modalInitMethod, setModalInitMethod] = useState("all");
   const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // URL から derived な open 状態
-  const materialsModalOpen = m === "materials";
-  const teaserOpen = m === "teaser";
-  const authModalOpen = m === "auth";
-  const announcementOpen = m === "announcement";
-  const guestMenuOpen = m === "guest";
-  const myPageOpen = m === "mypage";
-  const mySubPageOpen = m === "mypage-profile" || m === "mypage-plan" || m === "mypage-billing";
-  const morePageDl = m === "more-dl";
-  const morePageGuide = m === "more-guide";
-  const legalPrivacy = m === "legal-privacy";
-  const legalTerms = m === "legal-terms";
-  const legalTokushoho = m === "legal-tokushoho";
-  const legalAbout = m === "legal-about";
-  const morePagePurchases = m === "more-purchases";
-  const teaserPlanOpen = m === "teaser-plan";
-  const teaserPurchaseOpen = m === "teaser-purchase";
-
-  // m が変わるたびに sessionStorage から teaserMat / selectedAnnouncement を復元
-  useEffect(() => {
-    if (teaserOpen || teaserPlanOpen || teaserPurchaseOpen) {
-      const raw = sessionStorage.getItem("teaserMat");
-      if (raw) {
-        try { setTeaserMat(JSON.parse(raw)); } catch {}
-      }
-    }
-    if (announcementOpen) {
-      const raw = sessionStorage.getItem("selectedAnnouncement");
-      if (raw) {
-        try { setSelectedAnnouncement(JSON.parse(raw)); } catch {}
-      }
-    }
-    if (materialsModalOpen) {
-      const c = sessionStorage.getItem("modalInitContent");
-      const me = sessionStorage.getItem("modalInitMethod");
-      if (c) setModalInitContent(c);
-      if (me) setModalInitMethod(me);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [m]);
-
-  // mySubPage を URL から同期
-  useEffect(() => {
-    if (m === "mypage-profile") setMySubPage("profile");
-    else if (m === "mypage-plan") setMySubPage("plan");
-    else if (m === "mypage-billing") setMySubPage("billing");
-    else if (!mySubPageOpen) setMySubPage(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [m]);
-
-  // ホームに戻ったときスクロール復元
-  useEffect(() => {
-    if (!m && scrollRef.current) {
-      const pos = sessionStorage.getItem("homeScroll");
-      if (pos) requestAnimationFrame(() => { if (scrollRef.current) scrollRef.current.scrollTop = Number(pos); });
-    }
-  }, [m]);
-
-  const navigate = (screen: string) => {
-    if (!m && scrollRef.current) {
-      sessionStorage.setItem("homeScroll", String(scrollRef.current.scrollTop));
-    }
-    router.push(`?tab=${activeTab}&m=${screen}`);
-  };
-  const switchTab = (tab: string) => {
-    router.push(`?tab=${tab}`);
-  };
-
-  const goBack = () => router.back();
-
-  const openAuth = (mode: AuthModalMode) => {
-    setAuthModalMode(mode);
-    navigate("auth");
-  };
-
-
+  // ─── データ取得 ──────────────────────────────────────────
   useEffect(() => {
     fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
     fetch("/api/announcements").then(r => r.json()).then(data => setAnnouncements(Array.isArray(data) ? data : []));
     fetch("/api/legal-content").then(r => r.json()).then(data => setLegalContent(data));
   }, []);
 
+  // ─── スクロール検知 ──────────────────────────────────────
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -166,55 +129,55 @@ function MobileHomeInner() {
     return () => el.removeEventListener("scroll", onScroll);
   }, []);
 
-  const contentItems = [
-  { label: cl.hiragana,   char: "あ", color: "#e8efff", imageSrc: "/contents/12_hiragana.png",        contentId: "hiragana" },
-  { label: cl.katakana,   char: "ア", color: "#f0e8ff", imageSrc: "/contents/4_kanakana.png",         contentId: "katakana" },
-  { label: cl.kanji,      char: "字", color: "#ffe8f4", imageSrc: "/contents/3_kanji.png",            contentId: "kanji" },
-  { label: cl.joshi,      char: "は", color: "#fff0ec", imageSrc: "/contents/5_joshi.png",            contentId: "joshi" },
-  { label: cl.kaiwa,      char: "話", color: "#f8e8ff", imageSrc: "/contents/8_kaiwa.png",            contentId: "kaiwa" },
-  { label: cl.season,     char: "季", color: "#e8efff", imageSrc: "/contents/17_season.png",          contentId: "season" },
-  { label: cl.food,       char: "🍎", color: "#fff0e8", imageSrc: "/contents/15_food.png",            contentId: "food" },
-  { label: cl.animal,     char: "🐾", color: "#e8f8ee", imageSrc: "/contents/1_animal.png",           contentId: "animal" },
-  { label: cl.body,       char: "💪", color: "#ffe8f4", imageSrc: "/contents/9_body.png",             contentId: "body" },
-  { label: cl.color,      char: "🔵", color: "#f0e8ff", imageSrc: "/contents/18_color.png",           contentId: "color" },
-  { label: cl.number,     char: "数", color: "#e8f8ff", imageSrc: "/contents/13_number.png",          contentId: "number" },
-  { label: cl.adjective,  char: "い", color: "#fff8e0", imageSrc: "/contents/2_keiyoushi.png",        contentId: "adjective" },
-  { label: cl.verb,       char: "動", color: "#e8f8ee", imageSrc: "/contents/6_doushi.png",           contentId: "verb" },
-  { label: cl.conjunction,char: "接", color: "#f0e8ff", imageSrc: "/contents/10_setsuzokushi.png",    contentId: "conjunction" },
-  { label: cl.grammar,    char: "文", color: "#f0ffe8", imageSrc: "/contents/16_bunpo.png",           contentId: "grammar" },
-  { label: cl.familiar,   char: "🏠", color: "#e8efff", imageSrc: "/contents/7_mijika.png",           contentId: "familiar" },
-  { label: cl.kotoba,     char: "語", color: "#fff0e8", imageSrc: "/contents/19_word.png",            contentId: "kotoba" },
-  { label: cl.vegefruit,  char: "🥦", color: "#e8f8ee", imageSrc: "/contents/11_yasai.png",           contentId: "vegefruit" },
-  { label: cl.myself,     char: "👤", color: "#e8efff", imageSrc: "/contents/myself.png",             contentId: "myself" },
-];
+  // ─── スクロール位置保存・復元 ────────────────────────────
+  // モーダルを最初に開くとき保存
+  const savedScrollRef = useRef(false);
+  useEffect(() => {
+    if (modalStack.length > 0 && !savedScrollRef.current && scrollRef.current) {
+      sessionStorage.setItem("homeScroll", String(scrollRef.current.scrollTop));
+      savedScrollRef.current = true;
+    }
+    if (modalStack.length === 0) {
+      savedScrollRef.current = false;
+      const pos = sessionStorage.getItem("homeScroll");
+      if (pos && scrollRef.current) {
+        requestAnimationFrame(() => {
+          if (scrollRef.current) scrollRef.current.scrollTop = Number(pos);
+        });
+      }
+    }
+  }, [modalStack.length]);
 
-  const methodItems = [
-  { label: ml.drill,    char: "✏", color: "#e8efff", imageSrc: "/method/10_drill.png",    methodId: "drill" },
-  { label: ml.test,     char: "✓", color: "#f0e8ff", imageSrc: "/method/13_test.png",     methodId: "test" },
-  { label: ml.card,     char: "🃏", color: "#ffe8f4", imageSrc: "/method/9_card.png",      methodId: "card" },
-  { label: ml.nurie,     char: "◎", color: "#fff0ec", imageSrc: "/method/2_nurie.png",    methodId: "nurie" },
-  { label: ml.roleplay,  char: "🎭", color: "#f8e8ff", imageSrc: "/method/6_roleplay.png", methodId: "roleplay" },
-  { label: ml.bingo,     char: "🎯", color: "#e8efff", imageSrc: "/method/12_bingo.png",   methodId: "bingo" },
-  { label: ml.interview,    char: "🎤", color: "#fff8e0", imageSrc: "/method/4_interview.png",    methodId: "interview" },
-  { label: ml.presentation, char: "📊", color: "#e8efff", imageSrc: "/method/presentation.png", methodId: "presentation" },
-  { label: ml.sentence,  char: "文", color: "#f0ffe8", imageSrc: "/method/5_sentense.png", methodId: "sentence" },
-  { label: ml.essay,     char: "✍", color: "#fff0ec", imageSrc: "/method/1_sakubun.png",  methodId: "essay" },
-  { label: ml.check,     char: "✓", color: "#e8f8ee", imageSrc: "/method/3_checklist.png", methodId: "check" },
-  { label: ml.sugoroku,  char: "🎲", color: "#f0e8ff", imageSrc: "/method/7_sugoroku.png", methodId: "sugoroku" },
-  { label: ml.poster,    char: "📄", color: "#e8f8ff", imageSrc: "/method/8_poster.png",   methodId: "poster" },
-];
+  // ─── ナビゲーション関数 ──────────────────────────────────
+  const switchTab = (tab: string) => {
+    reset();
+    router.push(`?tab=${tab}`);
+  };
 
-  const filteredMaterials = materials.filter(mat => {
-    if (activeCardTab === "pickup") return mat.isPickup;
-    if (activeCardTab === "recommended") return mat.isRecommended;
-    if (activeCardTab === "ranking") return mat.ranking !== null;
-    if (activeCardTab === "new") return mat.isNew;
-    return true;
-  }).sort((a, b) => {
-    if (activeCardTab === "ranking") return (a.ranking ?? 999) - (b.ranking ?? 999);
-    return 0;
-  }).slice(0, 6);
+  const switchLanguage = () => {
+    const nextLocale = locale === "ja" ? "en" : "ja";
+    const newPath = pathname.replace(`/${locale}`, "") || "/";
+    router.push(`/${nextLocale}${newPath}`);
+  };
 
+  const openAuth = (mode: AuthModalMode) => {
+    push({ type: "auth", mode });
+  };
+
+  const openMaterialsModal = (content: string, method: string) => {
+    // 既にスタックにあれば filter だけ更新、なければ push
+    if (materialsEntry) {
+      updateMaterialsFilter(content, method);
+    } else {
+      push({ type: "materials", filter: { content, method } });
+    }
+  };
+
+  const openTeaser = (mat: Material) => {
+    push({ type: "teaser", mat: mat as any });
+  };
+
+  // ─── タブ定義 ────────────────────────────────────────────
   const tabs = [
     { id: "home", label: "ホーム", icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -244,24 +207,59 @@ function MobileHomeInner() {
     )},
   ];
 
-
   const contentTabsForModal = getContentTabs(cl);
-  const methodTabsForModal = getMethodTabs(ml);
+  const methodTabsForModal  = getMethodTabs(ml);
 
-  const openMaterialsModal = (content: string, method: string) => {
-    sessionStorage.setItem("modalInitContent", content);
-    sessionStorage.setItem("modalInitMethod", method);
-    setModalInitContent(content);
-    setModalInitMethod(method);
-    navigate("materials");
-  };
+  const contentItems = [
+    { label: cl.hiragana,    char: "あ", color: "#e8efff", imageSrc: "/contents/12_hiragana.png",     contentId: "hiragana" },
+    { label: cl.katakana,    char: "ア", color: "#f0e8ff", imageSrc: "/contents/4_kanakana.png",      contentId: "katakana" },
+    { label: cl.kanji,       char: "字", color: "#ffe8f4", imageSrc: "/contents/3_kanji.png",         contentId: "kanji" },
+    { label: cl.joshi,       char: "は", color: "#fff0ec", imageSrc: "/contents/5_joshi.png",         contentId: "joshi" },
+    { label: cl.kaiwa,       char: "話", color: "#f8e8ff", imageSrc: "/contents/8_kaiwa.png",         contentId: "kaiwa" },
+    { label: cl.season,      char: "季", color: "#e8efff", imageSrc: "/contents/17_season.png",       contentId: "season" },
+    { label: cl.food,        char: "🍎", color: "#fff0e8", imageSrc: "/contents/15_food.png",         contentId: "food" },
+    { label: cl.animal,      char: "🐾", color: "#e8f8ee", imageSrc: "/contents/1_animal.png",        contentId: "animal" },
+    { label: cl.body,        char: "💪", color: "#ffe8f4", imageSrc: "/contents/9_body.png",          contentId: "body" },
+    { label: cl.color,       char: "🔵", color: "#f0e8ff", imageSrc: "/contents/18_color.png",        contentId: "color" },
+    { label: cl.number,      char: "数", color: "#e8f8ff", imageSrc: "/contents/13_number.png",       contentId: "number" },
+    { label: cl.adjective,   char: "い", color: "#fff8e0", imageSrc: "/contents/2_keiyoushi.png",     contentId: "adjective" },
+    { label: cl.verb,        char: "動", color: "#e8f8ee", imageSrc: "/contents/6_doushi.png",        contentId: "verb" },
+    { label: cl.conjunction, char: "接", color: "#f0e8ff", imageSrc: "/contents/10_setsuzokushi.png", contentId: "conjunction" },
+    { label: cl.grammar,     char: "文", color: "#f0ffe8", imageSrc: "/contents/16_bunpo.png",        contentId: "grammar" },
+    { label: cl.familiar,    char: "🏠", color: "#e8efff", imageSrc: "/contents/7_mijika.png",        contentId: "familiar" },
+    { label: cl.kotoba,      char: "語", color: "#fff0e8", imageSrc: "/contents/19_word.png",         contentId: "kotoba" },
+    { label: cl.vegefruit,   char: "🥦", color: "#e8f8ee", imageSrc: "/contents/11_yasai.png",        contentId: "vegefruit" },
+    { label: cl.myself,      char: "👤", color: "#e8efff", imageSrc: "/contents/myself.png",          contentId: "myself" },
+  ];
 
-  const openTeaser = (mat: Material) => {
-    sessionStorage.setItem("teaserMat", JSON.stringify(mat));
-    setTeaserMat(mat);
-    navigate("teaser");
-  };
+  const methodItems = [
+    { label: ml.drill,        char: "✏",  color: "#e8efff", imageSrc: "/method/10_drill.png",        methodId: "drill" },
+    { label: ml.test,         char: "✓",  color: "#f0e8ff", imageSrc: "/method/13_test.png",         methodId: "test" },
+    { label: ml.card,         char: "🃏", color: "#ffe8f4", imageSrc: "/method/9_card.png",           methodId: "card" },
+    { label: ml.nurie,        char: "◎",  color: "#fff0ec", imageSrc: "/method/2_nurie.png",         methodId: "nurie" },
+    { label: ml.roleplay,     char: "🎭", color: "#f8e8ff", imageSrc: "/method/6_roleplay.png",      methodId: "roleplay" },
+    { label: ml.bingo,        char: "🎯", color: "#e8efff", imageSrc: "/method/12_bingo.png",        methodId: "bingo" },
+    { label: ml.interview,    char: "🎤", color: "#fff8e0", imageSrc: "/method/4_interview.png",     methodId: "interview" },
+    { label: ml.presentation, char: "📊", color: "#e8efff", imageSrc: "/method/presentation.png",   methodId: "presentation" },
+    { label: ml.sentence,     char: "文",  color: "#f0ffe8", imageSrc: "/method/5_sentense.png",     methodId: "sentence" },
+    { label: ml.essay,        char: "✍",  color: "#fff0ec", imageSrc: "/method/1_sakubun.png",      methodId: "essay" },
+    { label: ml.check,        char: "✓",  color: "#e8f8ee", imageSrc: "/method/3_checklist.png",    methodId: "check" },
+    { label: ml.sugoroku,     char: "🎲", color: "#f0e8ff", imageSrc: "/method/7_sugoroku.png",     methodId: "sugoroku" },
+    { label: ml.poster,       char: "📄", color: "#e8f8ff", imageSrc: "/method/8_poster.png",       methodId: "poster" },
+  ];
 
+  const filteredMaterials = materials.filter(mat => {
+    if (activeCardTab === "pickup")      return mat.isPickup;
+    if (activeCardTab === "recommended") return mat.isRecommended;
+    if (activeCardTab === "ranking")     return mat.ranking !== null;
+    if (activeCardTab === "new")         return mat.isNew;
+    return true;
+  }).sort((a, b) => {
+    if (activeCardTab === "ranking") return (a.ranking ?? 999) - (b.ranking ?? 999);
+    return 0;
+  }).slice(0, 6);
+
+  // ─── レンダリング ────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
 
@@ -269,21 +267,22 @@ function MobileHomeInner() {
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
-          <button onClick={() => isLoggedIn ? navigate("mypage") : (guestMenuOpen ? goBack() : navigate("guest"))} style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}>
+          <button
+            onClick={() => isLoggedIn ? push({ type: "mypage" }) : (guestMenuOpen ? pop() : push({ type: "guest" }))}
+            style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}
+          >
             {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
             <>
-              <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+              <div onClick={() => pop()} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
                 <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
-                <button onClick={() => openAuth("login")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-                  <BrandIcon name="key" size={14} color="#c9a0f0" />
-                  ログイン
+                <button onClick={() => { pop(); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+                  <BrandIcon name="key" size={14} color="#c9a0f0" />ログイン
                 </button>
-                <button onClick={() => openAuth("signup")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
-                  <BrandIcon name="sparkle" size={14} color="#9b6ed4" />
-                  会員でない方はこちらから新規登録
+                <button onClick={() => { pop(); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
+                  <BrandIcon name="sparkle" size={14} color="#9b6ed4" />会員でない方はこちらから新規登録
                 </button>
               </div>
             </>
@@ -297,7 +296,6 @@ function MobileHomeInner() {
         {/* ホームタブ */}
         {activeTab === "home" && (
           <div>
-            {/* ヒーロー */}
             <section style={{ padding: "140px 32px 48px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
               <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>Japanese Learning Tools For Kids</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
@@ -316,7 +314,7 @@ function MobileHomeInner() {
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成</div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => openAuth("login")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
+                    <button onClick={() => openAuth("login")}  style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
                     <button onClick={() => openAuth("signup")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
                   </div>
                 </div>
@@ -331,7 +329,7 @@ function MobileHomeInner() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
-                  <div key={item.label} onClick={() => openMaterialsModal(item.contentId, "all")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => openMaterialsModal(item.contentId, "all")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -349,7 +347,7 @@ function MobileHomeInner() {
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
-                  <div key={item.label} onClick={() => openMaterialsModal("all", item.methodId)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                  <div key={item.label} onClick={() => openMaterialsModal("all", item.methodId)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
                       {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
@@ -362,11 +360,9 @@ function MobileHomeInner() {
             {/* お知らせ */}
             {announcements.length > 0 && (
               <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
-                  お知らせ
-                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 12 }}>お知らせ</div>
                 {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} onClick={() => { sessionStorage.setItem("selectedAnnouncement", JSON.stringify(n)); setSelectedAnnouncement(n); navigate("announcement"); }} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
+                  <div key={n.id} onClick={() => push({ type: "announcement", announcement: n })} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
                     <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
                     <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
@@ -390,30 +386,14 @@ function MobileHomeInner() {
                 columns={2}
                 isMobile={true}
                 onCardClick={(mat) => openTeaser(mat)}
-                onFavToggle={async (mat) => {
-                  const supabase = createClient();
-                  const { data: { session } } = await supabase.auth.getSession();
-                  if (!session) return;
-                  if (favIds.includes(mat.id)) {
-                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                    setFavIds(prev => prev.filter(id => id !== mat.id));
-                  } else {
-                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                    setFavIds(prev => [...prev, mat.id]);
-                  }
-                }}
+                onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
               />
             </section>
 
-            {/* 教材タブ（ピックアップ等） */}
+            {/* 教材カードタブ */}
             <section style={{ padding: "24px 0 32px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ display: "flex", overflowX: "auto", padding: "0 20px", marginBottom: 16, gap: 0, borderBottom: "0.5px solid #eee", scrollbarWidth: "none" }}>
-                {[
-                  { key: "pickup", label: "ピックアップ" },
-                  { key: "recommended", label: "おすすめ" },
-                  { key: "ranking", label: "ランキング" },
-                  { key: "new", label: "新着" },
-                ].map(({ key, label }) => (
+                {[{ key: "pickup", label: "ピックアップ" }, { key: "recommended", label: "おすすめ" }, { key: "ranking", label: "ランキング" }, { key: "new", label: "新着" }].map(({ key, label }) => (
                   <button key={key} onClick={() => setActiveCardTab(key)} style={{ fontSize: 13, padding: "8px 14px", background: "transparent", border: "none", borderBottom: activeCardTab === key ? "2px solid #9b6ed4" : "2px solid transparent", color: activeCardTab === key ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: activeCardTab === key ? 700 : 500, whiteSpace: "nowrap", flexShrink: 0 }}>
                     {label}
                   </button>
@@ -425,36 +405,13 @@ function MobileHomeInner() {
                 ) : filteredMaterials.map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                   return (
-                    <MaterialCard
-                      key={mat.id}
-                      mat={mat}
-                      onClick={() => openTeaser(mat)}
-                      locale={locale}
-                      isLoggedIn={isLoggedIn}
-                      favIds={effectiveFavIds}
-                      bg={bg} char={char} charColor={charColor}
-                      tag={tag} tagBg={tagBg} tagColor={tagColor}
-                      onFavToggle={async (mat) => {
-                        const supabase = createClient();
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (!session) return;
-                        if (favIds.includes(mat.id)) {
-                          await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                          setFavIds(prev => prev.filter(id => id !== mat.id));
-                        } else {
-                          await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                          setFavIds(prev => [...prev, mat.id]);
-                        }
-                      }}
-                    />
+                    <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />
                   );
                 })}
               </div>
             </section>
           </div>
         )}
-
-
 
         {/* お気に入りタブ */}
         {activeTab === "fav" && (
@@ -475,30 +432,7 @@ function MobileHomeInner() {
                   </div>
                 ) : materials.filter(mat => favIds.includes(mat.id)).map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                  return (
-                    <MaterialCard
-                      key={mat.id}
-                      mat={mat}
-                      onClick={() => openTeaser(mat)}
-                      locale={locale}
-                      isLoggedIn={isLoggedIn}
-                      favIds={effectiveFavIds}
-                      bg={bg} char={char} charColor={charColor}
-                      tag={tag} tagBg={tagBg} tagColor={tagColor}
-                      onFavToggle={async (mat) => {
-                        const supabase = createClient();
-                        const { data: { session } } = await supabase.auth.getSession();
-                        if (!session) return;
-                        if (favIds.includes(mat.id)) {
-                          await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                          setFavIds(prev => prev.filter(id => id !== mat.id));
-                        } else {
-                          await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                          setFavIds(prev => [...prev, mat.id]);
-                        }
-                      }}
-                    />
-                  );
+                  return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />;
                 })}
               </div>
             )}
@@ -510,11 +444,11 @@ function MobileHomeInner() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", action: () => navigate("more-dl") },
-              { icon: "guide"     as const, label: "よくある質問",    action: () => navigate("more-guide") },
-              { icon: "purchases" as const, label: "教材購入履歴",    action: () => navigate("more-purchases") },
+              { icon: "download" as const, label: "ダウンロード履歴", type: "more-dl"       as const },
+              { icon: "guide"    as const, label: "よくある質問",     type: "more-guide"    as const },
+              { icon: "purchases"as const, label: "教材購入履歴",     type: "more-purchases"as const },
             ].map((item) => (
-              <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => push({ type: item.type })} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
@@ -523,11 +457,11 @@ function MobileHomeInner() {
               </div>
             ))}
 
-            {/* ダウンロード履歴サブページ */}
+            {/* ダウンロード履歴 */}
             {morePageDl && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -539,53 +473,18 @@ function MobileHomeInner() {
                     </div>
                   ) : (() => {
                     const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
-                    if (dlMaterials.length === 0) return (
-                      <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
-                        <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
-                        <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
-                      </div>
-                    );
-                    return (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        {dlMaterials.map((mat) => {
-                          const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                          return (
-                            <MaterialCard
-                              key={mat.id}
-                              mat={mat}
-                              onClick={() => openTeaser(mat)}
-                              locale={locale}
-                              isLoggedIn={isLoggedIn}
-                              favIds={effectiveFavIds}
-                              bg={bg} char={char} charColor={charColor}
-                              tag={tag} tagBg={tagBg} tagColor={tagColor}
-                              onFavToggle={async (mat) => {
-                                const supabase = createClient();
-                                const { data: { session } } = await supabase.auth.getSession();
-                                if (!session) return;
-                                if (favIds.includes(mat.id)) {
-                                  await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                                  setFavIds(prev => prev.filter(id => id !== mat.id));
-                                } else {
-                                  await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                                  setFavIds(prev => [...prev, mat.id]);
-                                }
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                    );
+                    if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div></div>;
+                    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
                   })()}
                 </div>
               </div>
             )}
 
-            {/* 教材購入履歴サブページ */}
+            {/* 教材購入履歴 */}
             {morePagePurchases && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
                 </header>
                 <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -597,59 +496,21 @@ function MobileHomeInner() {
                     </div>
                   ) : (() => {
                     const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
-                    if (purchasedMaterials.length === 0) return (
-                      <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
-                        <BrandIcon name="purchases" size={32} color="#e0d0f0" />
-                        <div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div>
-                      </div>
-                    );
-                    return (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                        {purchasedMaterials.map((mat) => {
-                          const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                          return (
-                            <MaterialCard
-                              key={mat.id}
-                              mat={mat}
-                              onClick={() => openTeaser(mat)}
-                              locale={locale}
-                              isLoggedIn={isLoggedIn}
-                              favIds={effectiveFavIds}
-                              bg={bg} char={char} charColor={charColor}
-                              tag={tag} tagBg={tagBg} tagColor={tagColor}
-                              onFavToggle={async (mat) => {
-                                const supabase = createClient();
-                                const { data: { session } } = await supabase.auth.getSession();
-                                if (!session) return;
-                                if (favIds.includes(mat.id)) {
-                                  await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                                  setFavIds(prev => prev.filter(id => id !== mat.id));
-                                } else {
-                                  await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                                  setFavIds(prev => [...prev, mat.id]);
-                                }
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                    );
+                    if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="purchases" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
+                    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
                   })()}
                 </div>
               </div>
             )}
 
-
-            {/* 使い方ガイドサブページ */}
+            {/* よくある質問 */}
             {morePageGuide && (
               <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
                 <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
                   <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
                 </header>
-                <div style={{ flex: 1, overflowY: "auto" }}>
-                  <FaqSection />
-                </div>
+                <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
               </div>
             )}
           </div>
@@ -660,16 +521,16 @@ function MobileHomeInner() {
       {(legalPrivacy || legalTerms || legalTokushoho || legalAbout) && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {legalPrivacy ? "プライバシーポリシー" : legalTerms ? "利用規約" : legalTokushoho ? "特定商取引法に基づく表記" : "toolioとは"}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {legalPrivacy && <PrivacyContent onBack={goBack} compact notionBody={legalContent?.textContents?.['プライバシーポリシー']} />}
-            {legalTerms && <TermsContent onBack={goBack} compact notionBody={legalContent?.textContents?.['利用規約']} />}
-            {legalTokushoho && <TokushohoContent onBack={goBack} compact notionBody={legalContent?.textContents?.['特定商取引法']} />}
-            {legalAbout && <AboutContent onBack={goBack} compact notionBody={legalContent?.textContents?.['toolioとは']} />}
+            {legalPrivacy   && <PrivacyContent   onBack={() => pop()} compact notionBody={legalContent?.textContents?.["プライバシーポリシー"]} />}
+            {legalTerms     && <TermsContent     onBack={() => pop()} compact notionBody={legalContent?.textContents?.["利用規約"]} />}
+            {legalTokushoho && <TokushohoContent onBack={() => pop()} compact notionBody={legalContent?.textContents?.["特定商取引法"]} />}
+            {legalAbout     && <AboutContent     onBack={() => pop()} compact notionBody={legalContent?.textContents?.["toolioとは"]} />}
           </div>
         </div>
       )}
@@ -677,22 +538,49 @@ function MobileHomeInner() {
       {/* 下部タブバー */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 80, background: "white", borderTop: "0.5px solid rgba(200,170,240,0.25)", display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 16, zIndex: 50 }}>
         {tabs.map((tab) => {
-          const active = activeTab === tab.id;
+          const active = activeTab === tab.id && !materialsEntry;
           return (
-            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); return; } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
-            {tab.icon(active)}
-            <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
+            <button key={tab.id} onClick={() => { if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+              {tab.icon(active)}
+              <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
           );
         })}
       </div>
 
-      {/* ティザーモーダル */}
-      {(teaserOpen || teaserPlanOpen || teaserPurchaseOpen) && teaserMat && (() => {
-        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat, locale);
+      {/* ─── モーダル層 ─────────────────────────────────────── */}
+
+      {/* 教材モーダル（スタックにある間は常にマウント） */}
+      {materialsEntry && (
+        <MobileMaterialsModal
+          materials={materials}
+          locale={locale}
+          isLoggedIn={isLoggedIn}
+          userPlan={profile.plan ?? "free"}
+          favIds={effectiveFavIds}
+          purchasedIds={purchasedIds}
+          contentTabs={contentTabsForModal}
+          methodTabs={methodTabsForModal}
+          avatarUrl={avatarUrl}
+          userInitial={userInitial}
+          tabs={tabs}
+          initContent={materialsEntry.filter.content}
+          initMethod={materialsEntry.filter.method}
+          onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
+          onCardClick={(mat) => openTeaser(mat)}
+          onClose={() => pop()}
+          onTabChange={(tabId) => switchTab(tabId)}
+          onOpenMyPage={() => push({ type: "mypage" })}
+          onFilterChange={(content, method) => updateMaterialsFilter(content, method)}
+        />
+      )}
+
+      {/* ティーザーモーダル（スタックにある間は常にマウント） */}
+      {teaserEntry && (() => {
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserEntry.mat as any, locale);
         return (
           <MobileTeaserModal
-            mat={teaserMat}
+            mat={teaserEntry.mat as any}
             bg={bg} char={char} charColor={charColor}
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
@@ -702,54 +590,52 @@ function MobileHomeInner() {
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
             locale={locale}
-            onClose={() => goBack()}
+            onClose={() => pop()}
             tmm={tmm}
             onFavChange={(materialId, isFav) => {
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
             onOpenAuth={openAuth}
-            onOpenPlanModal={() => navigate("teaser-plan")}
-            onOpenPurchaseConfirm={() => navigate("teaser-purchase")}
+            onOpenPlanModal={() => push({ type: "teaser-plan" })}
+            onOpenPurchaseConfirm={() => push({ type: "teaser-purchase" })}
           />
         );
       })()}
 
-      {announcementOpen && selectedAnnouncement && (
+      {/* お知らせモーダル */}
+      {announcementOpen && topModal?.type === "announcement" && (
         <AnnouncementModal
-          announcement={selectedAnnouncement}
+          announcement={topModal.announcement}
           isLoggedIn={isLoggedIn}
           userPlan={profile.plan ?? "free"}
           favIds={effectiveFavIds}
           purchasedIds={purchasedIds}
           locale={locale}
-          onClose={() => goBack()}
+          onClose={() => pop()}
           onFavChange={(materialId, isFav) => {
             if (isFav) setFavIds(prev => [...prev, materialId]);
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
-          onMaterialClick={(mat) => {
-            goBack();
-            openTeaser(mat as any);
-          }}
+          onMaterialClick={(mat) => { pop(); openTeaser(mat as any); }}
         />
       )}
 
-      {authModalOpen && (
+      {/* 認証モーダル */}
+      {authModalOpen && topModal?.type === "auth" && (
         <AuthModal
-          initialMode={authModalMode}
-          onClose={() => goBack()}
-          onLoggedIn={() => { goBack(); window.location.reload(); }}
+          initialMode={topModal.mode}
+          onClose={() => pop()}
+          onLoggedIn={() => { pop(); window.location.reload(); }}
         />
       )}
 
       {/* マイページドロワー */}
       {myPageOpen && (
         <>
-          <div onClick={() => goBack()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
-          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "0 24px 32px", display: "flex", flexDirection: "column", gap: 0, overflowY: "auto" }}>
-            {/* ユーザー情報 */}
+          <div onClick={() => pop()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
+          <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "0 24px 32px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", marginBottom: 8 }}>
               <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
                 {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
@@ -770,14 +656,13 @@ function MobileHomeInner() {
                 </div>
               </div>
             </div>
-
             <div style={{ fontSize: 13, fontWeight: 800, color: "#555", marginBottom: 8, marginTop: 4 }}>マイページ</div>
             {[
-              { icon: "user"    as const, label: "プロフィール", action: () => navigate("mypage-profile") },
-              { icon: "plan"    as const, label: "プラン確認・変更", action: () => navigate("mypage-plan") },
-              { icon: "billing" as const, label: "支払い履歴",   action: () => navigate("mypage-billing") },
+              { icon: "user"    as const, label: "プロフィール",     type: "mypage-profile"  as const },
+              { icon: "plan"    as const, label: "プラン確認・変更", type: "mypage-plan"     as const },
+              { icon: "billing" as const, label: "支払い履歴",       type: "mypage-billing"  as const },
             ].map((item) => (
-              <div key={item.label} onClick={item.action} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => push({ type: item.type })} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
@@ -785,39 +670,30 @@ function MobileHomeInner() {
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
               </div>
             ))}
-
-            {/* 言語切替 */}
             <div style={{ marginTop: 20 }}>
               <button onClick={switchLanguage} style={{ fontSize: 12, padding: "8px 14px", width: "100%", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 8, background: "rgba(200,170,240,0.06)", color: "#888", cursor: "pointer" }}>
-                {locale === 'ja' ? "🌐 日本語 / EN" : "🌐 EN / 日本語"}
+                {locale === "ja" ? "🌐 日本語 / EN" : "🌐 EN / 日本語"}
               </button>
             </div>
-
-            {/* フッターリンク */}
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-              <button onClick={() => navigate("legal-about")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>toolioとは</button>
-              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
-              <button onClick={() => navigate("legal-terms")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>利用規約</button>
-              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
-              <button onClick={() => navigate("legal-privacy")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>プライバシー</button>
-              <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>
-              <button onClick={() => navigate("legal-tokushoho")} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>特商法</button>
+              {[
+                { label: "toolioとは",  type: "legal-about"     as const },
+                { label: "利用規約",    type: "legal-terms"     as const },
+                { label: "プライバシー",type: "legal-privacy"   as const },
+                { label: "特商法",      type: "legal-tokushoho" as const },
+              ].map((l, i, arr) => (
+                <span key={l.label}>
+                  <button onClick={() => push({ type: l.type })} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
+                  {i < arr.length - 1 && <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>}
+                </span>
+              ))}
             </div>
             <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "center" }}>© 2026 toolio</div>
-
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
-                <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                  ログイン / 新規登録
-                </button>
+                <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>ログイン / 新規登録</button>
               ) : (
-                <button onClick={async () => {
-                  const supabase = createClient();
-                  await supabase.auth.signOut();
-                  window.location.reload();
-                }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>
-                  ログアウト
-                </button>
+                <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); window.location.reload(); }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>ログアウト</button>
               )}
             </div>
           </div>
@@ -828,7 +704,7 @@ function MobileHomeInner() {
       {mySubPageOpen && mySubPage && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => goBack()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
             </span>
@@ -841,113 +717,61 @@ function MobileHomeInner() {
                   cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
                   currentPeriodEnd={profile?.current_period_end ?? null}
                   isPendingDeletion={profile?.status === "pending_deletion"}
-                  onSubscribed={async () => {
-                    await loadProfile();
-                    goBack();
-                  }}
+                  onSubscribed={async () => { await loadProfile(); pop(); }}
                 />
               </div>
             ) : (
-            <MyPage
-              activePage={
-                mySubPage === "profile" ? "settings-profile"
-                : mySubPage === "billing" ? "settings-billing"
-                : "settings-billing"
-              }
-              setActivePage={() => {}}
-              isLoggedIn={isLoggedIn}
-              userInitial={userInitial}
-              setUserInitial={setUserInitial}
-              avatarUrl={avatarUrl}
-              setAvatarUrl={setAvatarUrl}
-              userName={userName}
-              setUserName={setUserName}
-              userEmail={userEmail}
-              profile={profile}
-              updateProfile={updateProfile}
-              editingField={editingField}
-              setEditingField={setEditingField}
-              editingValue={editingValue}
-              setEditingValue={setEditingValue}
-              materials={materials}
-              contentTabs={contentTabsForModal}
-              methodTabs={methodTabsForModal}
-              locale={locale}
-              tmm={tmm}
-              tm={tm}
-              navItems={[]}
-              mobileMode={true}
-              onPlanChanged={loadProfile}
-              onOpenAuth={openAuth}
-            />
+              <MyPage
+                activePage={mySubPage === "profile" ? "settings-profile" : "settings-billing"}
+                setActivePage={() => {}}
+                isLoggedIn={isLoggedIn}
+                userInitial={userInitial}
+                setUserInitial={setUserInitial}
+                avatarUrl={avatarUrl}
+                setAvatarUrl={setAvatarUrl}
+                userName={userName}
+                setUserName={setUserName}
+                userEmail={userEmail}
+                profile={profile}
+                updateProfile={updateProfile}
+                editingField={editingField}
+                setEditingField={setEditingField}
+                editingValue={editingValue}
+                setEditingValue={setEditingValue}
+                materials={materials}
+                contentTabs={contentTabsForModal}
+                methodTabs={methodTabsForModal}
+                locale={locale}
+                tmm={tmm}
+                tm={tm}
+                navItems={[]}
+                mobileMode={true}
+                onPlanChanged={loadProfile}
+                onOpenAuth={openAuth}
+              />
             )}
           </div>
         </div>
       )}
 
-      {materialsModalOpen && (
-        <MobileMaterialsModal
-          materials={materials}
-          locale={locale}
-          isLoggedIn={isLoggedIn}
-          userPlan={profile.plan ?? "free"}
-          favIds={effectiveFavIds}
-          purchasedIds={purchasedIds}
-          contentTabs={contentTabsForModal}
-          methodTabs={methodTabsForModal}
-          avatarUrl={avatarUrl}
-          userInitial={userInitial}
-          tabs={tabs}
-          initContent={modalInitContent}
-          initMethod={modalInitMethod}
-          onFavToggle={async (mat) => {
-            const supabase = createClient();
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
-            if (favIds.includes(mat.id)) {
-              await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-              setFavIds(prev => prev.filter(id => id !== mat.id));
-            } else {
-              await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-              setFavIds(prev => [...prev, mat.id]);
-            }
-          }}
-          onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => goBack()}
-          onTabChange={(tabId) => router.push(`?tab=${tabId}`)}
-          onOpenMyPage={() => navigate("mypage")}
-          onFilterChange={(content, method) => {
-            setModalInitContent(content);
-            setModalInitMethod(method);
-            sessionStorage.setItem("modalInitContent", content);
-            sessionStorage.setItem("modalInitMethod", method);
-          }}
-        />
-      )}
-
       {/* teaser内プランモーダル */}
-      {teaserPlanOpen && teaserMat && (
+      {teaserPlanOpen && teaserEntry && (
         <PlanModal
           currentPlan={profile.plan ?? "free"}
-          requiredPlan={teaserMat.requiredPlan}
-          onSubscribed={() => { goBack(); }}
-          onClose={() => goBack()}
+          requiredPlan={(teaserEntry.mat as any).requiredPlan}
+          onSubscribed={() => pop()}
+          onClose={() => pop()}
         />
       )}
 
       {/* teaser内購入確認モーダル */}
-      {teaserPurchaseOpen && (() => {
-        const raw = sessionStorage.getItem("teaserMat");
-        const mat = teaserMat ?? (raw ? (() => { try { return JSON.parse(raw); } catch { return null; } })() : null);
-        if (!mat) return null;
-        return (
-          <PurchaseConfirmModal
-            mat={mat}
-            onSuccess={() => { goBack(); }}
-            onClose={() => goBack()}
-          />
-        );
-      })()}
+      {teaserPurchaseOpen && teaserEntry && (
+        <PurchaseConfirmModal
+          mat={teaserEntry.mat as any}
+          onSuccess={() => pop()}
+          onClose={() => pop()}
+        />
+      )}
     </div>
   );
 }

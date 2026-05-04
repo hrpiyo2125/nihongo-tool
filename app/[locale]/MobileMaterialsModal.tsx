@@ -75,7 +75,7 @@ export default function MobileMaterialsModal({
   const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const isScrollingRef = useRef(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleScroll = () => {
     isScrollingRef.current = true;
