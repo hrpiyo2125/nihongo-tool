@@ -119,7 +119,7 @@ const navItems: NavItem[] = [
 ];
 
 const methodTabs: { id: string; label: string; char: string; imageSrc: string | null }[] = [
-  { id: "all",      label: ml.all,      char: "✦", imageSrc: null },
+  { id: "all",      label: ml.all,      char: "✦", imageSrc: "/contents/14_all.png" },
   { id: "drill",    label: ml.drill,    char: "✏", imageSrc: "/method/10_drill.png" },
   { id: "test",     label: ml.test,     char: "✓", imageSrc: "/method/13_test.png" },
   { id: "card",     label: ml.card,     char: "🃏", imageSrc: "/method/9_card.png" },
