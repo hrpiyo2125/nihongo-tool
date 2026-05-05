@@ -33,6 +33,7 @@ type Material = {
   features: string;
   howto: string;
   pdfFile: string;
+  studyTime?: string;
 };
 
 
@@ -80,10 +81,10 @@ function renderNotionText(text: string) {
             </div>
           );
         }
-        if (line.startsWith("✦ ") || line.startsWith("- ")) return (
+        if (line.startsWith("✦ ") || line.startsWith("- ") || line.startsWith("・")) return (
           <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             <span style={{ color: "#e49bfd", fontSize: 12, flexShrink: 0, marginTop: 3 }}>✦</span>
-            <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace("✦ ", "").replace("- ", "")}</span>
+            <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace("✦ ", "").replace("- ", "").replace("・", "")}</span>
           </div>
         );
         if (line === "") return <div key={i} style={{ height: 4 }} />;
@@ -415,15 +416,18 @@ export default function MaterialDetailPage() {
         <div style={{ padding: "20px 18px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>この教材について</div>
           <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 16 }}>{material.description || `楽しく学べる${contentTabs.find(t => t.id === material.content?.[0])?.label ?? ""}の教材です。`}</p>
-          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div style={{ padding: "10px 12px", background: "#f7f7f7", borderRadius: 8 }}>
-              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>学習内容</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#444" }}>{(material.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－"}</div>
-            </div>
-            <div style={{ padding: "10px 12px", background: "#f7f7f7", borderRadius: 8 }}>
-              <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>学習方法</div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#444" }}>{(material.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－"}</div>
-            </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {[
+              { label: "対象年齢", value: material.ageGroup || "－" },
+              { label: "学習時間", value: material.studyTime || "－" },
+              { label: "学習方法", value: (material.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
+              { label: "学習内容", value: (material.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ padding: "10px 12px", background: "#f7f7f7", borderRadius: 8 }}>
+                <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{label}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#444" }}>{value}</div>
+              </div>
+            ))}
           </div>
         </div>
       ),

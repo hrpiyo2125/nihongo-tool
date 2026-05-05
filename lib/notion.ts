@@ -203,6 +203,7 @@ export async function getMaterialById(id: string) {
       usageAdvanced: props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',
       features:    props.features?.rich_text?.[0]?.plain_text ?? '',
       howto:       props.howto?.rich_text?.[0]?.plain_text ?? '',
+      studyTime:   props.studyTime?.rich_text?.[0]?.plain_text ?? '',
       pdfFile: props.pdfFile?.files[0]?.file?.url ?? props.pdfFile?.files[0]?.external?.url ?? '',
     }
   } catch (e) {
