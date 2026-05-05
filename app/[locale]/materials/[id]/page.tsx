@@ -65,30 +65,39 @@ function LockTooltip({ type, visible, onClose, onOpenAuth }: { type: TooltipType
   );
 }
 
+function renderInline(text: string) {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith("**") && part.endsWith("**")
+      ? <strong key={i} style={{ fontWeight: 700, color: "#444" }}>{part.slice(2, -2)}</strong>
+      : part
+  );
+}
+
 function renderNotionText(text: string) {
   if (!text) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column" as const, gap: 10 }}>
       {text.split("\n").map((line, i) => {
-        if (line.startsWith("## ")) return <div key={i} style={{ fontSize: 14, fontWeight: 800, color: "#333", marginTop: 6 }}>{line.replace("## ", "")}</div>;
-        if (line.startsWith("> ")) return <div key={i} style={{ fontSize: 13, color: "#9b6ed4", background: "rgba(228,155,253,0.08)", border: "0.5px solid rgba(228,155,253,0.3)", borderRadius: 8, padding: "8px 12px", lineHeight: 1.8 }}>{line.replace("> ", "")}</div>;
+        if (line.startsWith("## ")) return <div key={i} style={{ fontSize: 14, fontWeight: 800, color: "#333", marginTop: 6 }}>{renderInline(line.replace("## ", ""))}</div>;
+        if (line.startsWith("> ")) return <div key={i} style={{ fontSize: 13, color: "#9b6ed4", background: "rgba(228,155,253,0.08)", border: "0.5px solid rgba(228,155,253,0.3)", borderRadius: 8, padding: "8px 12px", lineHeight: 1.8 }}>{renderInline(line.replace("> ", ""))}</div>;
         if (/^\d+\. /.test(line)) {
           const num = line.match(/^(\d+)\. /)?.[1];
           return (
             <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
               <span style={{ width: 20, height: 20, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2 }}>{num}</span>
-              <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace(/^\d+\. /, "")}</span>
+              <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{renderInline(line.replace(/^\d+\. /, ""))}</span>
             </div>
           );
         }
         if (line.startsWith("✦ ") || line.startsWith("- ") || line.startsWith("・")) return (
           <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
             <span style={{ color: "#e49bfd", fontSize: 12, flexShrink: 0, marginTop: 3 }}>✦</span>
-            <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{line.replace("✦ ", "").replace("- ", "").replace("・", "")}</span>
+            <span style={{ fontSize: 13, color: "#666", lineHeight: 1.7 }}>{renderInline(line.replace("✦ ", "").replace("- ", "").replace("・", ""))}</span>
           </div>
         );
         if (line === "") return <div key={i} style={{ height: 4 }} />;
-        return <p key={i} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>{line}</p>;
+        return <p key={i} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0 }}>{renderInline(line)}</p>;
       })}
     </div>
   );
