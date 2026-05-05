@@ -625,7 +625,7 @@ function MobileHomeInner() {
         <AuthModal
           initialMode={topModal.mode}
           onClose={() => pop()}
-          onLoggedIn={() => { pop(); window.location.reload(); }}
+          onLoggedIn={() => { pop(); }}
         />
       )}
 
@@ -691,7 +691,7 @@ function MobileHomeInner() {
               {!isLoggedIn ? (
                 <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>ログイン / 新規登録</button>
               ) : (
-                <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); window.location.reload(); }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>ログアウト</button>
+                <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>ログアウト</button>
               )}
             </div>
           </div>

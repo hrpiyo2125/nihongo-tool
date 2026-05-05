@@ -1134,7 +1134,7 @@ export default function MyPage({
                 </div>
               )}
               <button
-                onClick={() => { setDeleteStep("closed"); window.location.reload(); }}
+                onClick={() => { setDeleteStep("closed"); onPlanChanged?.(); }}
                 style={{ fontSize: 14, padding: "12px 32px", borderRadius: 24, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
               >閉じる</button>
             </div>

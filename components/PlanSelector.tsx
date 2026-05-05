@@ -183,7 +183,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
         お支払い情報に問題が発生したため、現在のプランが無料プランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
       </div>
       <button
-        onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}
+        onClick={() => { setSubscriptionResetModal(false); onSubscribed?.(); }}
         style={{ width: "100%", padding: "12px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
       >
         プランを確認する →

@@ -315,7 +315,6 @@ if (isMobile) return <MobileHome />;
         setUserMenuOpen(false);
         const supabase = createClient();
         await supabase.auth.signOut();
-        window.location.reload();
       }}
       sbOpen={sbOpen}
       userPlan={profile.plan ?? "free"}
