@@ -12,7 +12,6 @@ import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalErrorHandler from "@/components/GlobalErrorHandler";
-import AppShell from "./AppShell";
 
 
 
@@ -46,7 +45,7 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <ErrorBoundary>
             <AuthProvider>
-              <AppShell>{children}</AppShell>
+              {children}
               <GoogleOneTap />
               <GlobalErrorHandler />
             </AuthProvider>

@@ -627,7 +627,7 @@ export default function MaterialDetailPage() {
         <AuthModal
           initialMode={authModalMode}
           onClose={() => setAuthModalOpen(false)}
-          onLoggedIn={() => { setAuthModalOpen(false); }}
+          onLoggedIn={() => { setAuthModalOpen(false); window.location.reload(); }}
         />
       )}
     </div>
