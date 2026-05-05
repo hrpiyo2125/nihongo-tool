@@ -124,12 +124,11 @@ function MobileHomeInner() {
   const handleMainScroll = () => {
     isScrollingRef.current = true;
     clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 300);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 600);
     if (scrollRef.current) setScrolled(scrollRef.current.scrollTop > 10);
   };
 
   // ─── スクロール位置保存・復元 ────────────────────────────
-  // モーダルを最初に開くとき保存
   const savedScrollRef = useRef(false);
   useEffect(() => {
     if (modalStack.length > 0 && !savedScrollRef.current && scrollRef.current) {
@@ -146,6 +145,30 @@ function MobileHomeInner() {
       }
     }
   }, [modalStack.length]);
+
+  // ─── ブラウザ「戻る」ボタン対策 ─────────────────────────
+  // モーダルが開くたびにダミー履歴を積み、popstate で pop() する
+  const prevModalLengthRef = useRef(0);
+  useEffect(() => {
+    const prev = prevModalLengthRef.current;
+    const curr = modalStack.length;
+    if (curr > prev) {
+      history.pushState({ modal: true }, "");
+    }
+    prevModalLengthRef.current = curr;
+  }, [modalStack.length]);
+
+  useEffect(() => {
+    const onPopState = (_e: PopStateEvent) => {
+      if (modalStack.length > 0) {
+        pop();
+        // ブラウザが勝手に戻るのを防ぐためダミー履歴を再追加
+        history.pushState({ modal: true }, "");
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [modalStack.length, pop]);
 
   // ─── ナビゲーション関数 ──────────────────────────────────
   const switchTab = (tab: string) => {
@@ -538,7 +561,7 @@ function MobileHomeInner() {
         {tabs.map((tab) => {
           const active = activeTab === tab.id && !materialsEntry;
           return (
-            <button key={tab.id} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>

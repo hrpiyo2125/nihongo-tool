@@ -80,7 +80,7 @@ export default function MobileMaterialsModal({
   const handleScroll = () => {
     isScrollingRef.current = true;
     clearTimeout(scrollTimerRef.current);
-    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 300);
+    scrollTimerRef.current = setTimeout(() => { isScrollingRef.current = false; }, 600);
   };
 
   const safeCardClick = (mat: Parameters<typeof onCardClick>[0]) => {
@@ -224,7 +224,7 @@ export default function MobileMaterialsModal({
         {tabs.map((tab) => {
           const active = tab.id === "materials";
           return (
-            <button key={tab.id} onClick={() => { if (tab.id !== "materials" && !isScrollingRef.current) { onTabChange(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (tab.id !== "materials" && !isScrollingRef.current) { onTabChange(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#9b6ed4" : "#bbb" }}>{tab.label}</span>
             </button>
