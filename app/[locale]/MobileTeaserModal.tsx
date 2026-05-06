@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { getCachedThumbnail } from "../../lib/pdfThumbnailCache";
 import { createClient } from "../../lib/supabase";
 import { canDownload } from "../../lib/materialUtils";
 import { BrandIcon } from "../../components/BrandIcon";
@@ -9,6 +10,7 @@ function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   const [failed, setFailed] = useState(false);
   const [selected, setSelected] = useState(0);
   const [allRendered, setAllRendered] = useState(false);
+  const [cachedImg] = useState<string | null>(() => getCachedThumbnail(pdfUrl));
   const mainRef = useRef<HTMLCanvasElement>(null);
   const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
   const loaded = pages.length > 0 && !failed;
@@ -62,7 +64,10 @@ function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, position: "relative", minHeight: 160 }}>
-        <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
+        {cachedImg && !ready && (
+          <img src={cachedImg} alt="" style={{ position: "absolute", width: "75%", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", pointerEvents: "none" }} />
+        )}
+        {!cachedImg && <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />}
         <canvas ref={mainRef} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }} />
       </div>
       <div style={{ display: "flex", gap: 6, justifyContent: "center", height: 56, position: "relative" }}>

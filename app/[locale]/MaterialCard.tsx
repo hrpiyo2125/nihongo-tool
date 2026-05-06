@@ -1,5 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { setCachedThumbnail } from "../../lib/pdfThumbnailCache";
 import PlanModal from "../../components/PlanModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
@@ -67,6 +68,7 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
     canvas.height = viewport.height;
     const task = (pdfPage.render as any)({ canvasContext: canvas.getContext("2d")!, viewport, canvas });
     task.promise?.then(() => {
+      try { setCachedThumbnail(pdfUrl, canvas.toDataURL()); } catch {}
       if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
     }).catch(() => {
       if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
