@@ -29,8 +29,13 @@ export async function GET(request: NextRequest) {
 
     if (type === 'signup') {
       const status = error ? 'error' : 'ok'
-      // メール確認後はログイン済みにせず、ユーザーに手動ログインさせる
-      return NextResponse.redirect(`${origin}${next}/auth/confirmed?status=${status}`)
+      const response = NextResponse.redirect(`${origin}${next}/auth/confirmed?status=${status}`)
+      if (!error) {
+        pendingCookies.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, { ...options, maxAge: 60 * 60 * 24 * 365 })
+        })
+      }
+      return response
     }
 
     if (error) {

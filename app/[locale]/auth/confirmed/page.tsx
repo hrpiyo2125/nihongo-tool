@@ -50,16 +50,16 @@ function ConfirmedInner() {
             </h1>
             <p style={{ fontSize: 13, color: "#b090c8", lineHeight: 1.7, marginBottom: 28 }}>
               ようこそ、toolioへ！<br />
-              下のボタンからログインしてください。
+              下のボタンからサービスをお楽しみください。
             </p>
-            <a href={`/${locale}/auth?mode=login`} style={{
+            <a href={`/${locale}`} style={{
               display: "block", width: "100%", height: 46, borderRadius: 24,
               background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
               color: "white", fontSize: 14, fontWeight: 700,
               textDecoration: "none", lineHeight: "46px",
               boxSizing: "border-box",
             }}>
-              ログインする →
+              toolioをはじめる →
             </a>
           </>
         ) : (
