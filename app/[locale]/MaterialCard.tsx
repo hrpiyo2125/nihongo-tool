@@ -111,6 +111,7 @@ type Props = {
   favIds?: string[];
   purchasedIds?: string[];
   onFavToggle?: (mat: Material) => void;
+  onOpenFavHistory?: () => void;
   bg: string;
   char: string;
   charColor: string;
@@ -120,7 +121,7 @@ type Props = {
 };
 
 export default function MaterialCard({
-  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle,
+  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle, onOpenFavHistory,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
   const isPurchased = purchasedIds.includes(mat.id);
@@ -207,7 +208,7 @@ export default function MaterialCard({
               無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
             </div>
             <button
-              onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
+              onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); onOpenFavHistory ? onOpenFavHistory() : window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
               style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 8 }}
             >
               お気に入り履歴を開く →

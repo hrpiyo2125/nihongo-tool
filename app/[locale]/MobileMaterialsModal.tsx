@@ -60,13 +60,14 @@ type Props = {
   onTabChange: (tabId: string) => void;
   onOpenMyPage: () => void;
   onFilterChange?: (content: string, method: string) => void;
+  onOpenFavHistory?: () => void;
 };
 
 export default function MobileMaterialsModal({
   materials, locale, isLoggedIn, userPlan, favIds, purchasedIds,
   contentTabs, methodTabs, avatarUrl, userInitial, tabs,
   initContent = "all", initMethod = "all",
-  onFavToggle, onCardClick, onClose, onTabChange, onOpenMyPage, onFilterChange,
+  onFavToggle, onCardClick, onClose, onTabChange, onOpenMyPage, onFilterChange, onOpenFavHistory,
 }: Props) {
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
@@ -210,6 +211,7 @@ export default function MobileMaterialsModal({
                   favIds={favIds}
                   purchasedIds={purchasedIds}
                   onFavToggle={onFavToggle}
+                  onOpenFavHistory={onOpenFavHistory}
                   bg={bg} char={char} charColor={charColor}
                   tag={tag} tagBg={tagBg} tagColor={tagColor}
                 />

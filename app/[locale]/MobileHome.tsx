@@ -430,7 +430,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
                 ) : filteredMaterials.map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                   return (
-                    <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />
+                    <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
                   );
                 })}
               </div>
@@ -457,7 +457,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
                   </div>
                 ) : materials.filter(mat => favIds.includes(mat.id)).map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
-                  return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />;
+                  return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />;
                 })}
               </div>
             )}
@@ -502,7 +502,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
             ) : (() => {
               const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
               if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div></div>;
-              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
+              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
         </div>
@@ -525,7 +525,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
             ) : (() => {
               const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
               if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="purchases" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
-              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
+              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
         </div>
@@ -597,6 +597,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
           onTabChange={(tabId) => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab(tabId); }}
           onOpenMyPage={() => setMyPageOpen(true)}
           onFilterChange={(content, method) => { setMaterialsFilter({ content, method }); updateFilterUrl(content, method); }}
+          onOpenFavHistory={() => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
         />
       )}
 
