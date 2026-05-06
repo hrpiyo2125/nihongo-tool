@@ -105,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       trial_end: data.trial_end || null,
       status: data.status || 'active',
       avatar_url: data.avatar_url ?? null,
+      has_password: data.has_password ?? false,
     })
     if (data.full_name) { setUserName(data.full_name); setUserInitial(data.full_name.charAt(0).toUpperCase()) }
     if (data.avatar_url) setAvatarUrl(data.avatar_url)
