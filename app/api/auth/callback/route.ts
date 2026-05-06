@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/ja'
+  const type = searchParams.get('type')
 
   if (code) {
     const pendingCookies: { name: string; value: string; options: Record<string, unknown> }[] = []
@@ -25,6 +26,13 @@ export async function GET(request: NextRequest) {
     )
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+
+    if (type === 'signup') {
+      const status = error ? 'error' : 'ok'
+      // メール確認後はログイン済みにせず、ユーザーに手動ログインさせる
+      return NextResponse.redirect(`${origin}${next}/auth/confirmed?status=${status}`)
+    }
+
     if (error) {
       return NextResponse.redirect(`${origin}/ja`)
     }
