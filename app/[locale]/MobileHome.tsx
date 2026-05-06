@@ -352,7 +352,7 @@ function MobileHomeInner() {
                 {contentItems.map((item) => (
                   <div key={item.label} onClick={() => { if (!isScrollingRef.current) openMaterialsModal(item.contentId, "all"); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
-                      {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
+                      {item.imageSrc ? <img src={item.imageSrc} alt={item.label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
                     <span style={{ fontSize: 10, color: "#777", fontWeight: 600, textAlign: "center", whiteSpace: "nowrap" }}>{item.label}</span>
                   </div>
@@ -370,7 +370,7 @@ function MobileHomeInner() {
                 {methodItems.map((item) => (
                   <div key={item.label} onClick={() => { if (!isScrollingRef.current) openMaterialsModal("all", item.methodId); }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer" }}>
                     <div style={{ width: 56, height: 56, borderRadius: "50%", background: item.color, border: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", fontSize: 20 }}>
-                      {item.imageSrc ? <img src={item.imageSrc} alt={item.label} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
+                      {item.imageSrc ? <img src={item.imageSrc} alt={item.label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : item.char}
                     </div>
                     <span style={{ fontSize: 10, color: "#777", fontWeight: 600, textAlign: "center", whiteSpace: "nowrap" }}>{item.label}</span>
                   </div>

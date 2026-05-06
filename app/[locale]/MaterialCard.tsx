@@ -27,10 +27,25 @@ type Material = {
 
 function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () => void }) {
   const [pdfPage, setPdfPage] = useState<any>(null);
+  const [visible, setVisible] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const readyCalled = useRef(false);
 
+  // 画面に入ったら初めてPDFを読み込む
   useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
     (async () => {
       try {
         const pdfjsLib = await import("pdfjs-dist");
@@ -42,7 +57,7 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
         if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
       }
     })();
-  }, [pdfUrl]);
+  }, [visible, pdfUrl]);
 
   useEffect(() => {
     if (!pdfPage || !canvasRef.current) return;
@@ -59,7 +74,7 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
   }, [pdfPage]);
 
   return (
-    <div style={{ height: 135, background: "#ece9f1", position: "relative", overflow: "hidden" }}>
+    <div ref={containerRef} style={{ height: 135, background: "#ece9f1", position: "relative", overflow: "hidden" }}>
       <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, opacity: pdfPage ? 0 : 1, transition: "opacity 0.3s", pointerEvents: "none" }} />
       <canvas ref={canvasRef} style={{ width: "100%", height: "auto", display: "block", opacity: pdfPage ? 1 : 0, transition: "opacity 0.3s" }} />
     </div>
