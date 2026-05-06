@@ -179,7 +179,10 @@ export default function MaterialCard({
         </div>
       )}
       {mat.thumbnailUrl ? (
-        <img src={mat.thumbnailUrl} alt="" loading="lazy" style={{ width: "100%", height: 135, objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        <div style={{ height: 135, position: "relative", overflow: "hidden" }}>
+          <div className="skeleton" style={{ position: "absolute", inset: 0, borderRadius: 0, pointerEvents: "none" }} />
+          <img src={mat.thumbnailUrl} alt="" loading="lazy" style={{ width: "100%", height: 135, objectFit: "cover", display: "block", position: "relative" }} onLoad={(e) => { const prev = (e.target as HTMLElement).previousElementSibling as HTMLElement; if (prev) prev.style.opacity = "0"; }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        </div>
       ) : mat.pdfFile && mat.pdfFile.length > 0 ? (
         <PdfCardThumbnail pdfUrl={mat.pdfFile} />
       ) : (
