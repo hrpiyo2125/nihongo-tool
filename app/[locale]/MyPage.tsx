@@ -697,7 +697,8 @@ export default function MyPage({
           </div>
         </div>
 
-        {/* パスワード */}
+        {/* パスワード（メール登録ユーザーのみ） */}
+        {authProviders.includes("email") && (
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
@@ -705,6 +706,7 @@ export default function MyPage({
           </div>
           <button onClick={() => { setPwModal(true); setPwNew(""); setPwConfirm(""); setPwError(null); setPwSuccess(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>変更</button>
         </div>
+        )}
 
         {/* 居住地 */}
         {(() => {
