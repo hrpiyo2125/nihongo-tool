@@ -503,7 +503,17 @@ export default function MyPage({
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     const { error } = await supabase.from("profiles").update({ avatar_url: presetUrl }).eq("id", session.user.id);
-    if (error) { setAvatarError("プロフィールの保存に失敗しました。もう一度お試しください。"); return; }
+    if (error) {
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("row-level") || msg.includes("permission") || msg.includes("policy")) {
+        setAvatarError("保存権限がありません。再ログインしてからお試しください。");
+      } else if (msg.includes("network") || msg.includes("fetch")) {
+        setAvatarError("通信エラーが発生しました。接続を確認してもう一度お試しください。");
+      } else {
+        setAvatarError(`保存に失敗しました（${error.message}）。もう一度お試しください。`);
+      }
+      return;
+    }
     setAvatarUrl(presetUrl);
   };
 
@@ -516,14 +526,24 @@ export default function MyPage({
     const path = `${session.user.id}/avatar.jpg`;
     const { error: uploadError } = await supabase.storage.from("avatars").upload(path, file, { upsert: true, contentType: file.type });
     if (uploadError) {
-      setAvatarError("画像のアップロードに失敗しました。もう一度お試しください。");
+      const msg = uploadError.message?.toLowerCase() ?? "";
+      if (msg.includes("too large") || msg.includes("size")) {
+        setAvatarError("画像サイズが大きすぎます。5MB以下の画像をお使いください。");
+      } else if (msg.includes("type") || msg.includes("format")) {
+        setAvatarError("対応していない画像形式です。JPG・PNG・WEBPをお使いください。");
+      } else {
+        setAvatarError(`アップロードに失敗しました（${uploadError.message}）。もう一度お試しください。`);
+      }
       setUploadingAvatar(false);
       return;
     }
     const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
     const { error: dbError } = await supabase.from("profiles").update({ avatar_url: publicUrl }).eq("id", session.user.id);
     if (dbError) {
-      setAvatarError("プロフィールの保存に失敗しました。もう一度お試しください。");
+      const msg = dbError.message?.toLowerCase() ?? "";
+      setAvatarError(msg.includes("permission") || msg.includes("policy")
+        ? "保存権限がありません。再ログインしてからお試しください。"
+        : `保存に失敗しました（${dbError.message}）。もう一度お試しください。`);
       setUploadingAvatar(false);
       return;
     }
@@ -549,12 +569,18 @@ export default function MyPage({
         setFreePlanSuccess(true);
         setFreePlanLoading(false);
         setTimeout(() => { setFreePlanSuccess(false); setConfirmFreePlan(false); }, 2500);
+      } else if (data.error === 'subscription_reset') {
+        setFreePlanError("サブスクリプション情報に問題があります。ページを再読み込みしてからお試しください。");
+        setFreePlanLoading(false);
+      } else if (data.error === 'No active subscription') {
+        setFreePlanError("有効なサブスクリプションが見つかりません。既にフリープランの可能性があります。");
+        setFreePlanLoading(false);
       } else {
-        setFreePlanError("エラーが発生しました。しばらく経ってから再度お試しください。");
+        setFreePlanError(`変更に失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
         setFreePlanLoading(false);
       }
     } catch {
-      setFreePlanError("エラーが発生しました。しばらく経ってから再度お試しください。");
+      setFreePlanError("通信エラーが発生しました。接続を確認してから再度お試しください。");
       setFreePlanLoading(false);
     }
   };
@@ -649,7 +675,7 @@ export default function MyPage({
                     const col = field.col;
                     const value = editingValue;
                     const { error } = await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
-                    if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingProfile(false); return; }
+                    if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingProfile(false); return; }
                     updateProfile({ [col]: value });
                     if (col === "full_name") { setUserName(editingValue); if (editingValue) setUserInitial(editingValue.charAt(0).toUpperCase()); }
                     setSavingProfile(false);
@@ -730,7 +756,7 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
-                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
                       }
                       updateProfile({ country: draftResidence.country, city: draftResidence.city });
                       setSavingSection(false);
@@ -785,7 +811,7 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
-                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
                       }
                       updateProfile({ occupation: draftOccupation, occupation_other: draftOccupationOther });
                       setSavingSection(false);
@@ -838,7 +864,7 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
-                        if (error) { setSaveError("保存に失敗しました。もう一度お試しください。"); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
                       }
                       updateProfile({ purpose: draftPurpose, purpose_other: draftPurposeOther });
                       setSavingSection(false);
@@ -934,7 +960,19 @@ export default function MyPage({
                         setEmailLoading(true); setEmailError(null);
                         const supabase = createClient();
                         const { error } = await supabase.auth.updateUser({ email: emailNew });
-                        if (error) { setEmailError("変更に失敗しました。しばらく経ってから再度お試しください"); setEmailLoading(false); return; }
+                        if (error) {
+                          const msg = error.message?.toLowerCase() ?? "";
+                          if (msg.includes("rate") || msg.includes("too many")) {
+                            setEmailError("変更リクエストが多すぎます。しばらく時間をおいてから再度お試しください。");
+                          } else if (msg.includes("already") || msg.includes("registered")) {
+                            setEmailError("このメールアドレスはすでに別のアカウントで使用されています。");
+                          } else if (msg.includes("invalid") || msg.includes("format")) {
+                            setEmailError("メールアドレスの形式が正しくありません。");
+                          } else {
+                            setEmailError(`変更に失敗しました（${error.message}）。しばらく経ってから再度お試しください。`);
+                          }
+                          setEmailLoading(false); return;
+                        }
                         setEmailLoading(false); setEmailSent(true);
                       }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: emailLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: emailLoading ? "not-allowed" : "pointer", fontWeight: 700 }}
@@ -978,7 +1016,19 @@ export default function MyPage({
                       setPwLoading(true); setPwError(null);
                       const supabase = createClient();
                       const { error } = await supabase.auth.updateUser({ password: pwNew });
-                      if (error) { setPwError("変更に失敗しました。もう一度お試しください"); setPwLoading(false); return; }
+                      if (error) {
+                        const msg = error.message?.toLowerCase() ?? "";
+                        if (msg.includes("same password") || msg.includes("different")) {
+                          setPwError("現在と同じパスワードは使用できません。別のパスワードを入力してください。");
+                        } else if (msg.includes("session") || msg.includes("not authenticated") || msg.includes("jwt")) {
+                          setPwError("セッションが切れています。再ログインしてからお試しください。");
+                        } else if (msg.includes("weak") || msg.includes("password")) {
+                          setPwError("パスワードが基準を満たしていません。8文字以上で入力してください。");
+                        } else {
+                          setPwError(`変更に失敗しました（${error.message}）。もう一度お試しください。`);
+                        }
+                        setPwLoading(false); return;
+                      }
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session?.user.id) {
                         await supabase.from("profiles").update({ has_password: true }).eq("id", session.user.id);

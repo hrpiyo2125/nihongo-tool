@@ -52,7 +52,7 @@ function CheckoutForm({
         });
         const data = await res.json();
         if (!data.success) {
-          setError("サブスク登録に失敗しました。");
+          setError(`サブスク登録に失敗しました（${data.error ?? 'Unknown error'}）。もう一度お試しください。`);
           setLoading(false);
           return;
         }

@@ -82,8 +82,14 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
           setSuccess(true);
         } else if (data.error === "subscription_reset") {
           onSubscriptionReset?.();
+        } else if (data.error === "No active subscription") {
+          setError("有効なサブスクリプションが見つかりません。再ログインしてからお試しください。");
+        } else if (data.error === "Already on this plan") {
+          setError("すでにこのプランをご利用中です。");
+        } else if (data.error === "Invalid plan") {
+          setError("無効なプランが指定されました。ページを再読み込みしてからお試しください。");
         } else {
-          setError("プラン変更に失敗しました。もう一度お試しください。");
+          setError(`プラン変更に失敗しました（${data.error ?? 'Unknown error'}）。もう一度お試しください。`);
         }
       } else {
         const res = await fetch("/api/stripe/subscribe", {
@@ -101,11 +107,11 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
         } else if (data.error === "stripe_customer_missing") {
           onSubscriptionReset?.();
         } else {
-          setError("登録に失敗しました。もう一度お試しください。");
+          setError(`登録に失敗しました（${data.error ?? 'Unknown error'}）。もう一度お試しください。`);
         }
       }
     } catch {
-      setError("エラーが発生しました。");
+      setError("通信エラーが発生しました。接続を確認してから再度お試しください。");
     } finally {
       if (!success) setLoading(false);
     }

@@ -153,12 +153,18 @@ export default function BillingSection({
         setCancelLoading(false);
         setConfirmCancel(false);
         setSubscriptionResetModal(true);
+      } else if (data.error === 'No active subscription') {
+        setCancelError('有効なサブスクリプションが見つかりません。既にキャンセル済みの可能性があります。');
+        setCancelLoading(false);
+      } else if (data.error === 'Profile not found') {
+        setCancelError('アカウント情報が見つかりません。再ログインしてからお試しください。');
+        setCancelLoading(false);
       } else {
-        setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
+        setCancelError(`キャンセルに失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
         setCancelLoading(false);
       }
     } catch {
-      setCancelError('エラーが発生しました。しばらく経ってから再度お試しください。');
+      setCancelError('通信エラーが発生しました。接続を確認してから再度お試しください。');
       setCancelLoading(false);
     }
   };
@@ -210,11 +216,11 @@ export default function BillingSection({
         setWithdrawalLoading(false);
         setTimeout(() => { setWithdrawalSuccess(false); setConfirmWithdrawalCancel(false); }, 2000);
       } else {
-        setWithdrawalError("エラーが発生しました。しばらく経ってから再度お試しください。");
+        setWithdrawalError(`解約取り消しに失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
         setWithdrawalLoading(false);
       }
     } catch {
-      setWithdrawalError("エラーが発生しました。しばらく経ってから再度お試しください。");
+      setWithdrawalError('通信エラーが発生しました。接続を確認してから再度お試しください。');
       setWithdrawalLoading(false);
     }
   };

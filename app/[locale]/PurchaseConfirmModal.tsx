@@ -48,11 +48,15 @@ export default function PurchaseConfirmModal({ mat, onSuccess, onClose }: Props)
       const data = await res.json();
       if (data.success || data.error === "ALREADY_PURCHASED") {
         onSuccess();
+      } else if (data.error === "決済に失敗しました") {
+        setError("決済に失敗しました。カード情報をご確認のうえ再度お試しください。");
+      } else if (data.error === "Internal Server Error") {
+        setError("サーバーエラーが発生しました。しばらく経ってから再度お試しください。");
       } else {
-        setError(data.error ?? "購入に失敗しました。");
+        setError(`購入に失敗しました（${data.error ?? 'Unknown error'}）。もう一度お試しください。`);
       }
     } catch {
-      setError("エラーが発生しました。");
+      setError("通信エラーが発生しました。接続を確認してから再度お試しください。");
     } finally {
       setLoading(false);
     }
