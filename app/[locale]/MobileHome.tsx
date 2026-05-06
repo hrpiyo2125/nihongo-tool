@@ -615,6 +615,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
             onOpenAuth={openAuth}
             onOpenPlanModal={() => setTeaserPlanOpen(true)}
             onOpenPurchaseConfirm={() => setTeaserPurchaseOpen(true)}
+            onOpenFavHistory={() => { setTeaserMat(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         );
       })()}
