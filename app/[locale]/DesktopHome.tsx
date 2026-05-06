@@ -181,6 +181,8 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     const handler = (e: Event) => {
       const { page } = (e as CustomEvent).detail;
       setActivePage(page);
+      setTopTeaserMat(null);
+      setModal(null);
       document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "smooth" });
     };
     window.addEventListener("toolio:navigate-mypage", handler);
