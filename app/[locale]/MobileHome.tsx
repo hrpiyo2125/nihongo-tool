@@ -188,8 +188,17 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
 
   const openAuth = (mode: AuthModalMode) => setAuthMode(mode);
 
+  const updateFilterUrl = (content: string, method: string) => {
+    const params = new URLSearchParams();
+    if (content !== "all") params.set("content", content);
+    if (method !== "all") params.set("method", method);
+    const q = params.toString();
+    window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
+  };
+
   const openMaterialsModal = (content: string, method: string) => {
     setMaterialsFilter({ content, method });
+    updateFilterUrl(content, method);
   };
 
   const openTeaser = (mat: Material) => setTeaserMat(mat);
@@ -584,10 +593,10 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
           initMethod={materialsFilter.method}
           onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
           onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => setMaterialsFilter(null)}
-          onTabChange={(tabId) => { setMaterialsFilter(null); setActiveTab(tabId); }}
+          onClose={() => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); }}
+          onTabChange={(tabId) => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab(tabId); }}
           onOpenMyPage={() => setMyPageOpen(true)}
-          onFilterChange={(content, method) => setMaterialsFilter({ content, method })}
+          onFilterChange={(content, method) => { setMaterialsFilter({ content, method }); updateFilterUrl(content, method); }}
         />
       )}
 
