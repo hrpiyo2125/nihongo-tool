@@ -50,6 +50,10 @@ function ResetPasswordInner() {
         setError(`更新に失敗しました（${error.message}）。リンクの有効期限が切れている場合は再度リセットメールを送信してください。`);
       }
     } else {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user.id) {
+        await supabase.from("profiles").update({ has_password: true }).eq("id", session.user.id);
+      }
       setMessage("パスワードを更新しました！トップページへ移動します...");
       setTimeout(() => router.push("/"), 2000);
     }

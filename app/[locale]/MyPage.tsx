@@ -679,7 +679,7 @@ export default function MyPage({
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
           <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10 }}>ログイン方法</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
-            {authProviders.includes("email") && (
+            {(authProviders.includes("email") || profile.has_password) && (
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 20, background: "rgba(228,155,253,0.08)", border: "0.5px solid rgba(200,170,240,0.4)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="3" stroke="#9b6ed4" strokeWidth="1.8"/><path d="M2 8l10 6 10-6" stroke="#9b6ed4" strokeWidth="1.8" strokeLinecap="round"/></svg>
                 <span style={{ fontSize: 12, color: "#7a50b0", fontWeight: 600 }}>メールアドレス</span>
@@ -697,8 +697,8 @@ export default function MyPage({
           </div>
         </div>
 
-        {/* パスワード（メール登録ユーザーのみ） */}
-        {authProviders.includes("email") && (
+        {/* パスワード（メール登録またはパスワード設定済みユーザーのみ） */}
+        {(authProviders.includes("email") || profile.has_password) && (
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
@@ -979,6 +979,11 @@ export default function MyPage({
                       const supabase = createClient();
                       const { error } = await supabase.auth.updateUser({ password: pwNew });
                       if (error) { setPwError("変更に失敗しました。もう一度お試しください"); setPwLoading(false); return; }
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session?.user.id) {
+                        await supabase.from("profiles").update({ has_password: true }).eq("id", session.user.id);
+                        updateProfile({ has_password: true });
+                      }
                       setPwLoading(false); setPwSuccess(true);
                     }} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: pwLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: pwLoading ? "not-allowed" : "pointer", fontWeight: 700 }}>{pwLoading ? "変更中..." : "変更する"}</button>
                   </div>

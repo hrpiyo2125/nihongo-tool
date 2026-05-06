@@ -48,7 +48,7 @@ const defaultProfile: Profile = {
   full_name: '', country: '', city: '', purpose: [],
   occupation: '', student_level: '', occupation_other: '', purpose_other: '',
   plan: 'free', plan_status: 'active', cancel_at_period_end: false,
-  current_period_end: null, trial_end: null, status: 'active', avatar_url: null,
+  current_period_end: null, trial_end: null, status: 'active', avatar_url: null, has_password: false,
 }
 
 const AuthContext = createContext<AuthContextType>({
