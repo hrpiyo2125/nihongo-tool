@@ -94,7 +94,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
   const th  = useTranslations("home");
 
   // ─── Auth ────────────────────────────────────────────────
-  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
+  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
           favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
           setFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
@@ -734,6 +734,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
                 userName={userName}
                 setUserName={setUserName}
                 userEmail={userEmail}
+                authProviders={authProviders}
                 profile={profile}
                 updateProfile={updateProfile}
                 editingField={editingField}

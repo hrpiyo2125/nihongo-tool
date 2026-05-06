@@ -140,7 +140,7 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
   ];
 
-  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile,
+  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
     favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
     purchasedIds, loadProfile,
     setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
@@ -400,7 +400,7 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
           activePage === "tokushoho" ? <TokushohoContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :
           activePage === "faq" ? <FaqContent onBack={() => setActivePage("home")} notionFaqs={legalContent?.faqs} /> :
           activePage === "about" ? <AboutContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['toolioとは']} /> :
-          <MyPage activePage={activePage} setActivePage={setActivePage} isLoggedIn={isLoggedIn} userInitial={userInitial} setUserInitial={setUserInitial} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} userName={userName} setUserName={setUserName} userEmail={userEmail} profile={profile} updateProfile={updateProfile} editingField={editingField} setEditingField={setEditingField} editingValue={editingValue} setEditingValue={setEditingValue} materials={materials as any} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} tm={tm} navItems={navItems} onPlanChanged={loadProfile} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />
+          <MyPage activePage={activePage} setActivePage={setActivePage} isLoggedIn={isLoggedIn} userInitial={userInitial} setUserInitial={setUserInitial} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} userName={userName} setUserName={setUserName} userEmail={userEmail} authProviders={authProviders} profile={profile} updateProfile={updateProfile} editingField={editingField} setEditingField={setEditingField} editingValue={editingValue} setEditingValue={setEditingValue} materials={materials as any} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} tm={tm} navItems={navItems} onPlanChanged={loadProfile} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />
         )}
       </main>
 

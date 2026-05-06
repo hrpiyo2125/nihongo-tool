@@ -35,6 +35,7 @@ type AuthContextType = {
   favIdsLoaded: boolean
   dlIds: string[]
   purchasedIds: string[]
+  authProviders: string[]
   loadProfile: () => Promise<void>
   updateProfile: (partial: Partial<Profile>) => void
   setFavIds: React.Dispatch<React.SetStateAction<string[]>>
@@ -63,6 +64,7 @@ const AuthContext = createContext<AuthContextType>({
   favIdsLoaded: false,
   dlIds: [],
   purchasedIds: [],
+  authProviders: [],
   loadProfile: async () => {},
   updateProfile: () => {},
   setFavIds: () => {},
@@ -76,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [authProviders, setAuthProviders] = useState<string[]>([])
   const [userName, setUserName] = useState('ゲスト')
   const [userInitial, setUserInitial] = useState('？')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -134,12 +137,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const supabase = createClient()
     let loaded = false
 
-    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any> }, accessToken?: string) => {
+    const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any>; identities?: { provider: string }[] }, accessToken?: string) => {
       if (loaded) return
       loaded = true
       setIsLoggedIn(true)
       setUserId(user.id)
       setUserEmail(user.email ?? '')
+      setAuthProviders(user.identities?.map(i => i.provider) ?? [])
       const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
       setUserName(displayName)
       setUserInitial(displayName.charAt(0).toUpperCase())
@@ -211,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUserId('')
         setUserEmail('')
         setAvatarUrl(null)
+        setAuthProviders([])
       }
     })
 
@@ -227,6 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoggedIn, isAuthLoading: !favIdsLoaded,
       userId, userEmail, userName, userInitial, avatarUrl,
       profile, favIds, favIdsLoaded, dlIds, purchasedIds,
+      authProviders,
       loadProfile, updateProfile,
       setFavIds, setUserName, setUserInitial, setAvatarUrl,
     }}>
