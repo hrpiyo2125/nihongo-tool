@@ -176,6 +176,8 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
     const handler = (e: Event) => {
       const { page } = (e as CustomEvent).detail;
       if (page === "fav") {
+        setTeaserMat(null);
+        setMaterialsFilter(null);
         setActiveTab("fav");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
