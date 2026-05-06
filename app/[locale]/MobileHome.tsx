@@ -184,7 +184,6 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
 
   const openMaterialsModal = (content: string, method: string) => {
     setMaterialsFilter({ content, method });
-    updateUrl(content, method);
   };
 
   const openTeaser = (mat: Material) => setTeaserMat(mat);
