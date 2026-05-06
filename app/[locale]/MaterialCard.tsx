@@ -39,7 +39,7 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { rootMargin: "200px" }
+      { rootMargin: "50px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
