@@ -192,7 +192,10 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     router.push(`/${nextLocale}${pathname.replace(`/${locale}`, '') || '/'}`);
   };
 
-  const openModal = (content = "all", method = "all") => setModal({ content, method });
+  const openModal = (content = "all", method = "all") => {
+    setModal({ content, method });
+    handleFilterChange(content, method);
+  };
   const closeModal = () => { setModal(null); router.replace(pathname, { scroll: false }); };
 
   const handleFilterChange = (content: string, method: string) => {
@@ -408,7 +411,7 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
 
       {selectedAnnouncement && <AnnouncementModal announcement={selectedAnnouncement} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} purchasedIds={purchasedIds} locale={locale} onClose={() => setSelectedAnnouncement(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />}
 
-      {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} onClose={closeModal} isLoggedIn={isLoggedIn} materials={materials as any} tmm={tmm} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} userPlan={profile.plan ?? "free"} purchasedIds={purchasedIds} onFavToggle={toggleFav as any} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />}
+      {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} onClose={closeModal} isLoggedIn={isLoggedIn} materials={materials as any} tmm={tmm} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} userPlan={profile.plan ?? "free"} purchasedIds={purchasedIds} onFavToggle={toggleFav as any} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} onFilterChange={handleFilterChange} />}
 
       {authModalOpen && <AuthModal initialMode={authModalMode} onClose={() => setAuthModalOpen(false)} onLoggedIn={() => setAuthModalOpen(false)} />}
     </div>
