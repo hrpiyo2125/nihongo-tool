@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
 import { useLocale, useTranslations } from "next-intl";
@@ -61,6 +61,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
   const router = useRouter();
   const locale = useLocale();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // ─── State ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("home");
@@ -164,10 +165,26 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
     router.push(`/${nextLocale}${newPath}`);
   };
 
+  // URLパラメータからフィルターを初期化
+  useEffect(() => {
+    const content = searchParams.get("content");
+    const method = searchParams.get("method");
+    if (content || method) setMaterialsFilter({ content: content ?? "all", method: method ?? "all" });
+  }, [searchParams]);
+
+  const updateUrl = (content: string, method: string) => {
+    const params = new URLSearchParams();
+    if (content !== "all") params.set("content", content);
+    if (method !== "all") params.set("method", method);
+    const q = params.toString();
+    router.replace(q ? `${pathname}?${q}` : pathname, { scroll: false });
+  };
+
   const openAuth = (mode: AuthModalMode) => setAuthMode(mode);
 
   const openMaterialsModal = (content: string, method: string) => {
     setMaterialsFilter({ content, method });
+    updateUrl(content, method);
   };
 
   const openTeaser = (mat: Material) => setTeaserMat(mat);
@@ -562,10 +579,10 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
           initMethod={materialsFilter.method}
           onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
           onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => setMaterialsFilter(null)}
-          onTabChange={(tabId) => { setMaterialsFilter(null); setActiveTab(tabId); }}
+          onClose={() => { setMaterialsFilter(null); router.replace(pathname, { scroll: false }); }}
+          onTabChange={(tabId) => { setMaterialsFilter(null); router.replace(pathname, { scroll: false }); setActiveTab(tabId); }}
           onOpenMyPage={() => setMyPageOpen(true)}
-          onFilterChange={(content, method) => setMaterialsFilter({ content, method })}
+          onFilterChange={(content, method) => { setMaterialsFilter({ content, method }); updateUrl(content, method); }}
         />
       )}
 
