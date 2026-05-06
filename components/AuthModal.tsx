@@ -127,7 +127,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
     if (!email) { setError("メールアドレスを入力してください"); return; }
     setLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/${locale}/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/reset-password`,
     });
     if (resetError) {
       setError("パスワードのリセットができませんでした。Googleで登録した場合は「Googleで続ける」からログインしてください。");

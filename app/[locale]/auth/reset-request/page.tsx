@@ -21,7 +21,7 @@ export default function ResetRequestPage() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/ja/auth/reset-password`,
     });
     if (error) {
       setError("パスワードのリセットができませんでした。Googleで登録した場合は「Googleで続ける」からログインしてください。");
