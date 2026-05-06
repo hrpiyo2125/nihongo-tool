@@ -109,25 +109,27 @@ export default function MaterialCard({
   const isFreeUser = !userPlan || userPlan === "free";
   const atFavLimit = isFreeUser && !favIds?.includes(mat.id) && uniqueFavCount >= 5;
   const [limitTooltip, setLimitTooltip] = useState(false);
-  const [tooltipPos, setTooltipPos] = useState<{ top?: number; bottom?: number; left?: number; right?: number }>({});
+  const [tooltipPos, setTooltipPos] = useState<{ top?: number; bottom?: number; left: number }>({ left: 0 });
   const [showPlanModal, setShowPlanModal] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const TOOLTIP_WIDTH = 260;
-  const TOOLTIP_HEIGHT = 210;
+  const TOOLTIP_W = 260;
+  const TOOLTIP_H = 210;
+  const MARGIN = 8;
+
   const openLimitTooltip = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!limitTooltip && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const vertical = spaceBelow < TOOLTIP_HEIGHT
-        ? { bottom: window.innerHeight - rect.top + 6 }
-        : { top: rect.bottom + 6 };
-      // ボタン右端に揃える、ただし左端がはみ出す場合は左端固定
-      const rightAligned = window.innerWidth - rect.right;
-      const wouldOverflowLeft = rect.right - TOOLTIP_WIDTH < 8;
-      const horizontal = wouldOverflowLeft ? { left: 8 } : { right: rightAligned };
-      setTooltipPos({ ...vertical, ...horizontal });
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      // 横: ボタン右端に揃え、はみ出したらビューポート内に収める
+      const left = Math.max(MARGIN, Math.min(rect.right - TOOLTIP_W, vw - TOOLTIP_W - MARGIN));
+      // 縦: 下に空きがあれば下、なければ上
+      const pos = vh - rect.bottom >= TOOLTIP_H + MARGIN
+        ? { top: rect.bottom + 6 }
+        : { bottom: vh - rect.top + 6 };
+      setTooltipPos({ left, ...pos });
     }
     setLimitTooltip(prev => !prev);
   };
@@ -176,7 +178,7 @@ export default function MaterialCard({
       {limitTooltip && (
         <>
           <div onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); }} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
-          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: tooltipPos.top, bottom: tooltipPos.bottom, left: tooltipPos.left, right: tooltipPos.right, zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: tooltipPos.top, bottom: tooltipPos.bottom, left: tooltipPos.left, zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
               <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
             </div>
