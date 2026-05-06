@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "../../lib/supabase";
 
 import { canDownload } from "../../lib/materialUtils";
@@ -30,87 +30,43 @@ type Material = {
   tagColor?: string;
 };
 
-function PdfPreview({ pdfUrl }: { pdfUrl: string }) {
-  const [pages, setPages] = useState<any[]>([]);
-  const [failed, setFailed] = useState(false);
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const THUMB_BASE = `${SUPABASE_URL}/storage/v1/object/public/thumbnails`;
+
+function PdfPreview({ matId }: { matId: string }) {
   const [selected, setSelected] = useState(0);
-  const [allRendered, setAllRendered] = useState(false);
-  const mainRef = useRef<HTMLCanvasElement>(null);
-  const thumbRefs = useRef<(HTMLCanvasElement | null)[]>([]);
-  const loaded = pages.length > 0 && !failed;
-  const ready = loaded && allRendered;
+  const [visibleCount, setVisibleCount] = useState(1);
+
+  const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-        const proxyUrl = `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
-        const doc = await pdfjsLib.getDocument({ url: proxyUrl, withCredentials: false }).promise;
-        const count = Math.min(doc.numPages, 3);
-        const list = [];
-        for (let i = 1; i <= count; i++) list.push(await doc.getPage(i));
-        setPages(list);
-      } catch {
-        setFailed(true);
-      }
-    })();
-  }, [pdfUrl]);
-
-  useEffect(() => {
-    const page = pages[selected];
-    const canvas = mainRef.current;
-    if (!page || !canvas) return;
-    const viewport = page.getViewport({ scale: 2 });
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-    page.render({ canvasContext: canvas.getContext("2d")!, viewport });
-  }, [pages, selected]);
-
-  // サムネイルを全枚描画してから一括表示
-  useEffect(() => {
-    if (pages.length === 0) return;
-    let completed = 0;
-    pages.forEach((page, i) => {
-      const canvas = thumbRefs.current[i];
-      if (!canvas) return;
-      const viewport = page.getViewport({ scale: 0.6 });
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      page.render({ canvasContext: canvas.getContext("2d")!, viewport }).promise.then(() => {
-        completed++;
-        if (completed === pages.length) setAllRendered(true);
-      });
-    });
-  }, [pages]);
-
-  const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
+    const check = (i: number) => {
+      if (i >= 3) return;
+      const img = new Image();
+      img.onload = () => { setVisibleCount(i + 1); check(i + 1); };
+      img.onerror = () => {};
+      img.src = urls[i];
+    };
+    check(1);
+  }, [matId]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
-      {/* メインプレビューエリア */}
-      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
-        {/* スケルトン：ready になったら opacity 0 でフェードアウト */}
-        <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
-        {/* canvas は常に DOM に存在、ready でフェードイン */}
-        <canvas ref={mainRef} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }} />
+      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0 }}>
+        <img
+          src={urls[selected]}
+          alt=""
+          style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
+        />
       </div>
-      {/* サムネイル行 */}
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72, position: "relative" }}>
-        {/* スケルトン3枚：ready でフェードアウト */}
-        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 8, justifyContent: "center", opacity: ready ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
-          ))}
-        </div>
-        {/* canvas は loaded 後 DOM に配置、ready でフェードイン */}
-        {loaded && pages.map((_, i) => (
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72 }}>
+        {urls.slice(0, visibleCount).map((url, i) => (
           <div
             key={i}
-            onClick={() => ready && setSelected(i)}
-            style={{ width: 52, cursor: ready ? "pointer" : "default", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0, opacity: ready ? 1 : 0, transition: "opacity 0.4s ease" }}
+            onClick={() => setSelected(i)}
+            style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
           >
-            <canvas ref={el => { thumbRefs.current[i] = el; }} style={{ width: "100%", height: "auto", display: "block" }} />
+            <img src={url} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
           </div>
         ))}
       </div>
@@ -192,7 +148,7 @@ export default function TeaserModal({
         <div style={{ background: "#f5f0ff", padding: 16, display: "flex", flexDirection: "column", gap: 10, minHeight: 0, overflow: "hidden" }}>
           <style>{`@keyframes toolio-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
           {mat.pdfFile ? (
-            <PdfPreview pdfUrl={mat.pdfFile} />
+            <PdfPreview matId={mat.id} />
           ) : (
             <>
               <div style={{ width: "100%", aspectRatio: "210/297", background: "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)", backgroundSize: "200% 100%", animation: "toolio-shimmer 2.2s infinite", borderRadius: 12 }} />

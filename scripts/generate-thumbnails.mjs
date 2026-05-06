@@ -1,5 +1,7 @@
 /**
- * 教材PDFの1ページ目をPNGサムネイルとして生成し Supabase Storage にアップロードする。
+ * 教材PDFの各ページをPNGサムネイルとして生成し Supabase Storage にアップロードする。
+ * カード一覧用: {id}.png (1ページ目)
+ * モーダル用:   {id}-p1.png, {id}-p2.png, {id}-p3.png (最大3ページ)
  * 実行: node scripts/generate-thumbnails.mjs
  * 既存サムネイルはスキップするので、新規教材追加時も安全に再実行できる。
  */
@@ -21,8 +23,8 @@ const env = Object.fromEntries(
 const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
 const SERVICE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
 const BUCKET = 'thumbnails';
+const MAX_PAGES = 3;
 
-// notion.ts が読む環境変数をセット
 Object.entries(env).forEach(([k, v]) => { process.env[k] = v; });
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
@@ -33,7 +35,6 @@ async function fetchMaterials() {
     ?? { getMaterials: null };
 
   if (!getMaterials) {
-    // notion.ts が直接 import できない場合は API から取得
     const res = await fetch('http://localhost:3000/api/materials');
     if (!res.ok) throw new Error('API から教材を取得できませんでした。先に dev サーバーを起動してください: npm run dev');
     return res.json();
@@ -41,50 +42,76 @@ async function fetchMaterials() {
   return getMaterials();
 }
 
-async function thumbnailExists(id) {
-  const { data } = await supabase.storage.from(BUCKET).list('', { search: `${id}.png` });
-  return data?.some(f => f.name === `${id}.png`) ?? false;
+async function fileExists(name) {
+  const { data } = await supabase.storage.from(BUCKET).list('', { search: name });
+  return data?.some(f => f.name === name) ?? false;
 }
 
-async function generateThumbnail(pdfUrl) {
+async function uploadPng(name, buf) {
+  const { error } = await supabase.storage.from(BUCKET).upload(name, buf, {
+    contentType: 'image/png',
+    upsert: false,
+  });
+  if (error) throw error;
+}
+
+async function generatePages(pdfUrl) {
   const proxyUrl = `http://localhost:3000/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`;
   const res = await fetch(proxyUrl);
   if (!res.ok) throw new Error(`PDF取得失敗: ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
 
+  const pages = [];
   const doc = await pdf(buf, { scale: 1.5 });
-  // 最初のページだけ取得
   for await (const page of doc) {
-    return page; // PNG Buffer
+    pages.push(page);
+    if (pages.length >= MAX_PAGES) break;
   }
-  throw new Error('ページが取得できませんでした');
+  return pages;
 }
 
 async function main() {
   console.log('教材一覧を取得中...');
   const materials = await fetchMaterials();
   const withPdf = materials.filter(m => m.pdfFile);
-  console.log(`PDF付き教材: ${withPdf.length}件`);
+  console.log(`PDF付き教材: ${withPdf.length}件\n`);
 
   let generated = 0, skipped = 0, failed = 0;
 
   for (const mat of withPdf) {
-    process.stdout.write(`[${mat.id.slice(0, 8)}] ${mat.title?.slice(0, 30) ?? ''}... `);
+    const label = `[${mat.id.slice(0, 8)}] ${mat.title?.slice(0, 25) ?? ''}`;
+    process.stdout.write(`${label}... `);
 
-    if (await thumbnailExists(mat.id)) {
+    // カード用サムネイル ({id}.png) と モーダル用 ({id}-p1.png) が両方あればスキップ
+    const cardExists = await fileExists(`${mat.id}.png`);
+    const p1Exists = await fileExists(`${mat.id}-p1.png`);
+
+    if (cardExists && p1Exists) {
       console.log('スキップ（既存）');
       skipped++;
       continue;
     }
 
     try {
-      const png = await generateThumbnail(mat.pdfFile, mat.id);
-      const { error } = await supabase.storage.from(BUCKET).upload(`${mat.id}.png`, png, {
-        contentType: 'image/png',
-        upsert: false,
-      });
-      if (error) throw error;
-      console.log('✅ 生成完了');
+      const pages = await generatePages(mat.pdfFile);
+      let uploadCount = 0;
+
+      // カード用: {id}.png
+      if (!cardExists) {
+        await uploadPng(`${mat.id}.png`, pages[0]);
+        uploadCount++;
+      }
+
+      // モーダル用: {id}-p1.png 〜 {id}-p3.png
+      for (let i = 0; i < pages.length; i++) {
+        const name = `${mat.id}-p${i + 1}.png`;
+        if (!(await fileExists(name))) {
+          await uploadPng(name, pages[i]);
+          uploadCount++;
+        }
+      }
+
+      console.log(`✅ ${uploadCount}枚アップロード（${pages.length}ページ）`);
       generated++;
     } catch (e) {
       console.log(`❌ 失敗: ${e.message}`);
