@@ -109,15 +109,21 @@ export default function MaterialCard({
   const isFreeUser = !userPlan || userPlan === "free";
   const atFavLimit = isFreeUser && !favIds?.includes(mat.id) && uniqueFavCount >= 5;
   const [limitTooltip, setLimitTooltip] = useState(false);
-  const [tooltipPos, setTooltipPos] = useState({ top: 0, right: 0 });
+  const [tooltipPos, setTooltipPos] = useState<{ top?: number; bottom?: number; right: number }>({ right: 0 });
   const [showPlanModal, setShowPlanModal] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 
+  const TOOLTIP_HEIGHT = 210;
   const openLimitTooltip = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!limitTooltip && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setTooltipPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+      const spaceBelow = window.innerHeight - rect.bottom;
+      if (spaceBelow < TOOLTIP_HEIGHT) {
+        setTooltipPos({ bottom: window.innerHeight - rect.top + 6, right: window.innerWidth - rect.right });
+      } else {
+        setTooltipPos({ top: rect.bottom + 6, right: window.innerWidth - rect.right });
+      }
     }
     setLimitTooltip(prev => !prev);
   };
@@ -166,7 +172,7 @@ export default function MaterialCard({
       {limitTooltip && (
         <>
           <div onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); }} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
-          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: tooltipPos.top, right: tooltipPos.right, zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: tooltipPos.top, bottom: tooltipPos.bottom, right: tooltipPos.right, zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
               <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
             </div>
