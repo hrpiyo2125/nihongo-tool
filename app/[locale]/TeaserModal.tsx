@@ -35,11 +35,15 @@ const THUMB_BASE = `${SUPABASE_URL}/storage/v1/object/public/thumbnails`;
 
 function PdfPreview({ matId }: { matId: string }) {
   const [selected, setSelected] = useState(0);
+  const [mainReady, setMainReady] = useState(false);
   const [visibleCount, setVisibleCount] = useState(1);
 
   const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
+  const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
 
   useEffect(() => {
+    setMainReady(false);
+    setVisibleCount(1);
     const check = (i: number) => {
       if (i >= 3) return;
       const img = new Image();
@@ -52,18 +56,25 @@ function PdfPreview({ matId }: { matId: string }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
-      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0 }}>
+      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
+        <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
         <img
           src={urls[selected]}
           alt=""
-          style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)" }}
+          onLoad={() => setMainReady(true)}
+          style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }}
         />
       </div>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72 }}>
+      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72, position: "relative" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 8, justifyContent: "center", opacity: visibleCount > 1 ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
+          ))}
+        </div>
         {urls.slice(0, visibleCount).map((url, i) => (
           <div
             key={i}
-            onClick={() => setSelected(i)}
+            onClick={() => { setSelected(i); setMainReady(false); }}
             style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
           >
             <img src={url} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
