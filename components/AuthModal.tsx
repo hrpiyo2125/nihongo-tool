@@ -130,7 +130,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/reset-password`,
     });
     if (resetError) {
-      setError("パスワードのリセットができませんでした。Googleで登録した場合は「Googleで続ける」からログインしてください。");
+      setError("送信に失敗しました。しばらくしてから再度お試しください。");
     } else {
       setMessage("パスワードリセット用のメールを送信しました。メールをご確認ください。");
     }
