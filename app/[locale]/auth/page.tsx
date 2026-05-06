@@ -132,7 +132,7 @@ function AuthPageInner() {
         password,
         options: {
           data: { full_name: name.trim() },
-          emailRedirectTo: `${window.location.origin}/api/auth/callback?next=/${locale}&type=signup`,
+          emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/${locale}&type=signup`,
           captchaToken: captchaTokenRef.current ?? undefined,
         },
       });
