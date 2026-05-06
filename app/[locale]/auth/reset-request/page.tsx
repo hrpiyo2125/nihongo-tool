@@ -24,7 +24,16 @@ export default function ResetRequestPage() {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/ja/auth/reset-password`,
     });
     if (error) {
-      setError("送信に失敗しました。しばらくしてから再度お試しください。");
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("provider") || msg.includes("oauth") || msg.includes("identity")) {
+        setError("このメールアドレスはGoogleで登録されています。「Googleで続ける」からログインしてください。");
+      } else if (msg.includes("redirect") || msg.includes("invalid")) {
+        setError("設定エラーが発生しました。サポートにお問い合わせください。");
+      } else if (msg.includes("rate") || msg.includes("too many")) {
+        setError("送信回数が多すぎます。しばらく時間をおいてから再度お試しください。");
+      } else {
+        setError(`送信に失敗しました（${error.message}）。サポートにお問い合わせください。`);
+      }
     } else {
       setMessage("パスワードリセット用のメールを送信しました。メールをご確認ください。");
     }
