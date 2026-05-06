@@ -4,6 +4,20 @@ import { setCachedThumbnail } from "../../lib/pdfThumbnailCache";
 import PlanModal from "../../components/PlanModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
+// モバイルでPDF同時レンダリングを制限するキュー
+const MAX_CONCURRENT = 2;
+let activeCount = 0;
+const queue: (() => void)[] = [];
+function acquireSlot(fn: () => void) {
+  if (activeCount < MAX_CONCURRENT) { activeCount++; fn(); }
+  else queue.push(fn);
+}
+function releaseSlot() {
+  activeCount--;
+  const next = queue.shift();
+  if (next) { activeCount++; next(); }
+}
+
 type Material = {
   id: string;
   title: string;
@@ -47,17 +61,22 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
 
   useEffect(() => {
     if (!visible) return;
-    (async () => {
+    let cancelled = false;
+    acquireSlot(async () => {
       try {
+        if (cancelled) { releaseSlot(); return; }
         const pdfjsLib = await import("pdfjs-dist");
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
         const doc = await pdfjsLib.getDocument({ url: `/api/pdf-proxy?url=${encodeURIComponent(pdfUrl)}`, withCredentials: false }).promise;
-        setPdfPage(await doc.getPage(1));
+        if (!cancelled) setPdfPage(await doc.getPage(1));
       } catch (e) {
         console.error("PDF card thumbnail error:", e);
         if (!readyCalled.current) { readyCalled.current = true; onReady?.(); }
+      } finally {
+        releaseSlot();
       }
-    })();
+    });
+    return () => { cancelled = true; };
   }, [visible, pdfUrl]);
 
   useEffect(() => {
