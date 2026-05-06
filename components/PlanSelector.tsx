@@ -130,7 +130,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
     setLoading(plan.key);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/auth?mode=login&reason=plan"); setLoading(null); return; }
+    if (!user) { router.push("/"); setLoading(null); return; }
 
     const res = await fetch("/api/stripe/payment-method", {
       method: "POST",
