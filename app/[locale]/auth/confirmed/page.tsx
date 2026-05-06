@@ -82,22 +82,16 @@ function ConfirmedInner() {
             </h1>
             <p style={{ fontSize: 13, color: "#b090c8", lineHeight: 1.7, marginBottom: 28 }}>
               このリンクはすでに使用済みか、有効期限が切れています。<br />
-              再度登録するか、ログインをお試しください。
+              登録済みの方はそのままログインできます。
             </p>
-            <a href={`/${locale}/auth?mode=signup`} style={{
+            <a href={`/${locale}`} style={{
               display: "block", width: "100%", height: 46, borderRadius: 24,
               background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
               color: "white", fontSize: 14, fontWeight: 700,
               textDecoration: "none", lineHeight: "46px",
-              marginBottom: 12,
               boxSizing: "border-box",
             }}>
-              新規登録ページへ
-            </a>
-            <a href={`/${locale}/auth?mode=login`} style={{
-              display: "block", fontSize: 12, color: "#9b6ed4", textDecoration: "none",
-            }}>
-              ログインはこちら
+              トップへ戻る
             </a>
           </>
         )}
