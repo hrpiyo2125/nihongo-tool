@@ -6,6 +6,12 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/ja'
   const type = searchParams.get('type')
+  const supabaseError = searchParams.get('error')
+
+  // Supabaseがエラーを返した場合（2回タップ・期限切れなど）
+  if (supabaseError && type === 'signup') {
+    return NextResponse.redirect(`${origin}${next}/auth/confirmed?status=error`)
+  }
 
   if (code) {
     const pendingCookies: { name: string; value: string; options: Record<string, unknown> }[] = []
