@@ -273,7 +273,7 @@ export default function TeaserModal({
                     無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
                   </div>
                   <button
-                    onClick={() => { setFavLimitTooltip(false); onClose(); window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
+                    onClick={() => { setFavLimitTooltip(false); onClose(); setTimeout(() => window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })), 0); }}
                     style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}
                   >
                     お気に入り履歴を開く →
