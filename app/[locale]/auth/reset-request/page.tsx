@@ -24,7 +24,7 @@ export default function ResetRequestPage() {
       redirectTo: `${window.location.origin}/auth/reset-password`,
     });
     if (error) {
-      setError("送信に失敗しました。もう一度お試しください");
+      setError("パスワードのリセットができませんでした。Googleで登録した場合は「Googleで続ける」からログインしてください。");
     } else {
       setMessage("パスワードリセット用のメールを送信しました。メールをご確認ください。");
     }
@@ -98,8 +98,8 @@ export default function ResetRequestPage() {
         )}
 
         <div style={{ textAlign: "center", marginTop: 16 }}>
-          <a href="/auth" style={{ fontSize: 12, color: "#9b6ed4", textDecoration: "none" }}>
-            ← ログインに戻る
+          <a href="/" style={{ fontSize: 12, color: "#9b6ed4", textDecoration: "none" }}>
+            ← トップに戻る
           </a>
         </div>
       </div>
