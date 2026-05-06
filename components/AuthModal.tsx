@@ -63,7 +63,16 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         email, password, options: { captchaToken: captchaTokenRef.current ?? undefined },
       });
       if (signInError) {
-        setError("メールアドレスまたはパスワードが正しくありません。Googleで登録した場合は「Googleで続ける」からログインしてください。");
+        const msg = signInError.message?.toLowerCase() ?? "";
+        if (msg.includes("email not confirmed")) {
+          setError("メールアドレスが確認されていません。登録時に届いたメールのリンクをタップしてから再度ログインしてください。");
+        } else if (msg.includes("rate") || msg.includes("too many")) {
+          setError("ログイン試行回数が多すぎます。しばらく時間をおいてから再度お試しください。");
+        } else if (msg.includes("captcha") || msg.includes("token")) {
+          setError("認証に失敗しました。ページを再読み込みしてからお試しください。");
+        } else {
+          setError("メールアドレスまたはパスワードが正しくありません。Googleで登録した場合は「Googleで続ける」からログインしてください。");
+        }
         setLoading(false);
         return;
       }
@@ -86,7 +95,16 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         },
       });
       if (signUpError) {
-        setError("登録に失敗しました。もう一度お試しください");
+        const msg = signUpError.message?.toLowerCase() ?? "";
+        if (msg.includes("rate") || msg.includes("too many")) {
+          setError("登録試行回数が多すぎます。しばらく時間をおいてから再度お試しください。");
+        } else if (msg.includes("captcha") || msg.includes("token")) {
+          setError("認証に失敗しました。ページを再読み込みしてからお試しください。");
+        } else if (msg.includes("password") || msg.includes("weak")) {
+          setError("パスワードが基準を満たしていません。8文字以上で入力してください。");
+        } else {
+          setError(`登録に失敗しました（${signUpError.message}）。もう一度お試しください。`);
+        }
         setLoading(false);
         return;
       }
