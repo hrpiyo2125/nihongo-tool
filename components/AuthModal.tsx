@@ -128,6 +128,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
     setLoading(true);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/${locale}/auth/reset-password`,
+      captchaToken: captchaTokenRef.current ?? undefined,
     });
     if (resetError) {
       const msg = resetError.message?.toLowerCase() ?? "";
@@ -254,6 +255,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
               <form onSubmit={handleResetRequest}>
                 <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus style={inputStyle} />
                 {error && <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>{error}</div>}
+                <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
                 <button type="submit" disabled={loading} style={{
                   width: "100%", height: 46, borderRadius: 24, border: "none",
                   background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
