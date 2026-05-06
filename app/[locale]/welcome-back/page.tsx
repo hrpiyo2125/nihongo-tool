@@ -16,7 +16,7 @@ export default function WelcomeBackPage() {
     const supabase = createClient();
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
-        window.location.href = `/${locale}/auth`;
+        window.location.href = `/${locale}`;
         return;
       }
 
@@ -69,7 +69,7 @@ export default function WelcomeBackPage() {
   const handleClose = async () => {
     const supabase = createClient();
     await supabase.auth.signOut({ scope: "local" });
-    window.location.href = `/${locale}/auth`;
+    window.location.href = `/${locale}`;
   };
 
   if (loading) {

@@ -101,7 +101,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
     setLoading(newPlanKey)
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth?mode=login'); setLoading(null); return }
+    if (!user) { router.push('/'); setLoading(null); return }
     try {
       const res = await fetch('/api/stripe/change-plan', {
         method: 'POST',

@@ -1225,7 +1225,7 @@ export default function MyPage({
                 ? "ログインするとダウンロード履歴を確認できます"
                 : "ログインすると購入履歴を確認できます"}
             </div>
-            <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/auth")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+            <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
           </div>
         ) : activePage === "fav" ? (
           <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} userPlan={profile.plan ?? "free"} />
