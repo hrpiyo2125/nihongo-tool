@@ -172,6 +172,18 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
     if (content || method) setMaterialsFilter({ content: content ?? "all", method: method ?? "all" });
   }, [searchParams]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { page } = (e as CustomEvent).detail;
+      if (page === "fav") {
+        setActiveTab("fav");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+    window.addEventListener("toolio:navigate-mypage", handler);
+    return () => window.removeEventListener("toolio:navigate-mypage", handler);
+  }, []);
+
   const openAuth = (mode: AuthModalMode) => setAuthMode(mode);
 
   const openMaterialsModal = (content: string, method: string) => {
