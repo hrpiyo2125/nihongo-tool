@@ -19,7 +19,6 @@ import PlanSelector from "../../components/PlanSelector";
 import PlanModal from "../../components/PlanModal";
 import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import { BrandIcon } from "../../components/BrandIcon";
-import { useMobileStore, findModal } from "../../lib/mobileStore";
 
 type Material = {
   id: string;
@@ -37,7 +36,6 @@ type Material = {
   isNew: boolean;
 };
 
-// ─── お気に入りトグル共通ロジック ────────────────────────────
 async function toggleFav(
   mat: Material,
   favIds: string[],
@@ -55,38 +53,37 @@ async function toggleFav(
   }
 }
 
-function MobileHomeInner() {
+type Announcement = { id: string; title: string; date: string; type: string; material_id: string | null };
+type LegalType = "privacy" | "terms" | "tokushoho" | "about" | null;
+type MorePageType = "dl" | "guide" | "purchases" | null;
+
+function MobileHomeInner({ materials }: { materials: Material[] }) {
   const router = useRouter();
   const locale = useLocale();
   const pathname = usePathname();
 
-  // ─── Zustand store ───────────────────────────────────────
-  const { activeTab, setTab, modalStack, push, pop, updateMaterialsFilter } = useMobileStore();
-  const topModal = modalStack.at(-1);
-  const materialsEntry = findModal(modalStack, "materials");
-  const teaserEntry = findModal(modalStack, "teaser");
-
-  // モーダル表示フラグ（スタックから導出）
-  const guestMenuOpen    = topModal?.type === "guest";
-  const myPageOpen       = topModal?.type === "mypage";
-  const mySubPageOpen    = topModal?.type === "mypage-profile" || topModal?.type === "mypage-plan" || topModal?.type === "mypage-billing";
-  const announcementOpen = topModal?.type === "announcement";
-  const authModalOpen    = topModal?.type === "auth";
-  const morePageDl       = topModal?.type === "more-dl";
-  const morePageGuide    = topModal?.type === "more-guide";
-  const morePagePurchases = topModal?.type === "more-purchases";
-  const legalPrivacy     = topModal?.type === "legal-privacy";
-  const legalTerms       = topModal?.type === "legal-terms";
-  const legalTokushoho   = topModal?.type === "legal-tokushoho";
-  const legalAbout       = topModal?.type === "legal-about";
-  const teaserPlanOpen   = topModal?.type === "teaser-plan";
-  const teaserPurchaseOpen = topModal?.type === "teaser-purchase";
-
-  // mySubPage を topModal から導出
-  const mySubPage =
-    topModal?.type === "mypage-profile" ? "profile" :
-    topModal?.type === "mypage-plan"    ? "plan"    :
-    topModal?.type === "mypage-billing" ? "billing" : null;
+  // ─── State ───────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState("home");
+  const [materialsFilter, setMaterialsFilter] = useState<{ content: string; method: string } | null>(null);
+  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
+  const [authMode, setAuthMode] = useState<AuthModalMode | null>(null);
+  const [guestMenuOpen, setGuestMenuOpen] = useState(false);
+  const [myPageOpen, setMyPageOpen] = useState(false);
+  const [mySubPage, setMySubPage] = useState<"profile" | "plan" | "billing" | null>(null);
+  const [announcementModal, setAnnouncementModal] = useState<Announcement | null>(null);
+  const [morePageType, setMorePageType] = useState<MorePageType>(null);
+  const [legalType, setLegalType] = useState<LegalType>(null);
+  const [teaserPlanOpen, setTeaserPlanOpen] = useState(false);
+  const [teaserPurchaseOpen, setTeaserPurchaseOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [activeCardTab, setActiveCardTab] = useState("pickup");
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isScrollingRef = useRef(false);
+  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ─── i18n ────────────────────────────────────────────────
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
@@ -101,26 +98,13 @@ function MobileHomeInner() {
           setFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
 
-  // ─── ローカル state（モーダルに依存しないもの） ──────────
-  const [scrolled, setScrolled]         = useState(false);
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editingValue, setEditingValue] = useState("");
-  const [materials, setMaterials]       = useState<Material[]>([]);
-  const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
-  const [activeCardTab, setActiveCardTab] = useState("pickup");
-  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const isScrollingRef = useRef(false);
-  const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  // ─── データ取得 ──────────────────────────────────────────
+  // ─── データ取得（教材はpropsで受け取り済み） ─────────────
   useEffect(() => {
-    fetch("/api/materials").then(r => r.json()).then(data => setMaterials(Array.isArray(data) ? data : []));
     fetch("/api/announcements").then(r => r.json()).then(data => setAnnouncements(Array.isArray(data) ? data : []));
     fetch("/api/legal-content").then(r => r.json()).then(data => setLegalContent(data));
   }, []);
 
-  // ─── スクロール検知 + ghost tap ガード ──────────────────
+  // ─── スクロール検知 ──────────────────────────────────────
   const handleMainScroll = () => {
     isScrollingRef.current = true;
     clearTimeout(scrollTimerRef.current);
@@ -130,12 +114,13 @@ function MobileHomeInner() {
 
   // ─── スクロール位置保存・復元 ────────────────────────────
   const savedScrollRef = useRef(false);
+  const anyModalOpen = !!(materialsFilter || teaserMat || authMode || myPageOpen || announcementModal || morePageType || legalType);
   useEffect(() => {
-    if (modalStack.length > 0 && !savedScrollRef.current && scrollRef.current) {
+    if (anyModalOpen && !savedScrollRef.current && scrollRef.current) {
       sessionStorage.setItem("homeScroll", String(scrollRef.current.scrollTop));
       savedScrollRef.current = true;
     }
-    if (modalStack.length === 0) {
+    if (!anyModalOpen) {
       savedScrollRef.current = false;
       const pos = sessionStorage.getItem("homeScroll");
       if (pos && scrollRef.current) {
@@ -144,59 +129,48 @@ function MobileHomeInner() {
         });
       }
     }
-  }, [modalStack.length]);
+  }, [anyModalOpen]);
 
   // ─── ブラウザ「戻る」ボタン対策 ─────────────────────────
-  // モーダルが開くたびにダミー履歴を積み、popstate で pop() する
-  const prevModalLengthRef = useRef(0);
+  const prevAnyModalRef = useRef(false);
   useEffect(() => {
-    const prev = prevModalLengthRef.current;
-    const curr = modalStack.length;
-    if (curr > prev) {
+    if (anyModalOpen && !prevAnyModalRef.current) {
       history.pushState({ modal: true }, "");
     }
-    prevModalLengthRef.current = curr;
-  }, [modalStack.length]);
+    prevAnyModalRef.current = anyModalOpen;
+  }, [anyModalOpen]);
 
   useEffect(() => {
-    const onPopState = (_e: PopStateEvent) => {
-      if (modalStack.length > 0) {
-        pop();
-        // ブラウザが勝手に戻るのを防ぐためダミー履歴を再追加
-        history.pushState({ modal: true }, "");
-      }
+    const onPopState = () => {
+      if (legalType) { setLegalType(null); history.pushState({ modal: true }, ""); return; }
+      if (mySubPage) { setMySubPage(null); history.pushState({ modal: true }, ""); return; }
+      if (teaserPlanOpen) { setTeaserPlanOpen(false); history.pushState({ modal: true }, ""); return; }
+      if (teaserPurchaseOpen) { setTeaserPurchaseOpen(false); history.pushState({ modal: true }, ""); return; }
+      if (morePageType) { setMorePageType(null); history.pushState({ modal: true }, ""); return; }
+      if (announcementModal) { setAnnouncementModal(null); history.pushState({ modal: true }, ""); return; }
+      if (teaserMat) { setTeaserMat(null); history.pushState({ modal: true }, ""); return; }
+      if (authMode) { setAuthMode(null); history.pushState({ modal: true }, ""); return; }
+      if (myPageOpen) { setMyPageOpen(false); history.pushState({ modal: true }, ""); return; }
+      if (materialsFilter) { setMaterialsFilter(null); history.pushState({ modal: true }, ""); return; }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [modalStack.length, pop]);
+  }, [legalType, mySubPage, teaserPlanOpen, teaserPurchaseOpen, morePageType, announcementModal, teaserMat, authMode, myPageOpen, materialsFilter]);
 
   // ─── ナビゲーション関数 ──────────────────────────────────
-  const switchTab = (tab: string) => {
-    setTab(tab as import("../../lib/mobileStore").TabId);
-  };
-
   const switchLanguage = () => {
     const nextLocale = locale === "ja" ? "en" : "ja";
     const newPath = pathname.replace(`/${locale}`, "") || "/";
     router.push(`/${nextLocale}${newPath}`);
   };
 
-  const openAuth = (mode: AuthModalMode) => {
-    push({ type: "auth", mode });
-  };
+  const openAuth = (mode: AuthModalMode) => setAuthMode(mode);
 
   const openMaterialsModal = (content: string, method: string) => {
-    // 既にスタックにあれば filter だけ更新、なければ push
-    if (materialsEntry) {
-      updateMaterialsFilter(content, method);
-    } else {
-      push({ type: "materials", filter: { content, method } });
-    }
+    setMaterialsFilter({ content, method });
   };
 
-  const openTeaser = (mat: Material) => {
-    push({ type: "teaser", mat: mat as any });
-  };
+  const openTeaser = (mat: Material) => setTeaserMat(mat);
 
   // ─── タブ定義 ────────────────────────────────────────────
   const tabs = [
@@ -280,7 +254,6 @@ function MobileHomeInner() {
     return 0;
   }).slice(0, 6);
 
-  // ─── レンダリング ────────────────────────────────────────
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "white", overflow: "hidden" }}>
 
@@ -289,20 +262,20 @@ function MobileHomeInner() {
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
           <button
-            onClick={() => isLoggedIn ? push({ type: "mypage" }) : (guestMenuOpen ? pop() : push({ type: "guest" }))}
+            onClick={() => isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v)}
             style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}
           >
             {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
             <>
-              <div onClick={() => pop()} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
+              <div onClick={() => setGuestMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
                 <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
-                <button onClick={() => { pop(); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
+                <button onClick={() => { setGuestMenuOpen(false); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
                   <BrandIcon name="key" size={14} color="#c9a0f0" />ログイン
                 </button>
-                <button onClick={() => { pop(); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
+                <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
                   <BrandIcon name="sparkle" size={14} color="#9b6ed4" />会員でない方はこちらから新規登録
                 </button>
               </div>
@@ -383,7 +356,7 @@ function MobileHomeInner() {
               <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 12 }}>お知らせ</div>
                 {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} onClick={() => push({ type: "announcement", announcement: n })} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
+                  <div key={n.id} onClick={() => setAnnouncementModal(n)} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
                     <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
                     <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
@@ -465,11 +438,11 @@ function MobileHomeInner() {
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", type: "more-dl"       as const },
-              { icon: "guide"    as const, label: "よくある質問",     type: "more-guide"    as const },
-              { icon: "purchases"as const, label: "教材購入履歴",     type: "more-purchases"as const },
+              { icon: "download" as const, label: "ダウンロード履歴", type: "dl"        as MorePageType },
+              { icon: "guide"    as const, label: "よくある質問",     type: "guide"     as MorePageType },
+              { icon: "purchases"as const, label: "教材購入履歴",     type: "purchases" as MorePageType },
             ].map((item) => (
-              <div key={item.label} onClick={() => push({ type: item.type })} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
@@ -477,81 +450,81 @@ function MobileHomeInner() {
                 <span style={{ color: "#ccc", fontSize: 18 }}>›</span>
               </div>
             ))}
-
-            {/* ダウンロード履歴 */}
-            {morePageDl && (
-              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
-                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
-                </header>
-                <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
-                  {!isLoggedIn ? (
-                    <div style={{ textAlign: "center", padding: "60px 0" }}>
-                      <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
-                      <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
-                      <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
-                    </div>
-                  ) : (() => {
-                    const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
-                    if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div></div>;
-                    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* 教材購入履歴 */}
-            {morePagePurchases && (
-              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
-                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
-                </header>
-                <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
-                  {!isLoggedIn ? (
-                    <div style={{ textAlign: "center", padding: "60px 0" }}>
-                      <BrandIcon name="purchases" size={32} color="#e0d0f0" />
-                      <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>ログインすると購入履歴を確認できます</div>
-                      <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
-                    </div>
-                  ) : (() => {
-                    const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
-                    if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="purchases" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
-                    return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
-                  })()}
-                </div>
-              </div>
-            )}
-
-            {/* よくある質問 */}
-            {morePageGuide && (
-              <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
-                <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-                  <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-                  <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
-                </header>
-                <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
-              </div>
-            )}
           </div>
         )}
       </div>
 
+      {/* ダウンロード履歴 */}
+      {morePageType === "dl" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
+            {!isLoggedIn ? (
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
+                <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+              </div>
+            ) : (() => {
+              const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
+              if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div></div>;
+              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* 教材購入履歴 */}
+      {morePageType === "purchases" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
+            {!isLoggedIn ? (
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <BrandIcon name="purchases" size={32} color="#e0d0f0" />
+                <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>ログインすると購入履歴を確認できます</div>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+              </div>
+            ) : (() => {
+              const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
+              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="purchases" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
+              return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} />; })}</div>;
+            })()}
+          </div>
+        </div>
+      )}
+
+      {/* よくある質問 */}
+      {morePageType === "guide" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
+        </div>
+      )}
+
       {/* リーガルページ */}
-      {(legalPrivacy || legalTerms || legalTokushoho || legalAbout) && (
+      {legalType && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => setLegalType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-              {legalPrivacy ? "プライバシーポリシー" : legalTerms ? "利用規約" : legalTokushoho ? "特定商取引法に基づく表記" : "toolioとは"}
+              {legalType === "privacy" ? "プライバシーポリシー" : legalType === "terms" ? "利用規約" : legalType === "tokushoho" ? "特定商取引法に基づく表記" : "toolioとは"}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {legalPrivacy   && <PrivacyContent   onBack={() => pop()} compact notionBody={legalContent?.textContents?.["プライバシーポリシー"]} />}
-            {legalTerms     && <TermsContent     onBack={() => pop()} compact notionBody={legalContent?.textContents?.["利用規約"]} />}
-            {legalTokushoho && <TokushohoContent onBack={() => pop()} compact notionBody={legalContent?.textContents?.["特定商取引法"]} />}
-            {legalAbout     && <AboutContent     onBack={() => pop()} compact notionBody={legalContent?.textContents?.["toolioとは"]} />}
+            {legalType === "privacy"    && <PrivacyContent   onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["プライバシーポリシー"]} />}
+            {legalType === "terms"      && <TermsContent     onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["利用規約"]} />}
+            {legalType === "tokushoho"  && <TokushohoContent onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["特定商取引法"]} />}
+            {legalType === "about"      && <AboutContent     onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["toolioとは"]} />}
           </div>
         </div>
       )}
@@ -559,9 +532,9 @@ function MobileHomeInner() {
       {/* 下部タブバー */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 80, background: "white", borderTop: "0.5px solid rgba(200,170,240,0.25)", display: "flex", alignItems: "center", justifyContent: "space-around", paddingBottom: 16, zIndex: 50 }}>
         {tabs.map((tab) => {
-          const active = activeTab === tab.id && !materialsEntry;
+          const active = activeTab === tab.id && !materialsFilter;
           return (
-            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { switchTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
@@ -571,8 +544,8 @@ function MobileHomeInner() {
 
       {/* ─── モーダル層 ─────────────────────────────────────── */}
 
-      {/* 教材モーダル（スタックにある間は常にマウント） */}
-      {materialsEntry && (
+      {/* 教材モーダル */}
+      {materialsFilter && (
         <MobileMaterialsModal
           materials={materials}
           locale={locale}
@@ -585,23 +558,23 @@ function MobileHomeInner() {
           avatarUrl={avatarUrl}
           userInitial={userInitial}
           tabs={tabs}
-          initContent={materialsEntry.filter.content}
-          initMethod={materialsEntry.filter.method}
+          initContent={materialsFilter.content}
+          initMethod={materialsFilter.method}
           onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
           onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => pop()}
-          onTabChange={(tabId) => switchTab(tabId)}
-          onOpenMyPage={() => push({ type: "mypage" })}
-          onFilterChange={(content, method) => updateMaterialsFilter(content, method)}
+          onClose={() => setMaterialsFilter(null)}
+          onTabChange={(tabId) => { setMaterialsFilter(null); setActiveTab(tabId); }}
+          onOpenMyPage={() => setMyPageOpen(true)}
+          onFilterChange={(content, method) => setMaterialsFilter({ content, method })}
         />
       )}
 
-      {/* ティーザーモーダル（スタックにある間は常にマウント） */}
-      {teaserEntry && (() => {
-        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserEntry.mat as any, locale);
+      {/* ティーザーモーダル */}
+      {teaserMat && (() => {
+        const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(teaserMat as any, locale);
         return (
           <MobileTeaserModal
-            mat={teaserEntry.mat as any}
+            mat={teaserMat as any}
             bg={bg} char={char} charColor={charColor}
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
@@ -611,51 +584,51 @@ function MobileHomeInner() {
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
             locale={locale}
-            onClose={() => pop()}
+            onClose={() => setTeaserMat(null)}
             tmm={tmm}
             onFavChange={(materialId, isFav) => {
               if (isFav) setFavIds(prev => [...prev, materialId]);
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
             onOpenAuth={openAuth}
-            onOpenPlanModal={() => push({ type: "teaser-plan" })}
-            onOpenPurchaseConfirm={() => push({ type: "teaser-purchase" })}
+            onOpenPlanModal={() => setTeaserPlanOpen(true)}
+            onOpenPurchaseConfirm={() => setTeaserPurchaseOpen(true)}
           />
         );
       })()}
 
       {/* お知らせモーダル */}
-      {announcementOpen && topModal?.type === "announcement" && (
+      {announcementModal && (
         <AnnouncementModal
-          announcement={topModal.announcement}
+          announcement={announcementModal}
           isLoggedIn={isLoggedIn}
           userPlan={profile.plan ?? "free"}
           favIds={effectiveFavIds}
           purchasedIds={purchasedIds}
           locale={locale}
-          onClose={() => pop()}
+          onClose={() => setAnnouncementModal(null)}
           onFavChange={(materialId, isFav) => {
             if (isFav) setFavIds(prev => [...prev, materialId]);
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
-          onMaterialClick={(mat) => { pop(); openTeaser(mat as any); }}
+          onMaterialClick={(mat) => { setAnnouncementModal(null); openTeaser(mat as any); }}
         />
       )}
 
       {/* 認証モーダル */}
-      {authModalOpen && topModal?.type === "auth" && (
+      {authMode && (
         <AuthModal
-          initialMode={topModal.mode}
-          onClose={() => pop()}
-          onLoggedIn={() => { pop(); window.location.reload(); }}
+          initialMode={authMode}
+          onClose={() => setAuthMode(null)}
+          onLoggedIn={() => { setAuthMode(null); window.location.reload(); }}
         />
       )}
 
       {/* マイページドロワー */}
       {myPageOpen && (
         <>
-          <div onClick={() => pop()} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
+          <div onClick={() => setMyPageOpen(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 99 }} />
           <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, width: "80vw", maxWidth: 300, background: "white", zIndex: 100, padding: "0 24px 32px", display: "flex", flexDirection: "column", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "20px 0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", marginBottom: 8 }}>
               <div style={{ width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
@@ -679,11 +652,11 @@ function MobileHomeInner() {
             </div>
             <div style={{ fontSize: 13, fontWeight: 800, color: "#555", marginBottom: 8, marginTop: 4 }}>マイページ</div>
             {[
-              { icon: "user"    as const, label: "プロフィール",     type: "mypage-profile"  as const },
-              { icon: "plan"    as const, label: "プラン確認・変更", type: "mypage-plan"     as const },
-              { icon: "billing" as const, label: "支払い履歴",       type: "mypage-billing"  as const },
+              { icon: "user"    as const, label: "プロフィール",     sub: "profile"  as const },
+              { icon: "plan"    as const, label: "プラン確認・変更", sub: "plan"     as const },
+              { icon: "billing" as const, label: "支払い履歴",       sub: "billing"  as const },
             ].map((item) => (
-              <div key={item.label} onClick={() => push({ type: item.type })} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => setMySubPage(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
@@ -698,13 +671,13 @@ function MobileHomeInner() {
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               {[
-                { label: "toolioとは",  type: "legal-about"     as const },
-                { label: "利用規約",    type: "legal-terms"     as const },
-                { label: "プライバシー",type: "legal-privacy"   as const },
-                { label: "特商法",      type: "legal-tokushoho" as const },
+                { label: "toolioとは",  type: "about"      as LegalType },
+                { label: "利用規約",    type: "terms"      as LegalType },
+                { label: "プライバシー",type: "privacy"    as LegalType },
+                { label: "特商法",      type: "tokushoho"  as LegalType },
               ].map((l, i, arr) => (
                 <span key={l.label}>
-                  <button onClick={() => push({ type: l.type })} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
+                  <button onClick={() => setLegalType(l.type)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
                   {i < arr.length - 1 && <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>}
                 </span>
               ))}
@@ -722,10 +695,10 @@ function MobileHomeInner() {
       )}
 
       {/* マイページサブページ */}
-      {mySubPageOpen && mySubPage && (
+      {mySubPage && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => pop()} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
             </span>
@@ -738,7 +711,7 @@ function MobileHomeInner() {
                   cancelAtPeriodEnd={profile?.cancel_at_period_end ?? false}
                   currentPeriodEnd={profile?.current_period_end ?? null}
                   isPendingDeletion={profile?.status === "pending_deletion"}
-                  onSubscribed={async () => { await loadProfile(); pop(); }}
+                  onSubscribed={async () => { await loadProfile(); setMySubPage(null); }}
                 />
               </div>
             ) : (
@@ -776,31 +749,31 @@ function MobileHomeInner() {
       )}
 
       {/* teaser内プランモーダル */}
-      {teaserPlanOpen && teaserEntry && (
+      {teaserPlanOpen && teaserMat && (
         <PlanModal
           currentPlan={profile.plan ?? "free"}
-          requiredPlan={(teaserEntry.mat as any).requiredPlan}
-          onSubscribed={() => pop()}
-          onClose={() => pop()}
+          requiredPlan={(teaserMat as any).requiredPlan}
+          onSubscribed={() => setTeaserPlanOpen(false)}
+          onClose={() => setTeaserPlanOpen(false)}
         />
       )}
 
       {/* teaser内購入確認モーダル */}
-      {teaserPurchaseOpen && teaserEntry && (
+      {teaserPurchaseOpen && teaserMat && (
         <PurchaseConfirmModal
-          mat={teaserEntry.mat as any}
-          onSuccess={() => pop()}
-          onClose={() => pop()}
+          mat={teaserMat as any}
+          onSuccess={() => setTeaserPurchaseOpen(false)}
+          onClose={() => setTeaserPurchaseOpen(false)}
         />
       )}
     </div>
   );
 }
 
-export default function MobileHome() {
+export default function MobileHome({ materials }: { materials: Material[] }) {
   return (
     <Suspense>
-      <MobileHomeInner />
+      <MobileHomeInner materials={materials} />
     </Suspense>
   );
 }
