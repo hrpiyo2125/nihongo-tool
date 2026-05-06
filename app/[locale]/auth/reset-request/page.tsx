@@ -21,7 +21,7 @@ export default function ResetRequestPage() {
     }
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/ja/auth/reset-password`,
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/api/auth/callback?next=/ja/auth/reset-password&type=reset`,
     });
     if (error) {
       const msg = error.message?.toLowerCase() ?? "";

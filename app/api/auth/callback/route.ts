@@ -33,6 +33,17 @@ export async function GET(request: NextRequest) {
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
+    if (type === 'reset') {
+      if (error) {
+        return NextResponse.redirect(`${origin}${next}?error=invalid`)
+      }
+      const response = NextResponse.redirect(`${origin}${next}`)
+      pendingCookies.forEach(({ name, value, options }) => {
+        response.cookies.set(name, value, { ...options, maxAge: 60 * 60 * 24 * 365 })
+      })
+      return response
+    }
+
     if (type === 'signup') {
       const status = error ? 'error' : 'ok'
       const response = NextResponse.redirect(`${origin}${next}/auth/confirmed?status=${status}`)

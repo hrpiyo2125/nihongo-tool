@@ -1,25 +1,28 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 
 function ResetPasswordInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [ready, setReady] = useState(false);
+  const [error, setError] = useState(
+    searchParams.get("error") === "invalid"
+      ? "リンクが無効または期限切れです。もう一度パスワードリセットをお申し込みください。"
+      : ""
+  );
 
   const supabase = createClient();
 
   useEffect(() => {
-    // Supabaseがセッションをセットするのを待つ
     supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
-        setReady(true);
+        setError("");
       }
     });
   }, [supabase]);
@@ -38,10 +41,17 @@ function ResetPasswordInner() {
     setLoading(true);
     const { error } = await supabase.auth.updateUser({ password });
     if (error) {
-      setError("パスワードの更新に失敗しました。もう一度お試しください");
+      const msg = error.message?.toLowerCase() ?? "";
+      if (msg.includes("session") || msg.includes("not authenticated") || msg.includes("jwt")) {
+        setError("セッションが無効です。パスワードリセットメールのリンクから再度お試しください。");
+      } else if (msg.includes("same password") || msg.includes("different")) {
+        setError("現在と同じパスワードは使用できません。別のパスワードを入力してください。");
+      } else {
+        setError(`更新に失敗しました（${error.message}）。リンクの有効期限が切れている場合は再度リセットメールを送信してください。`);
+      }
     } else {
-      setMessage("パスワードを更新しました！ログインページへ移動します...");
-      setTimeout(() => router.push("/auth?mode=login"), 2000);
+      setMessage("パスワードを更新しました！トップページへ移動します...");
+      setTimeout(() => router.push("/"), 2000);
     }
     setLoading(false);
   };
