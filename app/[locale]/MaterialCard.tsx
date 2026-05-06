@@ -103,7 +103,7 @@ function PdfCardThumbnail({ pdfUrl, onReady }: { pdfUrl: string; onReady?: () =>
 }
 
 type Props = {
-  mat: Material;
+  mat: Material & { thumbnailUrl?: string };
   onClick: () => void;
   locale: string;
   isLoggedIn?: boolean;
@@ -177,7 +177,9 @@ export default function MaterialCard({
           </button>
         </div>
       )}
-      {mat.pdfFile && mat.pdfFile.length > 0 ? (
+      {mat.thumbnailUrl ? (
+        <img src={mat.thumbnailUrl} alt="" loading="lazy" style={{ width: "100%", height: 135, objectFit: "cover", display: "block" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+      ) : mat.pdfFile && mat.pdfFile.length > 0 ? (
         <PdfCardThumbnail pdfUrl={mat.pdfFile} />
       ) : (
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
