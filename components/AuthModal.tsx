@@ -22,6 +22,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [turnstileReady, setTurnstileReady] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -219,7 +220,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 500,
+        position: "fixed", inset: 0, zIndex: 10000,
         background: "rgba(0,0,0,0.5)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 16,
@@ -271,9 +272,9 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
               </div>
             ) : (
               <form onSubmit={handleResetRequest}>
-                <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus style={inputStyle} />
+                <input type="email" autoComplete="email" placeholder="メールアドレス" value={email} onChange={(e) => { setEmail(e.target.value); setTurnstileReady(true); }} autoFocus style={inputStyle} />
                 {error && <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>{error}</div>}
-                <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
+                {turnstileReady && <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />}
                 <button type="submit" disabled={loading} style={{
                   width: "100%", height: 46, borderRadius: 24, border: "none",
                   background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -347,7 +348,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                   はじめに、お名前を教えてください 👋
                 </div>
                 <form onSubmit={handleNextStep}>
-                  <input type="text" placeholder="お名前（例：田中はるな）" value={name} onChange={(e) => setName(e.target.value)} autoFocus style={inputStyle} />
+                  <input type="text" autoComplete="name" placeholder="お名前（例：田中はるな）" value={name} onChange={(e) => { setName(e.target.value); setTurnstileReady(true); }} autoFocus style={inputStyle} />
                   {error && <div style={{ fontSize: 11, color: "#c44a88", marginBottom: 10, padding: "6px 10px", background: "#fff0f6", borderRadius: 6 }}>{error}</div>}
                   <button type="submit" style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
@@ -375,8 +376,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                   </div>
                 )}
                 <form onSubmit={handleSubmit}>
-                  <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus style={inputStyle} />
-                  <input type="password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+                  <input type="email" autoComplete="email" placeholder="メールアドレス" value={email} onChange={(e) => { setEmail(e.target.value); setTurnstileReady(true); }} autoFocus style={inputStyle} />
+                  <input type="password" autoComplete="new-password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => { setPassword(e.target.value); setTurnstileReady(true); }} style={inputStyle} />
                   {error && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 11, color: "#c44a88", padding: "6px 10px", background: "#fff0f6", borderRadius: 6, marginBottom: 8 }}>{error}</div>
@@ -384,7 +385,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                     </div>
                   )}
                   {makeAgreeCheckbox(agreedEmail, () => setAgreedEmail(v => !v))}
-                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
+                  {turnstileReady && <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />}
                   <button type="submit" disabled={loading || !agreedEmail} style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
                     background: (loading || !agreedEmail) ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -406,8 +407,8 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                   </div>
                 )}
                 <form onSubmit={handleSubmit}>
-                  <input type="email" placeholder="メールアドレス" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-                  <input type="password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+                  <input type="email" autoComplete="email" placeholder="メールアドレス" value={email} onChange={(e) => { setEmail(e.target.value); setTurnstileReady(true); }} style={inputStyle} />
+                  <input type="password" autoComplete="current-password" placeholder="パスワード（8文字以上）" value={password} onChange={(e) => { setPassword(e.target.value); setTurnstileReady(true); }} style={inputStyle} />
                   {error && (
                     <div style={{ marginBottom: 10 }}>
                       <div style={{ fontSize: 11, color: "#c44a88", padding: "6px 10px", background: "#fff0f6", borderRadius: 6, marginBottom: 8 }}>{error}</div>
@@ -417,7 +418,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                       </div>
                     </div>
                   )}
-                  <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />
+                  {turnstileReady && <Turnstile siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!} onSuccess={handleCaptchaSuccess} options={{ appearance: "interaction-only" }} />}
                   <button type="submit" disabled={loading} style={{
                     width: "100%", height: 46, borderRadius: 24, border: "none",
                     background: loading ? "#e0d0f0" : "linear-gradient(135deg,#f4b9b9,#e49bfd)",
@@ -451,7 +452,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
       {/* 利用規約・プライバシーポリシー モーダル */}
       {legalModal && (
         <div
-          style={{ position: "fixed", inset: 0, zIndex: 600, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+          style={{ position: "fixed", inset: 0, zIndex: 10100, background: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
           onClick={() => setLegalModal(null)}
         >
           <div
