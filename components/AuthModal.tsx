@@ -63,7 +63,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         email, password, options: { captchaToken: captchaTokenRef.current ?? undefined },
       });
       if (signInError) {
-        setError("メールアドレスまたはパスワードが間違っています");
+        setError("メールアドレスまたはパスワードが正しくありません。Googleで登録した場合は「Googleで続ける」からログインしてください。");
         setLoading(false);
         return;
       }
@@ -92,7 +92,7 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
       }
       if (signUpData.user) {
         if ((signUpData.user.identities ?? []).length === 0) {
-          setError("このメールアドレスはすでに登録されています。");
+          setError("このメールアドレスはすでに登録されています。Googleで登録した場合は「Googleで続ける」からログインしてください。");
           setLoading(false);
           return;
         }
