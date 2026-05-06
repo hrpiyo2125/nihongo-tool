@@ -177,7 +177,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
     if (content !== "all") params.set("content", content);
     if (method !== "all") params.set("method", method);
     const q = params.toString();
-    window.history.replaceState(null, "", q ? `${pathname}?${q}` : pathname);
+    window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
   };
 
   const openAuth = (mode: AuthModalMode) => setAuthMode(mode);
@@ -579,8 +579,8 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
           initMethod={materialsFilter.method}
           onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
           onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => { setMaterialsFilter(null); window.history.replaceState(null, "", pathname); }}
-          onTabChange={(tabId) => { setMaterialsFilter(null); window.history.replaceState(null, "", pathname); setActiveTab(tabId); }}
+          onClose={() => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); }}
+          onTabChange={(tabId) => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab(tabId); }}
           onOpenMyPage={() => setMyPageOpen(true)}
           onFilterChange={(content, method) => { setMaterialsFilter({ content, method }); updateUrl(content, method); }}
         />

@@ -196,14 +196,14 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     setModal({ content, method });
     handleFilterChange(content, method);
   };
-  const closeModal = () => { setModal(null); window.history.replaceState(null, "", pathname); };
+  const closeModal = () => { setModal(null); window.history.replaceState(null, "", window.location.pathname); };
 
   const handleFilterChange = (content: string, method: string) => {
     const params = new URLSearchParams();
     if (content !== "all") params.set("content", content);
     if (method !== "all") params.set("method", method);
     const q = params.toString();
-    window.history.replaceState(null, "", q ? `${pathname}?${q}` : pathname);
+    window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
   };
 
   const scrollTo = (id: string) => {
