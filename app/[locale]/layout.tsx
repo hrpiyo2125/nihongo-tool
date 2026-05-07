@@ -13,6 +13,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import ErrorBoundary from "@/components/ErrorBoundary";
 import GlobalErrorHandler from "@/components/GlobalErrorHandler";
 import AuthInitializer from "@/components/AuthInitializer";
+import { DesktopUIProvider } from "@/components/DesktopUIProvider";
 import { Suspense } from "react";
 
 const libreBaskerville = Libre_Baskerville({
@@ -47,10 +48,12 @@ export default async function RootLayout({
         <NextIntlClientProvider messages={messages}>
           <ErrorBoundary>
             <AuthProvider>
-              <Suspense fallback={null}>
-                <AuthInitializer />
-              </Suspense>
-              {children}
+              <DesktopUIProvider>
+                <Suspense fallback={null}>
+                  <AuthInitializer />
+                </Suspense>
+                {children}
+              </DesktopUIProvider>
               <GoogleOneTap />
               <GlobalErrorHandler />
             </AuthProvider>
