@@ -28,7 +28,10 @@ export const metadata: Metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description: siteConfig.description,
   icons: {
-    icon: "/toolio_icon.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/toolio_icon_circle.png", type: "image/png" },
+    ],
   },
 };
 
