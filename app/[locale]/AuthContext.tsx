@@ -191,6 +191,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserName(displayName)
       setUserInitial(displayName.charAt(0).toUpperCase())
 
+      // クライアント側でも認証確定 → サーバーストリームより速い場合はここでスケルトン解除
+      setIsAuthInitialized(true)
+
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
@@ -250,6 +253,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         loaded = false
         setIsLoggedIn(false)
+        setIsAuthInitialized(true)
         setFavIds([])
         setFavIdsLoaded(true)
         setDlIds([])
