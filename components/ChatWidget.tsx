@@ -589,7 +589,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                     );
                   }
                   const isLastUserMsg = m.role === "user" && messages.slice(i + 1).every(n => n.role !== "user");
-                  const isRead = isLastUserMsg && !!staffLastReadAt;
+                  const msgCreatedAt = (m as Message & { created_at?: string }).created_at;
+                  const isRead = isLastUserMsg && !!staffLastReadAt && !!msgCreatedAt
+                    && new Date(msgCreatedAt).getTime() <= new Date(staffLastReadAt).getTime();
                   return (
                     <div key={i}>
                       <Bubble role={m.role}>{m.content}</Bubble>
