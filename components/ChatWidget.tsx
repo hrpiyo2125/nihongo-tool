@@ -242,7 +242,8 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         return;
       }
       const json = await res.json();
-      const { status, messages: data } = json;
+      const { status, messages: data, staffLastReadAt: readAt } = json;
+      if (readAt) setStaffLastReadAt(readAt);
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
         deleteCookie();
@@ -588,9 +589,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                     );
                   }
                   const isLastUserMsg = m.role === "user" && messages.slice(i + 1).every(n => n.role !== "user");
-                  const isRead = isLastUserMsg && staffLastReadAt && (m as Message & { created_at?: string }).created_at
-                    ? new Date((m as Message & { created_at?: string }).created_at!).getTime() <= new Date(staffLastReadAt).getTime()
-                    : false;
+                  const isRead = isLastUserMsg && !!staffLastReadAt;
                   return (
                     <div key={i}>
                       <Bubble role={m.role}>{m.content}</Bubble>
