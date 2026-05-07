@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 
 import { canDownload } from "../../lib/materialUtils";
@@ -33,10 +33,58 @@ type Material = {
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const THUMB_BASE = `${SUPABASE_URL}/storage/v1/object/public/thumbnails`;
 
+function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src: string; onClose: () => void; onPrev?: () => void; onNext?: () => void; hasPrev?: boolean; hasNext?: boolean }) {
+  const [scale, setScale] = useState(1);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const clampOffset = (s: number, ox: number, oy: number) => {
+    const maxX = Math.max(0, (s - 1) * 200);
+    const maxY = Math.max(0, (s - 1) * 300);
+    return { x: Math.max(-maxX, Math.min(maxX, ox)), y: Math.max(-maxY, Math.min(maxY, oy)) };
+  };
+
+  const zoom = (delta: number) => {
+    setScale(prev => {
+      const next = Math.max(1, Math.min(5, prev + delta));
+      if (next === 1) setOffset({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const onWheel = (e: React.WheelEvent) => { e.preventDefault(); zoom(-e.deltaY * 0.002); };
+  const onMouseDown = (e: React.MouseEvent) => { if (scale === 1) return; setDragging(true); dragStart.current = { mx: e.clientX, my: e.clientY, ox: offset.x, oy: offset.y }; };
+  const onMouseMove = (e: React.MouseEvent) => { if (!dragging || !dragStart.current) return; setOffset(clampOffset(scale, dragStart.current.ox + (e.clientX - dragStart.current.mx), dragStart.current.oy + (e.clientY - dragStart.current.my))); };
+  const onMouseUp = () => { setDragging(false); dragStart.current = null; };
+
+  const arrowBtn = (disabled: boolean): React.CSSProperties => ({ position: "absolute", top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.25 : 1, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" });
+
+  return (
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(200,190,220,0.45)" }}>
+      <div ref={containerRef} onClick={(e) => e.stopPropagation()} onWheel={onWheel} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} onMouseLeave={onMouseUp}
+        style={{ width: "min(480px, 66vw)", height: "min(88vh, 680px)", background: "rgba(232,228,240,0.94)", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden", position: "relative", touchAction: "none", cursor: scale > 1 ? (dragging ? "grabbing" : "grab") : "default", boxShadow: "0 8px 40px rgba(0,0,0,0.22)" }}
+      >
+        <img src={src} alt="" draggable={false} style={{ maxWidth: "68%", maxHeight: "calc(100% - 64px)", borderRadius: 4, boxShadow: "0 4px 24px rgba(0,0,0,0.4)", transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`, transformOrigin: "center", transition: dragging ? "none" : "transform 0.15s ease", userSelect: "none", pointerEvents: "none" }} />
+        <button onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ position: "absolute", top: 12, right: 12, width: 30, height: 30, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)", color: "#555" }}>✕</button>
+        {onPrev && <button onClick={(e) => { e.stopPropagation(); onPrev(); }} disabled={!hasPrev} style={{ ...arrowBtn(!hasPrev), left: 10 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg></button>}
+        {onNext && <button onClick={(e) => { e.stopPropagation(); onNext(); }} disabled={!hasNext} style={{ ...arrowBtn(!hasNext), right: 10 }}><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg></button>}
+        <div onClick={(e) => e.stopPropagation()} style={{ position: "absolute", bottom: 12, left: "50%", transform: "translateX(-50%)", display: "flex", gap: 8, alignItems: "center" }}>
+          <button onClick={() => zoom(-0.5)} disabled={scale <= 1} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", color: "#555", fontSize: 18, cursor: scale > 1 ? "pointer" : "default", opacity: scale <= 1 ? 0.35 : 1, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>−</button>
+          <button onClick={() => { setScale(1); setOffset({ x: 0, y: 0 }); }} style={{ fontSize: 11, color: "#555", background: "none", border: "none", cursor: "pointer", minWidth: 40, textAlign: "center" }}>{Math.round(scale * 100)}%</button>
+          <button onClick={() => zoom(0.5)} disabled={scale >= 5} style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", color: "#555", fontSize: 18, cursor: scale < 5 ? "pointer" : "default", opacity: scale >= 5 ? 0.35 : 1, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>＋</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PdfPreview({ matId }: { matId: string }) {
   const [selected, setSelected] = useState(0);
   const [mainReady, setMainReady] = useState(false);
   const [visibleCount, setVisibleCount] = useState(1);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
   const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
@@ -55,32 +103,44 @@ function PdfPreview({ matId }: { matId: string }) {
   }, [matId]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0 }}>
-      <div style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative" }}>
-        <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
-        <img
-          src={urls[selected]}
-          alt=""
-          onLoad={() => setMainReady(true)}
-          style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }}
-        />
-      </div>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72, position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 8, justifyContent: "center", opacity: visibleCount > 1 ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
-          {[0, 1, 2].map(i => (
-            <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0, position: "relative" }}>
+        <div onClick={() => mainReady && setLightboxSrc(urls[selected])} style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
+          <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
+          <img src={urls[selected]} alt="" onLoad={() => setMainReady(true)} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
+          {mainReady && <div style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "3px 7px", fontSize: 11, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 4 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>拡大</div>}
+          {selected > 0 && (
+            <button onClick={(e) => { e.stopPropagation(); setSelected(i => i - 1); setMainReady(false); }} style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+          )}
+          {selected < visibleCount - 1 && (
+            <button onClick={(e) => { e.stopPropagation(); setSelected(i => i + 1); setMainReady(false); }} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", flexShrink: 0, height: 72, position: "relative" }}>
+          <div style={{ position: "absolute", inset: 0, display: "flex", gap: 8, justifyContent: "center", opacity: visibleCount > 1 ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ width: 52, height: 72, borderRadius: 6, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
+            ))}
+          </div>
+          {urls.slice(0, visibleCount).map((url, i) => (
+            <div key={i} onClick={() => { setSelected(i); setMainReady(false); }} style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}>
+              <img src={url} alt="" style={{ width: "100%", height: "auto", display: "block", }} />
+            </div>
           ))}
         </div>
-        {urls.slice(0, visibleCount).map((url, i) => (
-          <div
-            key={i}
-            onClick={() => { setSelected(i); setMainReady(false); }}
-            style={{ width: 52, cursor: "pointer", borderRadius: 6, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", boxShadow: selected === i ? "0 0 0 2px rgba(155,110,212,0.25)" : "none", background: "#fff", flexShrink: 0 }}
-          >
-            <img src={url} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
-          </div>
-        ))}
-      </div>
+      {lightboxSrc && (
+        <ImageLightbox
+          src={lightboxSrc}
+          onClose={() => setLightboxSrc(null)}
+          hasPrev={selected > 0}
+          hasNext={selected < visibleCount - 1}
+          onPrev={() => { setSelected(i => i - 1); setLightboxSrc(urls[selected - 1]); }}
+          onNext={() => { setSelected(i => i + 1); setLightboxSrc(urls[selected + 1]); }}
+        />
+      )}
     </div>
   );
 }
@@ -112,7 +172,7 @@ type Props = {
 export default function TeaserModal({
   mat, tag, tagBg, tagColor,
   isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
-  contentTabs, methodTabs, locale, tmm,
+  contentTabs, methodTabs, locale: _locale, tmm,
   onClose, onFavChange, onOpenAuth,
 }: Props) {
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
