@@ -31,9 +31,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
-  experimental: {
-    ppr: 'incremental',
-  },
   images: {
     unoptimized: true,
   },

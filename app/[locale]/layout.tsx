@@ -23,8 +23,6 @@ const libreBaskerville = Libre_Baskerville({
   display: "swap",
 });
 
-export const experimental_ppr = true;
-
 export const metadata: Metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description: siteConfig.description,
