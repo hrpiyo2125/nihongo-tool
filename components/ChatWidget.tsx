@@ -585,6 +585,20 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                   )
                 )}
 
+                {loading && (
+                  <>
+                    <style>{`
+                      @keyframes toolio-dot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+                    `}</style>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 16, background: "#f5f0ff", alignSelf: "flex-start", maxWidth: "80%" }}>
+                      {phase === "live" && <span style={{ fontSize: 11, color: "#7a50b0", marginRight: 2 }}>担当者が返信しています</span>}
+                      {[0, 1, 2].map(i => (
+                        <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#9b6ed4", display: "inline-block", animation: `toolio-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                      ))}
+                    </div>
+                  </>
+                )}
+
                 {phase === "ai" && aiReplied && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
