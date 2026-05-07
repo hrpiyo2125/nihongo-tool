@@ -594,7 +594,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
 
                 {(() => {
                   const isStaffTyping = phase === "live" && staffTypingAt
-                    ? (Date.now() - new Date(staffTypingAt).getTime()) < 6000
+                    ? (Date.now() - new Date(staffTypingAt).getTime()) < 3000
                     : false;
                   const showDots = loading || isStaffTyping;
                   return showDots ? (
