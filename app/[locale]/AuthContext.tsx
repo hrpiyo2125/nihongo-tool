@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '../../lib/supabase'
 import { useLocale } from 'next-intl'
 
@@ -25,6 +25,7 @@ type Profile = {
 type AuthContextType = {
   isLoggedIn: boolean
   isAuthLoading: boolean
+  isAuthInitialized: boolean
   userId: string
   userEmail: string
   userName: string
@@ -42,6 +43,7 @@ type AuthContextType = {
   setUserName: React.Dispatch<React.SetStateAction<string>>
   setUserInitial: React.Dispatch<React.SetStateAction<string>>
   setAvatarUrl: React.Dispatch<React.SetStateAction<string | null>>
+  initializeAuth: (user: { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null, profile: any) => void
 }
 
 const defaultProfile: Profile = {
@@ -54,6 +56,7 @@ const defaultProfile: Profile = {
 const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   isAuthLoading: true,
+  isAuthInitialized: false,
   userId: '',
   userEmail: '',
   userName: 'ゲスト',
@@ -71,25 +74,13 @@ const AuthContext = createContext<AuthContextType>({
   setUserName: () => {},
   setUserInitial: () => {},
   setAvatarUrl: () => {},
+  initializeAuth: () => {},
 })
 
-type InitialUser = { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null
-type InitialUserData = { favIds: string[]; dlIds: string[]; purchasedIds: string[] } | null
-
-export function AuthProvider({
-  children,
-  initialUser = null,
-  initialProfile = null,
-  initialUserData = null,
-}: {
-  children: React.ReactNode
-  initialUser?: InitialUser
-  initialProfile?: any
-  initialUserData?: InitialUserData
-}) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const locale = useLocale()
 
-  const buildInitialProfile = (data: any): Profile => ({
+  const buildProfile = (data: any): Profile => ({
     full_name: data?.full_name || '', country: data?.country || '',
     city: data?.city || '', purpose: data?.purpose || [],
     occupation: data?.occupation || '', student_level: data?.student_level || '',
@@ -103,25 +94,41 @@ export function AuthProvider({
     has_password: data?.has_password ?? false,
   })
 
-  const getInitialDisplayName = () => {
-    if (initialProfile?.full_name) return initialProfile.full_name
-    if (initialUser?.user_metadata?.full_name) return initialUser.user_metadata.full_name
-    return initialUser?.email?.split('@')[0] || 'ゲスト'
-  }
+  const [isAuthInitialized, setIsAuthInitialized] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userId, setUserId] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+  const [authProviders, setAuthProviders] = useState<string[]>([])
+  const [userName, setUserName] = useState('ゲスト')
+  const [userInitial, setUserInitial] = useState('？')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [profile, setProfile] = useState<Profile>(defaultProfile)
+  const [favIds, setFavIds] = useState<string[]>([])
+  const [favIdsLoaded, setFavIdsLoaded] = useState(false)
+  const [dlIds, setDlIds] = useState<string[]>([])
+  const [purchasedIds, setPurchasedIds] = useState<string[]>([])
 
-  const [isLoggedIn, setIsLoggedIn] = useState(!!initialUser)
-  const [userId, setUserId] = useState(initialUser?.id ?? '')
-  const [userEmail, setUserEmail] = useState(initialUser?.email ?? '')
-  const [authProviders, setAuthProviders] = useState<string[]>(initialUser?.identities?.map(i => i.provider) ?? [])
-  const initDisplayName = getInitialDisplayName()
-  const [userName, setUserName] = useState(initDisplayName)
-  const [userInitial, setUserInitial] = useState(initDisplayName.charAt(0).toUpperCase() || '？')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialProfile?.avatar_url ?? null)
-  const [profile, setProfile] = useState<Profile>(initialProfile ? buildInitialProfile(initialProfile) : defaultProfile)
-  const [favIds, setFavIds] = useState<string[]>(initialUserData?.favIds ?? [])
-  const [favIdsLoaded, setFavIdsLoaded] = useState(!!(initialUser && initialUserData))
-  const [dlIds, setDlIds] = useState<string[]>(initialUserData?.dlIds ?? [])
-  const [purchasedIds, setPurchasedIds] = useState<string[]>(initialUserData?.purchasedIds ?? [])
+  // サーバーストリームからの初期化済みフラグ（クライアントフェッチの重複を防ぐ）
+  const serverInitializedRef = useRef(false)
+
+  const initializeAuth = useCallback((
+    user: { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null,
+    profileData: any
+  ) => {
+    serverInitializedRef.current = true
+    if (user) {
+      setIsLoggedIn(true)
+      setUserId(user.id)
+      setUserEmail(user.email)
+      setAuthProviders(user.identities?.map(i => i.provider) ?? [])
+      const name = profileData?.full_name || user.user_metadata?.full_name || user.email.split('@')[0] || 'ゲスト'
+      setUserName(name)
+      setUserInitial(name.charAt(0).toUpperCase() || '？')
+      setAvatarUrl(profileData?.avatar_url ?? null)
+      if (profileData) setProfile(buildProfile(profileData))
+    }
+    setIsAuthInitialized(true)
+  }, [])
 
   const applyProfile = useCallback((data: any) => {
     setProfile({
@@ -171,7 +178,7 @@ export function AuthProvider({
 
   useEffect(() => {
     const supabase = createClient()
-    let loaded = !!initialUser  // サーバーデータがあれば初回ロードをスキップ
+    let loaded = false
 
     const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any>; identities?: { provider: string }[] }, accessToken?: string) => {
       if (loaded) return
@@ -187,12 +194,14 @@ export function AuthProvider({
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
+        // サーバーストリームでプロフィール取得済みの場合はuser-dataのみ取得
+        const fetchProfile = !serverInitializedRef.current
         const [profileRes, userDataRes] = await Promise.all([
-          fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetchProfile ? fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }) : Promise.resolve(null),
           fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
         ])
 
-        if (profileRes.ok) {
+        if (profileRes?.ok) {
           const data = await profileRes.json()
           if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
           applyProfile(data)
@@ -255,40 +264,21 @@ export function AuthProvider({
       }
     })
 
-    if (!initialUser) {
-      // SSRデータなし → クライアントで全取得
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) loadUserData(session.user, session.access_token)
-        else setFavIdsLoaded(true)
-      })
-    } else if (!initialUserData) {
-      // SSRでプロフィールまで取得済み → favs/dl/purchasesだけクライアントで取得
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!session?.access_token) { setFavIdsLoaded(true); return }
-        fetch('/api/user-data', { headers: { Authorization: `Bearer ${session.access_token}` } })
-          .then(r => r.ok ? r.json() : null)
-          .then(data => {
-            if (data) {
-              setFavIds(data.favIds ?? [])
-              setDlIds([...new Set((data.dlIds ?? []) as string[])])
-              setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
-            }
-          })
-          .catch(() => {})
-          .finally(() => setFavIdsLoaded(true))
-      })
-    }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) loadUserData(session.user, session.access_token)
+      else setFavIdsLoaded(true)
+    })
 
     return () => subscription.unsubscribe()
   }, [locale, applyProfile])
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn, isAuthLoading: !favIdsLoaded,
+      isLoggedIn, isAuthLoading: !favIdsLoaded, isAuthInitialized,
       userId, userEmail, userName, userInitial, avatarUrl,
       profile, favIds, favIdsLoaded, dlIds, purchasedIds,
       authProviders,
-      loadProfile, updateProfile,
+      loadProfile, updateProfile, initializeAuth,
       setFavIds, setUserName, setUserInitial, setAvatarUrl,
     }}>
       {children}

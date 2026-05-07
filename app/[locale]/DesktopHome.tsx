@@ -140,7 +140,7 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     { label: locale === "ja" ? "もっと見る" : "More", char: "›", color: "#f8f4ff", isMore: true, methodId: "all" },
   ];
 
-  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
+  const { isLoggedIn, isAuthInitialized, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
     favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
     purchasedIds, loadProfile,
     setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
@@ -291,12 +291,17 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
               <UserMenuPopup userIconRef={userIconRef} userInitial={userInitial} avatarUrl={avatarUrl} userName={userName} onClose={() => setUserMenuOpen(false)} onNavigate={(page) => { setUserMenuOpen(false); setActivePage(page); }} onRouterPush={(href) => { setUserMenuOpen(false); router.push(href); }} onLogout={async () => { setUserMenuOpen(false); await createClient().auth.signOut(); window.location.reload(); }} sbOpen={sbOpen} userPlan={profile.plan ?? "free"} cancelAtPeriodEnd={profile.cancel_at_period_end ?? false} currentPeriodEnd={profile.current_period_end ?? null} tm={tm} />
             </>
           )}
-          <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { setGuestMenuOpen(!guestMenuOpen); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
-            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
-              {avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial}
+          <div ref={userIconRef} onClick={() => { if (!isAuthInitialized) return; if (!isLoggedIn) { setGuestMenuOpen(!guestMenuOpen); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: isAuthInitialized ? "pointer" : "default", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: isAuthInitialized ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "rgba(200,180,220,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, color: "white", flexShrink: 0, overflow: "hidden" }}>
+              {isAuthInitialized && (avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : userInitial)}
             </div>
-            {sbOpen && <div style={{ flex: 1 }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? (<>{profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}{profile.cancel_at_period_end && profile.current_period_end && <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>{new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能</span>}</>) : "未登録"}</div></div>}
-            {sbOpen && isLoggedIn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>}
+            {sbOpen && <div style={{ flex: 1 }}>
+              {isAuthInitialized
+                ? (<><div style={{ fontSize: 13, fontWeight: 700, color: "#555", whiteSpace: "nowrap" }}>{isLoggedIn ? userName : "ゲスト"}</div><div style={{ fontSize: 11, color: "#999" }}>{isLoggedIn ? (<>{profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}{profile.cancel_at_period_end && profile.current_period_end && <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>{new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能</span>}</>) : "未登録"}</div></>)
+                : (<><div style={{ height: 12, borderRadius: 4, background: "rgba(200,180,220,0.25)", width: 80, marginBottom: 4 }} /><div style={{ height: 10, borderRadius: 4, background: "rgba(200,180,220,0.18)", width: 50 }} /></>)
+              }
+            </div>}
+            {sbOpen && isAuthInitialized && isLoggedIn && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2"><path d="M18 15l-6-6-6 6" /></svg>}
           </div>
           <div style={{ display: "flex", justifyContent: sbOpen ? "stretch" : "center", marginTop: 4 }}>
             <button onClick={switchLanguage} style={{ fontSize: sbOpen ? 11 : 14, padding: sbOpen ? "5px 10px" : "5px 6px", width: sbOpen ? "100%" : "auto", border: "0.5px solid rgba(255,255,255,0.8)", borderRadius: 8, background: "rgba(255,255,255,0.4)", color: "#888", cursor: "pointer" }}>
@@ -329,7 +334,7 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
                 <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
-              {!isLoggedIn && (
+              {isAuthInitialized && !isLoggedIn && (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成 →</div>
                   <div style={{ display: "flex", gap: 8 }}>
