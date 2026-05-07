@@ -60,21 +60,11 @@ export default async function RootLayout({
         process.env.SUPABASE_SERVICE_ROLE_KEY!
       );
 
-      const [profileRes, favRes, dlRes, purchaseRes] = await Promise.all([
-        service.from('profiles').select('*').eq('id', user.id).single(),
-        service.from('favorites').select('material_id').eq('user_id', user.id),
-        service.from('download_history').select('material_id').eq('user_id', user.id),
-        service.from('purchases').select('material_id').eq('user_id', user.id),
-      ]);
+      const profileRes = await service.from('profiles').select('*').eq('id', user.id).single();
 
       if (profileRes.data && profileRes.data.status !== 'deleted') {
         initialProfile = profileRes.data;
       }
-      initialUserData = {
-        favIds: favRes.data?.map((d: { material_id: string }) => d.material_id) ?? [],
-        dlIds: dlRes.data?.map((d: { material_id: string }) => d.material_id) ?? [],
-        purchasedIds: purchaseRes.data?.map((d: { material_id: string }) => d.material_id) ?? [],
-      };
     }
   } catch {
     // サーバー取得失敗時はクライアントサイドにフォールバック

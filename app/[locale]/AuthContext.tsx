@@ -119,7 +119,7 @@ export function AuthProvider({
   const [avatarUrl, setAvatarUrl] = useState<string | null>(initialProfile?.avatar_url ?? null)
   const [profile, setProfile] = useState<Profile>(initialProfile ? buildInitialProfile(initialProfile) : defaultProfile)
   const [favIds, setFavIds] = useState<string[]>(initialUserData?.favIds ?? [])
-  const [favIdsLoaded, setFavIdsLoaded] = useState(!!initialUser)
+  const [favIdsLoaded, setFavIdsLoaded] = useState(!!(initialUser && initialUserData))
   const [dlIds, setDlIds] = useState<string[]>(initialUserData?.dlIds ?? [])
   const [purchasedIds, setPurchasedIds] = useState<string[]>(initialUserData?.purchasedIds ?? [])
 
@@ -255,11 +255,27 @@ export function AuthProvider({
       }
     })
 
-    // サーバーデータがない場合のみクライアントサイドで取得
     if (!initialUser) {
+      // SSRデータなし → クライアントで全取得
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) loadUserData(session.user, session.access_token)
         else setFavIdsLoaded(true)
+      })
+    } else if (!initialUserData) {
+      // SSRでプロフィールまで取得済み → favs/dl/purchasesだけクライアントで取得
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (!session?.access_token) { setFavIdsLoaded(true); return }
+        fetch('/api/user-data', { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (data) {
+              setFavIds(data.favIds ?? [])
+              setDlIds([...new Set((data.dlIds ?? []) as string[])])
+              setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+            }
+          })
+          .catch(() => {})
+          .finally(() => setFavIdsLoaded(true))
       })
     }
 
