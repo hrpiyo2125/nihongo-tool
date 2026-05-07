@@ -105,6 +105,8 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const isMobile = useIsMobile();
   const [aiReplied, setAiReplied] = useState(false);
   const [fromFreeText, setFromFreeText] = useState(false);
+  const [staffTypingAt, setStaffTypingAt] = useState<string | null>(null);
+  const [staffLastReadAt, setStaffLastReadAt] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sessionIdRef = useRef<string | null>(null);
@@ -183,7 +185,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
         if (!res.ok) return;
         const json = await res.json();
-        const { status, messages: fetched } = json as { status: string; messages: Message[] };
+        const { status, messages: fetched, staffTypingAt: typingAt, staffLastReadAt: readAt } = json as { status: string; messages: Message[]; staffTypingAt?: string; staffLastReadAt?: string };
+        if (typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
+        if (readAt !== undefined) setStaffLastReadAt(readAt ?? null);
 
         const newStaff = (fetched as Message[]).filter(
           (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
@@ -573,31 +577,51 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
               <>
                 <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
 
-                {messages.map((m, i) =>
-                  m.role === "separator" ? (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
-                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
-                      <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>{m.content === "新しい会話" ? <IconSparkle size={11} color="#9b6ed4" /> : <IconUser size={11} color="#9b6ed4" />} {m.content}</span>
-                      <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
+                {messages.map((m, i) => {
+                  if (m.role === "separator") {
+                    return (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
+                        <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
+                        <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>{m.content === "新しい会話" ? <IconSparkle size={11} color="#9b6ed4" /> : <IconUser size={11} color="#9b6ed4" />} {m.content}</span>
+                        <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
+                      </div>
+                    );
+                  }
+                  const isLastUserMsg = m.role === "user" && messages.slice(i + 1).every(n => n.role !== "user");
+                  const isRead = isLastUserMsg && staffLastReadAt && (m as Message & { created_at?: string }).created_at
+                    ? new Date((m as Message & { created_at?: string }).created_at!).getTime() <= new Date(staffLastReadAt).getTime()
+                    : false;
+                  return (
+                    <div key={i}>
+                      <Bubble role={m.role}>{m.content}</Bubble>
+                      {isRead && (
+                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
+                          <span style={{ fontSize: 10, color: "#9b6ed4" }}>既読</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <Bubble key={i} role={m.role}>{m.content}</Bubble>
-                  )
-                )}
+                  );
+                })}
 
-                {loading && (
-                  <>
-                    <style>{`
-                      @keyframes toolio-dot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
-                    `}</style>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 16, background: "#f5f0ff", alignSelf: "flex-start", maxWidth: "80%" }}>
-                      {phase === "live" && <span style={{ fontSize: 11, color: "#7a50b0", marginRight: 2 }}>担当者が返信しています</span>}
-                      {[0, 1, 2].map(i => (
-                        <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#9b6ed4", display: "inline-block", animation: `toolio-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
-                      ))}
-                    </div>
-                  </>
-                )}
+                {(() => {
+                  const isStaffTyping = phase === "live" && staffTypingAt
+                    ? (Date.now() - new Date(staffTypingAt).getTime()) < 6000
+                    : false;
+                  const showDots = loading || isStaffTyping;
+                  return showDots ? (
+                    <>
+                      <style>{`
+                        @keyframes toolio-dot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+                      `}</style>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 16, background: "#f5f0ff", alignSelf: "flex-start", maxWidth: "80%" }}>
+                        {(phase === "live" || isStaffTyping) && <span style={{ fontSize: 11, color: "#7a50b0", marginRight: 2 }}>担当者が入力しています</span>}
+                        {[0, 1, 2].map(i => (
+                          <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#9b6ed4", display: "inline-block", animation: `toolio-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
+                        ))}
+                      </div>
+                    </>
+                  ) : null;
+                })()}
 
                 {phase === "ai" && aiReplied && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
