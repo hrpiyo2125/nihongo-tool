@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
 
   const { data: sess } = await supabase
     .from("chat_sessions")
-    .select("id, status, user_id, user_email, staff_typing_at, staff_last_read_at")
+    .select("id, status, user_id, user_email, staff_typing_at")
     .eq("id", sessionId)
     .single();
 
@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
       status: sess.status,
       messages: messages ?? [],
       staffTypingAt: sess.staff_typing_at,
-      staffLastReadAt: sess.staff_last_read_at,
     },
     { headers: { "Cache-Control": "no-store" } }
   );

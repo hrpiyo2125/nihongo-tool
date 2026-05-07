@@ -106,7 +106,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const [aiReplied, setAiReplied] = useState(false);
   const [fromFreeText, setFromFreeText] = useState(false);
   const [staffTypingAt, setStaffTypingAt] = useState<string | null>(null);
-  const [staffLastReadAt, setStaffLastReadAt] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const sessionIdRef = useRef<string | null>(null);
@@ -185,9 +184,8 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         const res = await fetch(`/api/chat/session?sessionId=${sessionId}`);
         if (!res.ok) return;
         const json = await res.json();
-        const { status, messages: fetched, staffTypingAt: typingAt, staffLastReadAt: readAt } = json as { status: string; messages: Message[]; staffTypingAt?: string; staffLastReadAt?: string };
+        const { status, messages: fetched, staffTypingAt: typingAt } = json as { status: string; messages: Message[]; staffTypingAt?: string };
         if (typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
-        if (readAt !== undefined) setStaffLastReadAt(readAt ?? null);
 
         const newStaff = (fetched as Message[]).filter(
           (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
@@ -242,8 +240,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         return;
       }
       const json = await res.json();
-      const { status, messages: data, staffLastReadAt: readAt } = json;
-      if (readAt) setStaffLastReadAt(readAt);
+      const { status, messages: data } = json;
       // メッセージなし → トピック選択
       if (!data || data.length === 0) {
         deleteCookie();
@@ -588,18 +585,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                       </div>
                     );
                   }
-                  const isLastUserMsg = m.role === "user" && messages.slice(i + 1).every(n => n.role !== "user");
-                  const msgCreatedAt = (m as Message & { created_at?: string }).created_at;
-                  const isRead = isLastUserMsg && !!staffLastReadAt && !!msgCreatedAt
-                    && new Date(msgCreatedAt).getTime() <= new Date(staffLastReadAt).getTime();
                   return (
                     <div key={i}>
                       <Bubble role={m.role}>{m.content}</Bubble>
-                      {isRead && (
-                        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
-                          <span style={{ fontSize: 10, color: "#9b6ed4" }}>既読</span>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
