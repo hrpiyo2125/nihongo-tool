@@ -240,7 +240,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         loaded = false
         setIsLoggedIn(false)
-        setIsAuthInitialized(true)
+        // INITIAL_SESSIONでセッションなし＝真のゲストと確定した場合のみスケルトン解除
+        // SIGNED_OUTはログアウト後なので既にisAuthInitialized=trueのはず
+        if (event === 'INITIAL_SESSION') setIsAuthInitialized(true)
         setFavIds([])
         setFavIdsLoaded(true)
         setDlIds([])
