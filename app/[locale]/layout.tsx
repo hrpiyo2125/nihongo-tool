@@ -47,16 +47,16 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <ErrorBoundary>
-            <AuthProvider>
-              <DesktopUIProvider>
+            <DesktopUIProvider>
+              <AuthProvider>
                 <Suspense fallback={null}>
                   <AuthInitializer />
                 </Suspense>
                 {children}
-              </DesktopUIProvider>
-              <GoogleOneTap />
-              <GlobalErrorHandler />
-            </AuthProvider>
+                <GoogleOneTap />
+                <GlobalErrorHandler />
+              </AuthProvider>
+            </DesktopUIProvider>
           </ErrorBoundary>
           <ChatWidgetLoader />
           <DeployWatcher />
