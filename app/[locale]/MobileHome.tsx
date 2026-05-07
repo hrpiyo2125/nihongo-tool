@@ -94,7 +94,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
   const th  = useTranslations("home");
 
   // ─── Auth ────────────────────────────────────────────────
-  const { isLoggedIn, isAuthInitialized, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
+  const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
           favIds, favIdsLoaded, dlIds, purchasedIds, loadProfile,
           setFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? favIds.slice(0, 5) : favIds;
@@ -293,10 +293,10 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
         <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
         <div style={{ position: "relative" }}>
           <button
-            onClick={() => { if (!isAuthInitialized) return; isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v); }}
-            style={{ width: 36, height: 36, borderRadius: "50%", background: isAuthInitialized ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "rgba(200,180,220,0.25)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: isAuthInitialized ? "pointer" : "default", overflow: "hidden", padding: 0 }}
+            onClick={() => { isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v); }}
+            style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "white", cursor: "pointer", overflow: "hidden", padding: 0 }}
           >
-            {isAuthInitialized && (isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?")}
+            {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
           </button>
           {guestMenuOpen && (
             <>
@@ -333,7 +333,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
                 <button onClick={() => openMaterialsModal("all", "all")} style={{ fontSize: 12, padding: "14px 32px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
-              {isAuthInitialized && !isLoggedIn && (
+              {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
                   <div style={{ marginBottom: 12, textAlign: "center" }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成</div>

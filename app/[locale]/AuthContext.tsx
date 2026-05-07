@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { createClient } from '../../lib/supabase'
 import { useLocale } from 'next-intl'
 
@@ -25,7 +25,6 @@ type Profile = {
 type AuthContextType = {
   isLoggedIn: boolean
   isAuthLoading: boolean
-  isAuthInitialized: boolean
   userId: string
   userEmail: string
   userName: string
@@ -56,7 +55,6 @@ const defaultProfile: Profile = {
 const AuthContext = createContext<AuthContextType>({
   isLoggedIn: false,
   isAuthLoading: true,
-  isAuthInitialized: false,
   userId: '',
   userEmail: '',
   userName: 'ゲスト',
@@ -94,7 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     has_password: data?.has_password ?? false,
   })
 
-  const [isAuthInitialized, setIsAuthInitialized] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
@@ -108,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [dlIds, setDlIds] = useState<string[]>([])
   const [purchasedIds, setPurchasedIds] = useState<string[]>([])
 
+  // サーバーストリーム（AuthInitializer）からデータを受け取る
   const initializeAuth = useCallback((
     user: { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null,
     profileData: any
@@ -123,7 +121,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setAvatarUrl(profileData?.avatar_url ?? null)
       if (profileData) setProfile(buildProfile(profileData))
     }
-    setIsAuthInitialized(true)
   }, [])
 
   const applyProfile = useCallback((data: any) => {
@@ -149,7 +146,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (data.avatar_url) setAvatarUrl(data.avatar_url)
   }, [])
 
-  // partial update — keeps profile and avatarUrl in sync
   const updateProfile = useCallback((partial: Partial<Profile>) => {
     setProfile(prev => ({ ...prev, ...partial }))
     if (partial.avatar_url !== undefined) setAvatarUrl(partial.avatar_url ?? null)
@@ -190,9 +186,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
-        // プロフィールはAuthInitializerのサーバーストリームで取得済みのため不要
-        // user-data（favs/dl/purchases）のみ取得
-        const userDataRes = await fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } })
+        const [profileRes, userDataRes] = await Promise.all([
+          fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+          fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
+        ])
+
+        if (profileRes.ok) {
+          const data = await profileRes.json()
+          if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
+          applyProfile(data)
+        }
 
         if (userDataRes.ok) {
           const data = await userDataRes.json()
@@ -207,7 +210,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    // TOKEN_REFRESHED: プロファイル・ユーザーデータだけ再取得（プラン変更等を即反映）
     const refreshUserData = async (accessToken: string) => {
       try {
         const [profileRes, userDataRes] = await Promise.all([
@@ -237,9 +239,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
         loaded = false
         setIsLoggedIn(false)
-        // INITIAL_SESSIONでセッションなし＝真のゲストと確定した場合のみスケルトン解除
-        // SIGNED_OUTはログアウト後なので既にisAuthInitialized=trueのはず
-        if (event === 'INITIAL_SESSION') setIsAuthInitialized(true)
         setFavIds([])
         setFavIdsLoaded(true)
         setDlIds([])
@@ -259,15 +258,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else setFavIdsLoaded(true)
     })
 
-    // サーバーストリームが失敗した場合のフォールバック（3秒後に強制解除）
-    const fallbackTimer = setTimeout(() => setIsAuthInitialized(true), 3000)
-
-    return () => { subscription.unsubscribe(); clearTimeout(fallbackTimer) }
+    return () => subscription.unsubscribe()
   }, [locale, applyProfile])
 
   return (
     <AuthContext.Provider value={{
-      isLoggedIn, isAuthLoading: !favIdsLoaded, isAuthInitialized,
+      isLoggedIn, isAuthLoading: !favIdsLoaded,
       userId, userEmail, userName, userInitial, avatarUrl,
       profile, favIds, favIdsLoaded, dlIds, purchasedIds,
       authProviders,
