@@ -654,7 +654,7 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
         <AuthModal
           initialMode={authMode}
           onClose={() => setAuthMode(null)}
-          onLoggedIn={() => { setAuthMode(null); window.location.reload(); }}
+          onLoggedIn={() => { setAuthMode(null); }}
         />
       )}
 
