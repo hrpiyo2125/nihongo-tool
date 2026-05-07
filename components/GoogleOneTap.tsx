@@ -39,7 +39,11 @@ export default function GoogleOneTap() {
             provider: "google",
             token: response.credential,
           });
-          if (!error) window.location.reload();
+          if (error) {
+            console.error("[GoogleOneTap] signInWithIdToken error:", error);
+          } else {
+            window.location.reload();
+          }
         },
         cancel_on_tap_outside: false,
       });
