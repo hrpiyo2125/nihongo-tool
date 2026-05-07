@@ -24,6 +24,12 @@ const libreBaskerville = Libre_Baskerville({
   display: "swap",
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
 export const metadata: Metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description: siteConfig.description,
