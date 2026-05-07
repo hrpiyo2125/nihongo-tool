@@ -2,8 +2,8 @@
 import Link from "next/link";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
-import { useState, useEffect, useRef, Suspense } from "react";
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef } from "react";
+import { useRouter, usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import TeaserModal from "./TeaserModal";
 import AnnouncementModal from "./AnnouncementModal";
@@ -46,8 +46,6 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
   const tm = useTranslations('mypage');
   const tmm = useTranslations('materials_modal');
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
 
@@ -163,14 +161,12 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
   // URLパラメータからフィルターを読み込んでモーダルを自動オープン
-  const urlInitDoneRef = useRef(false);
   useEffect(() => {
-    if (urlInitDoneRef.current) return;
-    urlInitDoneRef.current = true;
-    const content = searchParams.get("content");
-    const method = searchParams.get("method");
+    const params = new URLSearchParams(window.location.search);
+    const content = params.get("content");
+    const method = params.get("method");
     if (content || method) setModal({ content: content ?? "all", method: method ?? "all" });
-  }, [searchParams]);
+  }, []);
 
   useEffect(() => {
     fetch("/api/announcements").then(r => r.json()).then(d => setAnnouncements(Array.isArray(d) ? d : []));
@@ -423,9 +419,5 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
 }
 
 export default function DesktopHome({ materials }: { materials: unknown[] }) {
-  return (
-    <Suspense>
-      <DesktopHomeInner materials={materials as Material[]} />
-    </Suspense>
-  );
+  return <DesktopHomeInner materials={materials as Material[]} />;
 }
