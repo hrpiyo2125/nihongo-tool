@@ -144,8 +144,11 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     purchasedIds, loadProfile,
     setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
-  const { sbOpen, setSbOpen, activePage, setActivePage } = useDesktopUI();
-  if (typeof window !== 'undefined') console.log('[DesktopHomeInner] render activePage=', activePage, 'isLoggedIn=', isLoggedIn);
+  const { sbOpen, setSbOpen, activePage, setActivePage: _setActivePage } = useDesktopUI();
+  const setActivePage = (page: string) => {
+    console.log('[setActivePage]', page, new Error().stack);
+    _setActivePage(page);
+  };
   const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
