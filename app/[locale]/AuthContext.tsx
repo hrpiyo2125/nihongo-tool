@@ -73,20 +73,55 @@ const AuthContext = createContext<AuthContextType>({
   setAvatarUrl: () => {},
 })
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+type InitialUser = { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null
+type InitialUserData = { favIds: string[]; dlIds: string[]; purchasedIds: string[] } | null
+
+export function AuthProvider({
+  children,
+  initialUser = null,
+  initialProfile = null,
+  initialUserData = null,
+}: {
+  children: React.ReactNode
+  initialUser?: InitialUser
+  initialProfile?: any
+  initialUserData?: InitialUserData
+}) {
   const locale = useLocale()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userId, setUserId] = useState('')
-  const [userEmail, setUserEmail] = useState('')
-  const [authProviders, setAuthProviders] = useState<string[]>([])
-  const [userName, setUserName] = useState('ゲスト')
-  const [userInitial, setUserInitial] = useState('？')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [profile, setProfile] = useState<Profile>(defaultProfile)
-  const [favIds, setFavIds] = useState<string[]>([])
-  const [favIdsLoaded, setFavIdsLoaded] = useState(false)
-  const [dlIds, setDlIds] = useState<string[]>([])
-  const [purchasedIds, setPurchasedIds] = useState<string[]>([])
+
+  const buildInitialProfile = (data: any): Profile => ({
+    full_name: data?.full_name || '', country: data?.country || '',
+    city: data?.city || '', purpose: data?.purpose || [],
+    occupation: data?.occupation || '', student_level: data?.student_level || '',
+    occupation_other: data?.occupation_other || '', purpose_other: data?.purpose_other || '',
+    plan: data?.plan || 'free', plan_status: data?.plan_status || 'active',
+    cancel_at_period_end: data?.cancel_at_period_end ?? false,
+    current_period_end: data?.current_period_end || null,
+    trial_end: data?.trial_end || null,
+    status: data?.status || 'active',
+    avatar_url: data?.avatar_url ?? null,
+    has_password: data?.has_password ?? false,
+  })
+
+  const getInitialDisplayName = () => {
+    if (initialProfile?.full_name) return initialProfile.full_name
+    if (initialUser?.user_metadata?.full_name) return initialUser.user_metadata.full_name
+    return initialUser?.email?.split('@')[0] || 'ゲスト'
+  }
+
+  const [isLoggedIn, setIsLoggedIn] = useState(!!initialUser)
+  const [userId, setUserId] = useState(initialUser?.id ?? '')
+  const [userEmail, setUserEmail] = useState(initialUser?.email ?? '')
+  const [authProviders, setAuthProviders] = useState<string[]>(initialUser?.identities?.map(i => i.provider) ?? [])
+  const initDisplayName = getInitialDisplayName()
+  const [userName, setUserName] = useState(initDisplayName)
+  const [userInitial, setUserInitial] = useState(initDisplayName.charAt(0).toUpperCase() || '？')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(initialProfile?.avatar_url ?? null)
+  const [profile, setProfile] = useState<Profile>(initialProfile ? buildInitialProfile(initialProfile) : defaultProfile)
+  const [favIds, setFavIds] = useState<string[]>(initialUserData?.favIds ?? [])
+  const [favIdsLoaded, setFavIdsLoaded] = useState(!!initialUser)
+  const [dlIds, setDlIds] = useState<string[]>(initialUserData?.dlIds ?? [])
+  const [purchasedIds, setPurchasedIds] = useState<string[]>(initialUserData?.purchasedIds ?? [])
 
   const applyProfile = useCallback((data: any) => {
     setProfile({
@@ -136,7 +171,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const supabase = createClient()
-    let loaded = false
+    let loaded = !!initialUser  // サーバーデータがあれば初回ロードをスキップ
 
     const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any>; identities?: { provider: string }[] }, accessToken?: string) => {
       if (loaded) return
@@ -220,10 +255,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) loadUserData(session.user, session.access_token)
-      else setFavIdsLoaded(true)
-    })
+    // サーバーデータがない場合のみクライアントサイドで取得
+    if (!initialUser) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) loadUserData(session.user, session.access_token)
+        else setFavIdsLoaded(true)
+      })
+    }
 
     return () => subscription.unsubscribe()
   }, [locale, applyProfile])
