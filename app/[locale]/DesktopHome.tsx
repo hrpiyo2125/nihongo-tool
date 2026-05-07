@@ -39,7 +39,7 @@ type NavItem = {
 
 const ACTIVE_COLOR = "#7a50b0";
 
-function DesktopHomeInner({ materials }: { materials: Material[] }) {
+function DesktopHomeInner({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('nav');
@@ -160,8 +160,12 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
   const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
-  // URLパラメータからフィルターを読み込んでモーダルを自動オープン
+  // URLパラメータまたはpropsからフィルターを読み込んでモーダルを自動オープン
   useEffect(() => {
+    if (initialContent || initialMethod) {
+      setModal({ content: initialContent ?? "all", method: initialMethod ?? "all" });
+      return;
+    }
     const params = new URLSearchParams(window.location.search);
     const content = params.get("content");
     const method = params.get("method");
@@ -418,6 +422,6 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
   );
 }
 
-export default function DesktopHome({ materials }: { materials: unknown[] }) {
-  return <DesktopHomeInner materials={materials as Material[]} />;
+export default function DesktopHome({ materials, initialContent, initialMethod }: { materials: unknown[]; initialContent?: string; initialMethod?: string }) {
+  return <DesktopHomeInner materials={materials as Material[]} initialContent={initialContent} initialMethod={initialMethod} />;
 }

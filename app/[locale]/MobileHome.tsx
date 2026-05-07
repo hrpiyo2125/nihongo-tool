@@ -57,7 +57,7 @@ type Announcement = { id: string; title: string; date: string; type: string; mat
 type LegalType = "privacy" | "terms" | "tokushoho" | "about" | null;
 type MorePageType = "dl" | "guide" | "purchases" | null;
 
-function MobileHomeInner({ materials }: { materials: Material[] }) {
+function MobileHomeInner({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
   const router = useRouter();
   const locale = useLocale();
   const pathname = usePathname();
@@ -165,8 +165,12 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
     router.push(`/${nextLocale}${newPath}`);
   };
 
-  // URLパラメータからフィルターを初期化
+  // URLパラメータまたはpropsからフィルターを初期化
   useEffect(() => {
+    if (initialContent || initialMethod) {
+      setMaterialsFilter({ content: initialContent ?? "all", method: initialMethod ?? "all" });
+      return;
+    }
     const content = searchParams.get("content");
     const method = searchParams.get("method");
     if (content || method) setMaterialsFilter({ content: content ?? "all", method: method ?? "all" });
@@ -804,10 +808,10 @@ function MobileHomeInner({ materials }: { materials: Material[] }) {
   );
 }
 
-export default function MobileHome({ materials }: { materials: Material[] }) {
+export default function MobileHome({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
   return (
     <Suspense>
-      <MobileHomeInner materials={materials} />
+      <MobileHomeInner materials={materials} initialContent={initialContent} initialMethod={initialMethod} />
     </Suspense>
   );
 }
