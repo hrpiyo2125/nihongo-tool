@@ -38,21 +38,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }))
   )
 
-  let materialEntries: MetadataRoute.Sitemap = []
-  try {
-    const materials = await getMaterials()
-    materialEntries = materials.flatMap((material: { id: string; requiredPlan: string }) =>
-      material.requiredPlan === 'free'
-        ? locales.map((locale) => ({
-            url: `${BASE_URL}${locale}/materials/${material.id}`,
-            changeFrequency: 'weekly' as const,
-            priority: 0.7,
-          }))
-        : []
-    )
-  } catch {
-    // Notion APIが失敗してもサイトマップ全体は返す
-  }
-
-  return [...staticEntries, ...categoryEntries, ...materialEntries]
+  return [...staticEntries, ...categoryEntries]
 }
