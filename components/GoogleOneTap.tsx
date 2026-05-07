@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "../app/[locale]/AuthContext";
 import { createClient } from "../lib/supabase";
 
 interface PromptNotification {
@@ -40,16 +39,6 @@ async function generateNonce(): Promise<[string, string]> {
 }
 
 export default function GoogleOneTap() {
-  const { isLoggedIn, isAuthLoading } = useAuth();
-
-  // ログイン済みと確定したらキャンセル
-  useEffect(() => {
-    if (!isAuthLoading && isLoggedIn) {
-      window.google?.accounts.id.cancel();
-    }
-  }, [isLoggedIn, isAuthLoading]);
-
-  // 初回マウント時に即座にスクリプトロード＆prompt（FedCMの時間枠を逃さないため）
   useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
@@ -58,6 +47,12 @@ export default function GoogleOneTap() {
 
     const init = async () => {
       if (cancelled) return;
+
+      // Supabaseセッションを直接確認してからpromptするかどうか決める
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (cancelled || session) return;
+
       const [rawNonce, hashedNonce] = await generateNonce();
 
       window.google?.accounts.id.initialize({
@@ -65,7 +60,6 @@ export default function GoogleOneTap() {
         nonce: hashedNonce,
         callback: async (response: { credential: string }) => {
           if (cancelled) return;
-          const supabase = createClient();
           const { error } = await supabase.auth.signInWithIdToken({
             provider: "google",
             token: response.credential,
@@ -79,17 +73,7 @@ export default function GoogleOneTap() {
         },
         cancel_on_tap_outside: false,
       });
-      window.google?.accounts.id.prompt((notification) => {
-        if (notification.isNotDisplayed()) {
-          console.log("[GoogleOneTap] not displayed:", notification.getNotDisplayedReason());
-        } else if (notification.isSkippedMoment()) {
-          console.log("[GoogleOneTap] skipped:", notification.getSkippedReason());
-        } else if (notification.isDismissedMoment()) {
-          console.log("[GoogleOneTap] dismissed:", notification.getDismissedReason());
-        } else {
-          console.log("[GoogleOneTap] displayed");
-        }
-      });
+      window.google?.accounts.id.prompt();
     };
 
     if (window.google?.accounts) {
