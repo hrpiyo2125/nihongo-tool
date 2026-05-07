@@ -27,6 +27,9 @@ const libreBaskerville = Libre_Baskerville({
 export const metadata: Metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description: siteConfig.description,
+  verification: {
+    google: "hXO7ogJq61S7GRtbc04jUc6D_F8pnIuWXzFLWY9Dc_g",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
