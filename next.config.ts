@@ -19,7 +19,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://code.tidio.co https://*.tidio.co https://challenges.cloudflare.com https://accounts.google.com",
-      "style-src 'self' 'unsafe-inline' https://*.tidio.co",
+      "style-src 'self' 'unsafe-inline' https://*.tidio.co https://accounts.google.com",
       "img-src 'self' data: blob: https://*.supabase.co https://lh3.googleusercontent.com https://*.tidio.co",
       "font-src 'self' https://*.tidio.co",
       "frame-src https://js.stripe.com https://hooks.stripe.com https://*.tidio.co https://challenges.cloudflare.com https://accounts.google.com",

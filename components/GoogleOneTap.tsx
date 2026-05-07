@@ -18,6 +18,18 @@ declare global {
   }
 }
 
+async function generateNonce(): Promise<[string, string]> {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const raw = btoa(String.fromCharCode(...array));
+  const encoder = new TextEncoder();
+  const data = encoder.encode(raw);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashed = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return [raw, hashed];
+}
+
 export default function GoogleOneTap() {
   const { isLoggedIn } = useAuth();
 
@@ -30,14 +42,21 @@ export default function GoogleOneTap() {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
-    const init = () => {
+    let cancelled = false;
+
+    const init = async () => {
+      const [rawNonce, hashedNonce] = await generateNonce();
+
       window.google?.accounts.id.initialize({
         client_id: clientId,
+        nonce: hashedNonce,
         callback: async (response: { credential: string }) => {
+          if (cancelled) return;
           const supabase = createClient();
           const { error } = await supabase.auth.signInWithIdToken({
             provider: "google",
             token: response.credential,
+            nonce: rawNonce,
           });
           if (error) {
             console.error("[GoogleOneTap] signInWithIdToken error:", error);
@@ -63,6 +82,7 @@ export default function GoogleOneTap() {
     document.head.appendChild(script);
 
     return () => {
+      cancelled = true;
       window.google?.accounts.id.cancel();
     };
   }, [isLoggedIn]);
