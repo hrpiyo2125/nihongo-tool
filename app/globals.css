@@ -12,6 +12,13 @@ button, a, [role="button"] {
   touch-action: manipulation;
 }
 
+/* iOSのSafariでinput/textareaタップ時の自動ズームを防止 */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input, textarea, select {
+    font-size: 16px;
+  }
+}
+
 html, body {
   height: 100%;
 }
