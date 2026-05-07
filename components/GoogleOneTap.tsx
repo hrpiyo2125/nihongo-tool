@@ -35,10 +35,11 @@ export default function GoogleOneTap() {
         client_id: clientId,
         callback: async (response: { credential: string }) => {
           const supabase = createClient();
-          await supabase.auth.signInWithIdToken({
+          const { error } = await supabase.auth.signInWithIdToken({
             provider: "google",
             token: response.credential,
           });
+          if (!error) window.location.reload();
         },
         cancel_on_tap_outside: false,
       });
