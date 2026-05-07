@@ -26,6 +26,9 @@ const libreBaskerville = Libre_Baskerville({
 export const metadata: Metadata = {
   title: `${siteConfig.name} | ${siteConfig.tagline}`,
   description: siteConfig.description,
+  icons: {
+    icon: "/toolio_icon.png",
+  },
 };
 
 export default async function RootLayout({
