@@ -196,7 +196,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         if (!res.ok) return;
         const json = await res.json();
         const { status, messages: fetched, staffTypingAt: typingAt } = json as { status: string; messages: Message[]; staffTypingAt?: string };
-        if (phase !== "live" && typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
+        if (typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
 
         const newStaff = (fetched as Message[]).filter(
           (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
