@@ -93,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   })
 
   const serverInitializedRef = useRef(false)
+  const clientLoadedRef = useRef(false)
 
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState('')
@@ -112,7 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user: { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null,
     profileData: any
   ) => {
-    if (user) {
+    if (user && !clientLoadedRef.current) {
       serverInitializedRef.current = true
       setIsLoggedIn(true)
       setUserId(user.id)
@@ -223,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         // ネットワーク障害時もUIのロックを防ぐため必ず解除
       } finally {
+        clientLoadedRef.current = true
         setFavIdsLoaded(true)
       }
     }
