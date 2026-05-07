@@ -171,7 +171,7 @@ export function AuthProvider({
 
   useEffect(() => {
     const supabase = createClient()
-    let loaded = !!initialUser  // サーバーデータがあれば初回ロードをスキップ
+    let loaded = !!(initialUser && initialProfile)  // プロフィールまで揃っている場合のみスキップ
 
     const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any>; identities?: { provider: string }[] }, accessToken?: string) => {
       if (loaded) return
@@ -255,8 +255,8 @@ export function AuthProvider({
       }
     })
 
-    // サーバーデータがない場合のみクライアントサイドで取得
-    if (!initialUser) {
+    // プロフィールが未取得の場合はクライアントサイドで取得
+    if (!loaded) {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (session?.user) loadUserData(session.user, session.access_token)
         else setFavIdsLoaded(true)
