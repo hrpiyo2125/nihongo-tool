@@ -31,9 +31,12 @@ async function generateNonce(): Promise<[string, string]> {
 }
 
 export default function GoogleOneTap() {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAuthLoading } = useAuth();
 
   useEffect(() => {
+    // 認証状態が確定するまで何もしない
+    if (isAuthLoading) return;
+
     if (isLoggedIn) {
       window.google?.accounts.id.cancel();
       return;
@@ -85,7 +88,7 @@ export default function GoogleOneTap() {
       cancelled = true;
       window.google?.accounts.id.cancel();
     };
-  }, [isLoggedIn]);
+  }, [isLoggedIn, isAuthLoading]);
 
   return null;
 }
