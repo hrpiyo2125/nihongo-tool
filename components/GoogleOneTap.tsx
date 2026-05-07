@@ -33,32 +33,22 @@ async function generateNonce(): Promise<[string, string]> {
 export default function GoogleOneTap() {
   const { isLoggedIn, isAuthLoading } = useAuth();
 
-  // スクリプトはページロード直後に読み込む（FedCMの時間枠に間に合わせるため）
+  // ログイン済みと確定したらキャンセル
   useEffect(() => {
-    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-    if (!clientId || window.google?.accounts) return;
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    document.head.appendChild(script);
-  }, []);
-
-  // 認証状態が確定してからprompt/cancelを制御する
-  useEffect(() => {
-    if (isAuthLoading) return;
-
-    if (isLoggedIn) {
+    if (!isAuthLoading && isLoggedIn) {
       window.google?.accounts.id.cancel();
-      return;
     }
+  }, [isLoggedIn, isAuthLoading]);
 
+  // 初回マウント時に即座にスクリプトロード＆prompt（FedCMの時間枠を逃さないため）
+  useEffect(() => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     if (!clientId) return;
 
     let cancelled = false;
 
     const init = async () => {
+      if (cancelled) return;
       const [rawNonce, hashedNonce] = await generateNonce();
 
       window.google?.accounts.id.initialize({
@@ -86,21 +76,19 @@ export default function GoogleOneTap() {
     if (window.google?.accounts) {
       init();
     } else {
-      // スクリプトがまだロード中の場合は完了を待つ
-      const interval = setInterval(() => {
-        if (window.google?.accounts) {
-          clearInterval(interval);
-          init();
-        }
-      }, 100);
-      return () => clearInterval(interval);
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = init;
+      document.head.appendChild(script);
     }
 
     return () => {
       cancelled = true;
       window.google?.accounts.id.cancel();
     };
-  }, [isLoggedIn, isAuthLoading]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
 }
