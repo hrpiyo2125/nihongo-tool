@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '../../lib/supabase'
 import { useLocale } from 'next-intl'
 
@@ -92,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     has_password: data?.has_password ?? false,
   })
 
+  const serverInitializedRef = useRef(false)
+
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
@@ -111,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     profileData: any
   ) => {
     if (user) {
+      serverInitializedRef.current = true
       setIsLoggedIn(true)
       setUserId(user.id)
       setUserEmail(user.email)
@@ -175,33 +178,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const loadUserData = async (user: { id: string; email?: string; user_metadata?: Record<string, any>; identities?: { provider: string }[] }, accessToken?: string) => {
       if (loaded) return
       loaded = true
-      setIsLoggedIn(true)
-      setUserId(user.id)
-      setUserEmail(user.email ?? '')
-      setAuthProviders(user.identities?.map(i => i.provider) ?? [])
-      const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
-      setUserName(displayName)
-      setUserInitial(displayName.charAt(0).toUpperCase())
+
+      // サーバーからデータ注入済みの場合はidentity更新をスキップ
+      if (!serverInitializedRef.current) {
+        setIsLoggedIn(true)
+        setUserId(user.id)
+        setUserEmail(user.email ?? '')
+        setAuthProviders(user.identities?.map(i => i.provider) ?? [])
+        const displayName = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
+        setUserName(displayName)
+        setUserInitial(displayName.charAt(0).toUpperCase())
+      }
 
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
-        const [profileRes, userDataRes] = await Promise.all([
-          fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
-          fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
-        ])
-
-        if (profileRes.ok) {
-          const data = await profileRes.json()
-          if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
-          applyProfile(data)
-        }
-
-        if (userDataRes.ok) {
-          const data = await userDataRes.json()
-          setFavIds(data.favIds ?? [])
-          setDlIds([...new Set((data.dlIds ?? []) as string[])])
-          setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+        if (serverInitializedRef.current) {
+          // サーバー注入済み：favIds/dlIds/purchasedIdsのみ取得
+          const userDataRes = await fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } })
+          if (userDataRes.ok) {
+            const data = await userDataRes.json()
+            setFavIds(data.favIds ?? [])
+            setDlIds([...new Set((data.dlIds ?? []) as string[])])
+            setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+          }
+        } else {
+          // サーバー注入なし：profile + favIds両方取得
+          const [profileRes, userDataRes] = await Promise.all([
+            fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }),
+            fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
+          ])
+          if (profileRes.ok) {
+            const data = await profileRes.json()
+            if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
+            applyProfile(data)
+          }
+          if (userDataRes.ok) {
+            const data = await userDataRes.json()
+            setFavIds(data.favIds ?? [])
+            setDlIds([...new Set((data.dlIds ?? []) as string[])])
+            setPurchasedIds([...new Set((data.purchasedIds ?? []) as string[])])
+          }
         }
       } catch {
         // ネットワーク障害時もUIのロックを防ぐため必ず解除
