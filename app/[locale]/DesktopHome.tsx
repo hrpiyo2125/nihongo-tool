@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { createClient } from "../../lib/supabase";
 import { useAuth } from "./AuthContext";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useRouter, usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import TeaserModal from "./TeaserModal";
@@ -145,6 +145,16 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
 
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
+
+  useLayoutEffect(() => {
+    const storedSb = sessionStorage.getItem('sb_open');
+    if (storedSb === 'true') setSbOpen(true);
+    const storedPage = sessionStorage.getItem('active_page');
+    if (storedPage) setActivePage(storedPage);
+  }, []);
+
+  useEffect(() => { sessionStorage.setItem('sb_open', String(sbOpen)); }, [sbOpen]);
+  useEffect(() => { sessionStorage.setItem('active_page', activePage); }, [activePage]);
   const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
