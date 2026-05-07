@@ -33,8 +33,19 @@ async function generateNonce(): Promise<[string, string]> {
 export default function GoogleOneTap() {
   const { isLoggedIn, isAuthLoading } = useAuth();
 
+  // スクリプトはページロード直後に読み込む（FedCMの時間枠に間に合わせるため）
   useEffect(() => {
-    // 認証状態が確定するまで何もしない
+    const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    if (!clientId || window.google?.accounts) return;
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }, []);
+
+  // 認証状態が確定してからprompt/cancelを制御する
+  useEffect(() => {
     if (isAuthLoading) return;
 
     if (isLoggedIn) {
@@ -74,15 +85,16 @@ export default function GoogleOneTap() {
 
     if (window.google?.accounts) {
       init();
-      return;
+    } else {
+      // スクリプトがまだロード中の場合は完了を待つ
+      const interval = setInterval(() => {
+        if (window.google?.accounts) {
+          clearInterval(interval);
+          init();
+        }
+      }, 100);
+      return () => clearInterval(interval);
     }
-
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = init;
-    document.head.appendChild(script);
 
     return () => {
       cancelled = true;
