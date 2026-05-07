@@ -174,6 +174,17 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
     if (open) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, phase, open]);
 
+  // liveフェーズのみ: chat_sessionsのstaff_typing_atをリアルタイム購読
+  useEffect(() => {
+    if (phase !== "live" || !sessionId) return;
+    const channel = supabase.channel(`typing:${sessionId}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "chat_sessions", filter: `id=eq.${sessionId}` }, (payload) => {
+        setStaffTypingAt((payload.new as { staff_typing_at?: string | null }).staff_typing_at ?? null);
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [phase, sessionId]);
+
   // sessionIdがある間は常にポーリング（どのフェーズでも担当者メッセージ・他端末からのメッセージを反映）
   const seenStaffIdsRef = useRef<Set<string>>(new Set());
   const seenUserIdsRef = useRef<Set<string>>(new Set());
@@ -185,7 +196,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
         if (!res.ok) return;
         const json = await res.json();
         const { status, messages: fetched, staffTypingAt: typingAt } = json as { status: string; messages: Message[]; staffTypingAt?: string };
-        if (typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
+        if (phase !== "live" && typingAt !== undefined) setStaffTypingAt(typingAt ?? null);
 
         const newStaff = (fetched as Message[]).filter(
           (m) => m.role === "staff" && m.id && !seenStaffIdsRef.current.has(m.id)
