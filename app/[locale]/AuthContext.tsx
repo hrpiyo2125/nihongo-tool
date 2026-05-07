@@ -187,9 +187,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserName(displayName)
       setUserInitial(displayName.charAt(0).toUpperCase())
 
-      // getSessionは高速（localStorage読み取り）なので早期にスケルトン解除
-      setIsAuthInitialized(true)
-
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
@@ -262,7 +259,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else setFavIdsLoaded(true)
     })
 
-    return () => subscription.unsubscribe()
+    // サーバーストリームが失敗した場合のフォールバック（3秒後に強制解除）
+    const fallbackTimer = setTimeout(() => setIsAuthInitialized(true), 3000)
+
+    return () => { subscription.unsubscribe(); clearTimeout(fallbackTimer) }
   }, [locale, applyProfile])
 
   return (
