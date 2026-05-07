@@ -34,7 +34,6 @@ type Material = {
 type NavItem = {
   id: string; label: string;
   icon: (id: string, active: boolean) => React.ReactNode;
-  badge?: number;
 };
 
 const ACTIVE_COLOR = "#7a50b0";
@@ -270,7 +269,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
                   {sbOpen && (
                     <>
                       <span style={{ fontSize: 13, fontWeight: 600, color: activePage === item.id ? "#7040b0" : "#666" }}>{item.label}</span>
-                      {item.badge && <span style={{ marginLeft: "auto", fontSize: 10, background: "#ffe8f4", color: "#b0427a", padding: "1px 6px", borderRadius: 8, fontWeight: 700 }}>{item.badge}</span>}
+
                     </>
                   )}
                 </div>
