@@ -38,7 +38,7 @@ type NavItem = {
 
 const ACTIVE_COLOR = "#7a50b0";
 
-function DesktopHomeInner({ materials }: { materials: Material[] }) {
+function DesktopHomeInner({ materials, sbOpen, setSbOpen }: { materials: Material[]; sbOpen: boolean; setSbOpen: React.Dispatch<React.SetStateAction<boolean>> }) {
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('nav');
@@ -145,7 +145,6 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
     purchasedIds, loadProfile,
     setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
-  const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState("home");
   const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
@@ -423,9 +422,10 @@ function DesktopHomeInner({ materials }: { materials: Material[] }) {
 }
 
 export default function DesktopHome({ materials }: { materials: unknown[] }) {
+  const [sbOpen, setSbOpen] = useState(false);
   return (
     <Suspense>
-      <DesktopHomeInner materials={materials as Material[]} />
+      <DesktopHomeInner materials={materials as Material[]} sbOpen={sbOpen} setSbOpen={setSbOpen} />
     </Suspense>
   );
 }
