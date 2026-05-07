@@ -8,6 +8,7 @@ const locales = ['', '/en']
 
 const staticPaths = [
   '',
+  '/about',
   '/guide',
   '/faq',
   '/plan',
