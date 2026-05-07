@@ -108,14 +108,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [dlIds, setDlIds] = useState<string[]>([])
   const [purchasedIds, setPurchasedIds] = useState<string[]>([])
 
-  // サーバーストリームからの初期化済みフラグ（クライアントフェッチの重複を防ぐ）
-  const serverInitializedRef = useRef(false)
-
   const initializeAuth = useCallback((
     user: { id: string; email: string; user_metadata: Record<string, any>; identities: { provider: string }[] } | null,
     profileData: any
   ) => {
-    serverInitializedRef.current = true
     if (user) {
       setIsLoggedIn(true)
       setUserId(user.id)
@@ -191,24 +187,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserName(displayName)
       setUserInitial(displayName.charAt(0).toUpperCase())
 
-      // クライアント側でも認証確定 → サーバーストリームより速い場合はここでスケルトン解除
+      // getSessionは高速（localStorage読み取り）なので早期にスケルトン解除
       setIsAuthInitialized(true)
 
       if (!accessToken) { setFavIdsLoaded(true); return }
 
       try {
-        // サーバーストリームでプロフィール取得済みの場合はuser-dataのみ取得
-        const fetchProfile = !serverInitializedRef.current
-        const [profileRes, userDataRes] = await Promise.all([
-          fetchProfile ? fetch('/api/profile', { headers: { Authorization: `Bearer ${accessToken}` } }) : Promise.resolve(null),
-          fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } }),
-        ])
-
-        if (profileRes?.ok) {
-          const data = await profileRes.json()
-          if (data.deleted) { window.location.href = `/${locale}/welcome-back`; return }
-          applyProfile(data)
-        }
+        // プロフィールはAuthInitializerのサーバーストリームで取得済みのため不要
+        // user-data（favs/dl/purchases）のみ取得
+        const userDataRes = await fetch('/api/user-data', { headers: { Authorization: `Bearer ${accessToken}` } })
 
         if (userDataRes.ok) {
           const data = await userDataRes.json()
