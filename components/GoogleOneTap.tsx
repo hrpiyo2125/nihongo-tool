@@ -4,13 +4,22 @@ import { useEffect } from "react";
 import { useAuth } from "../app/[locale]/AuthContext";
 import { createClient } from "../lib/supabase";
 
+interface PromptNotification {
+  isNotDisplayed: () => boolean;
+  isSkippedMoment: () => boolean;
+  isDismissedMoment: () => boolean;
+  getNotDisplayedReason: () => string;
+  getSkippedReason: () => string;
+  getDismissedReason: () => string;
+}
+
 declare global {
   interface Window {
     google?: {
       accounts: {
         id: {
           initialize: (config: object) => void;
-          prompt: () => void;
+          prompt: (callback?: (notification: PromptNotification) => void) => void;
           cancel: () => void;
         };
       };
@@ -70,14 +79,7 @@ export default function GoogleOneTap() {
         },
         cancel_on_tap_outside: false,
       });
-      window.google?.accounts.id.prompt((notification: {
-        isNotDisplayed: () => boolean;
-        isSkippedMoment: () => boolean;
-        isDismissedMoment: () => boolean;
-        getNotDisplayedReason: () => string;
-        getSkippedReason: () => string;
-        getDismissedReason: () => string;
-      }) => {
+      window.google?.accounts.id.prompt((notification) => {
         if (notification.isNotDisplayed()) {
           console.log("[GoogleOneTap] not displayed:", notification.getNotDisplayedReason());
         } else if (notification.isSkippedMoment()) {
