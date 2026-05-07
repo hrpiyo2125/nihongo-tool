@@ -70,7 +70,24 @@ export default function GoogleOneTap() {
         },
         cancel_on_tap_outside: false,
       });
-      window.google?.accounts.id.prompt();
+      window.google?.accounts.id.prompt((notification: {
+        isNotDisplayed: () => boolean;
+        isSkippedMoment: () => boolean;
+        isDismissedMoment: () => boolean;
+        getNotDisplayedReason: () => string;
+        getSkippedReason: () => string;
+        getDismissedReason: () => string;
+      }) => {
+        if (notification.isNotDisplayed()) {
+          console.log("[GoogleOneTap] not displayed:", notification.getNotDisplayedReason());
+        } else if (notification.isSkippedMoment()) {
+          console.log("[GoogleOneTap] skipped:", notification.getSkippedReason());
+        } else if (notification.isDismissedMoment()) {
+          console.log("[GoogleOneTap] dismissed:", notification.getDismissedReason());
+        } else {
+          console.log("[GoogleOneTap] displayed");
+        }
+      });
     };
 
     if (window.google?.accounts) {
