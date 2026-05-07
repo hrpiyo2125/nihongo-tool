@@ -48,8 +48,18 @@ export default function GoogleOneTap() {
     const init = async () => {
       if (cancelled) return;
 
-      // Supabaseセッションを直接確認してからpromptするかどうか決める
+      // Supabaseクライアント初期化を待ってからセッション確認
       const supabase = createClient();
+      await new Promise<void>((resolve) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+          if (event === 'INITIAL_SESSION') {
+            subscription.unsubscribe();
+            resolve();
+          }
+        });
+      });
+      if (cancelled) return;
+
       const { data: { session } } = await supabase.auth.getSession();
       if (cancelled || session) return;
 
