@@ -17,6 +17,7 @@ import AnnouncementModal from "./AnnouncementModal";
 import MyPage from "./MyPage";
 import PlanSelector from "../../components/PlanSelector";
 import PlanModal from "../../components/PlanModal";
+import PurchaseStartModal from "../../components/PurchaseStartModal";
 import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import { BrandIcon } from "../../components/BrandIcon";
 
@@ -75,7 +76,9 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const [morePageType, setMorePageType] = useState<MorePageType>(null);
   const [legalType, setLegalType] = useState<LegalType>(null);
   const [teaserPlanOpen, setTeaserPlanOpen] = useState(false);
+  const [teaserPurchaseStartOpen, setTeaserPurchaseStartOpen] = useState(false);
   const [teaserPurchaseOpen, setTeaserPurchaseOpen] = useState(false);
+  const [teaserPurchaseCardInfo, setTeaserPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
   const [scrolled, setScrolled] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -628,7 +631,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             }}
             onOpenAuth={openAuth}
             onOpenPlanModal={() => setTeaserPlanOpen(true)}
-            onOpenPurchaseConfirm={() => setTeaserPurchaseOpen(true)}
+            onOpenPurchaseConfirm={() => setTeaserPurchaseStartOpen(true)}
             onOpenFavHistory={() => { setTeaserMat(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         );
@@ -796,10 +799,22 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         />
       )}
 
-      {/* teaser内購入確認モーダル */}
+      {teaserPurchaseStartOpen && teaserMat && (
+        <PurchaseStartModal
+          matTitle={(teaserMat as any).title}
+          onConfirm={(cardInfo) => {
+            setTeaserPurchaseCardInfo(cardInfo);
+            setTeaserPurchaseStartOpen(false);
+            setTeaserPurchaseOpen(true);
+          }}
+          onClose={() => setTeaserPurchaseStartOpen(false)}
+        />
+      )}
+
       {teaserPurchaseOpen && teaserMat && (
         <PurchaseConfirmModal
           mat={teaserMat as any}
+          cardInfo={teaserPurchaseCardInfo}
           onSuccess={() => setTeaserPurchaseOpen(false)}
           onClose={() => setTeaserPurchaseOpen(false)}
         />

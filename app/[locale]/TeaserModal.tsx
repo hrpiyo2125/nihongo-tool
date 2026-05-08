@@ -4,6 +4,7 @@ import { createClient } from "../../lib/supabase";
 
 import { canDownload } from "../../lib/materialUtils";
 import { BrandIcon } from "../../components/BrandIcon";
+import PurchaseStartModal from "../../components/PurchaseStartModal";
 import PurchaseConfirmModal from "./PurchaseConfirmModal";
 import PlanModal from "../../components/PlanModal";
 
@@ -179,9 +180,9 @@ export default function TeaserModal({
   const [favTooltip, setFavTooltip] = useState(false);
   const [favLimitTooltip, setFavLimitTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
-  const [purchaseStep, setPurchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
-  
+  const [showPurchaseStart, setShowPurchaseStart] = useState(false);
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
+  const [purchaseCardInfo, setPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
   const isFav = favIds.includes(mat.id);
@@ -351,24 +352,13 @@ export default function TeaserModal({
                   ) : (
                     <>
                       <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
-                     {purchaseStep === "idle" && (
-                      <>
-                        <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
-                        <button
-                          onClick={() => setShowPurchaseConfirm(true)}
-                          style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
-                        >
-                          ¥300 この教材を単品購入する
-                        </button>
-                      </>
-                     )}
-                      
-                      {purchaseStep === "done" && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
-                          <div style={{ fontSize: 11, color: "#3a8a5a", fontWeight: 700, textAlign: "center" }}>✓ 購入完了！</div>
-                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
-                        </div>
-                      )}
+                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
+                      <button
+                        onClick={() => { setDownTooltip(false); setShowPurchaseStart(true); }}
+                        style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
+                      >
+                        ¥300 この教材を単品購入する
+                      </button>
                     </>
                   )}
                 </div>
@@ -377,12 +367,25 @@ export default function TeaserModal({
           </div>
         </div>
       </div>
-    {showPurchaseConfirm && (
+    {showPurchaseStart && (
+        <PurchaseStartModal
+          matTitle={mat.title}
+          onConfirm={(cardInfo) => {
+            setPurchaseCardInfo(cardInfo);
+            setShowPurchaseStart(false);
+            setShowPurchaseConfirm(true);
+          }}
+          onClose={() => setShowPurchaseStart(false)}
+        />
+      )}
+
+      {showPurchaseConfirm && (
         <PurchaseConfirmModal
           mat={mat}
+          cardInfo={purchaseCardInfo}
           onSuccess={() => {
             setShowPurchaseConfirm(false);
-            setPurchaseStep("done");
+            setDownTooltip(false);
           }}
           onClose={() => setShowPurchaseConfirm(false)}
         />
