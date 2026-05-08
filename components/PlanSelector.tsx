@@ -236,9 +236,13 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
       {showFreeDowngradeNotice && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "36px 28px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolio free への変更前にご確認ください</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#333", marginBottom: 16 }}>変更前にご確認ください</div>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 20 }}>
-              toolio free では、<strong>お気に入り登録</strong>と<strong>ダウンロード履歴</strong>の表示は最新5件までとなります。<br /><br />
+              toolio free では、お気に入り登録とダウンロード履歴の表示は最大5件までとなります。
+              <div style={{ margin: "10px 0 10px 8px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <div>・お気に入り</div>
+                <div>・DL履歴</div>
+              </div>
               現在の登録・履歴データは削除されません。再度サブスクプランにアップグレードいただくと、すべての履歴が復活します。
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
