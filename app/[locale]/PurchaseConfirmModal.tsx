@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "../../components/ProcessingOverlay";
 import { BrandIcon } from "../../components/BrandIcon";
+import { useAuth } from "./AuthContext";
 
 type Props = {
   mat: { id: string; title: string };
@@ -16,6 +17,7 @@ const PROCESSING_MESSAGES = ["支払い処理中...", "もう少しで完了し�
 
 export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSuccess, onClose }: Props) {
   const router = useRouter();
+  const { loadProfile } = useAuth();
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -81,7 +83,7 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
         <>
           <SuccessOverlay label={`「${mat.title}」を購入しました。\n今すぐダウンロードできます。`} />
           <button
-            onClick={() => { router.refresh(); onSuccess(); }}
+            onClick={() => { loadProfile(); router.refresh(); onSuccess(); }}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
           >
             教材を見る →
