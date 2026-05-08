@@ -531,7 +531,13 @@ export default function MaterialDetailPage() {
             </svg>
           </button>
           <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.3)", flexShrink: 0 }} />
-          <TagBadge tag={tag} />
+          {tag && <TagBadge tag={tag} />}
+          {material.requiredPlan === "subscribe" && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: "rgba(201,160,240,0.2)", color: "#9b6ed4", whiteSpace: "nowrap", flexShrink: 0 }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/></svg>
+              サブスク
+            </span>
+          )}
           {(material.level ?? []).map((lv: string) => (
             <span key={lv} style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 6, background: lv === "Basic" ? "#d6f5e5" : lv === "Middle" ? "#e8efff" : "#ffe8f4", color: lv === "Basic" ? "#2a6a44" : lv === "Middle" ? "#3a5a9a" : "#a03070", whiteSpace: "nowrap", flexShrink: 0 }}>{lv}</span>
           ))}

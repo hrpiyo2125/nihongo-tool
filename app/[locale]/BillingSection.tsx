@@ -24,17 +24,15 @@ type Invoice = {
 };
 
 const FALLBACK_PLAN_LABEL: Record<string, string> = {
-  free: "無料プラン",
-  light: "ライトプラン",
-  standard: "スタンダードプラン",
-  premium: "プレミアムプラン",
+  free: "toolio free",
+  weekly: "toolio weekly unlimited",
+  monthly: "toolio monthly unlimited",
 };
 
 const FALLBACK_PLAN_PRICE: Record<string, string> = {
-  free: "無料",
-  light: "¥500 / 月",
-  standard: "¥980 / 月",
-  premium: "¥1,480 / 月",
+  free: "¥0",
+  weekly: "¥498 / 週",
+  monthly: "¥1,480 / 月",
 };
 
 function formatDate(isoString: string | null) {
@@ -51,7 +49,7 @@ function StatusBadge({ plan_status, cancel_at_period_end, isPendingDeletion }: {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f8ee", color: "#2a6a44" }}>トライアル中</span>;
   }
   if (cancel_at_period_end) {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>無料プランへ変更予定</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>toolio free へ変更予定</span>;
   }
   if (plan_status === "past_due") {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#ffe8e8", color: "#a02020" }}>お支払い確認中</span>;
@@ -97,8 +95,8 @@ export default function BillingSection({
         const label: Record<string, string> = {};
         const price: Record<string, string> = {};
         for (const p of plans) {
-          label[p.key] = `${p.displayName}プラン`;
-          price[p.key] = p.key === "free" ? "無料" : `¥${Number(p.price).toLocaleString()} / 月`;
+          label[p.key] = p.displayName;
+          price[p.key] = p.price === 0 ? "¥0" : p.key === "weekly" ? `¥${Number(p.price).toLocaleString()} / 週` : `¥${Number(p.price).toLocaleString()} / 月`;
         }
         setPlanLabel(label);
         setPlanPrice(price);
@@ -245,7 +243,7 @@ export default function BillingSection({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{planLabel[profile.plan] ?? "無料プラン"}</div>
+                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{planLabel[profile.plan] ?? "toolio free"}</div>
                 <StatusBadge
                   plan_status={profile.plan_status}
                   cancel_at_period_end={profile.cancel_at_period_end}
@@ -266,7 +264,7 @@ export default function BillingSection({
               )}
               {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
                 <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} に無料プランへ移行
+                  {formatDate(profile.current_period_end)} にtoolio free へ移行
                 </div>
               )}
               {isPaid && !profile.cancel_at_period_end && profile.current_period_end && (
@@ -385,7 +383,7 @@ export default function BillingSection({
                 <ProcessingOverlay messages={["変更取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="無料プランへの変更を取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label="toolio free への変更を取り消しました。引き続きご利用いただけます。" />
                 </div>
               )}
             </div>
@@ -400,14 +398,14 @@ export default function BillingSection({
                 <ProcessingOverlay messages={["変更処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : cancelSuccess ? (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="無料プランへの変更予約が完了しました。期間終了までご利用いただけます。" />
+                  <SuccessOverlay label="toolio free への変更予約が完了しました。期間終了までご利用いただけます。" />
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>無料プランへの変更を確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>toolio free への変更を確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
                     変更予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
-                    期間終了後は無料プランに移行します。
+                    期間終了後は toolio free に移行します。
                   </div>
                   {cancelError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
@@ -425,7 +423,7 @@ export default function BillingSection({
                       onClick={handleCancel}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                     >
-                      無料プランに変更する
+                      toolio free に変更する
                     </button>
                   </div>
                 </div>
@@ -439,7 +437,7 @@ export default function BillingSection({
     <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
       <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
-        お支払い情報に問題が発生したため、現在のプランが無料プランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+        お支払い情報に問題が発生したため、現在のプランが toolio free に戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
       </div>
       <button
         onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}

@@ -9,9 +9,8 @@ const supabase = createClient(
 );
 
 const PLAN_MAP: Record<string, string> = {
-  [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
-  [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
-  [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+  [process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID!]: "weekly",
+  [process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!]: "monthly",
 };
 
 export async function POST(req: NextRequest) {
@@ -60,7 +59,7 @@ export async function POST(req: NextRequest) {
             items: [{ id: existingSub.items.data[0].id, price: priceId }],
             proration_behavior: "always_invoice",
           });
-          const newPlan = PLAN_MAP[priceId] ?? "light";
+          const newPlan = PLAN_MAP[priceId] ?? "monthly";
           await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: updatedSub.id }).eq("id", userId);
           return NextResponse.json({ success: true });
         }
@@ -80,7 +79,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (subscription.status === "active") {
-      const newPlan = PLAN_MAP[priceId] ?? "light";
+      const newPlan = PLAN_MAP[priceId] ?? "monthly";
       await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: subscription.id }).eq("id", userId);
       return NextResponse.json({ success: true });
     }

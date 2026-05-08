@@ -5,22 +5,20 @@ import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
 import { BrandIcon } from "./BrandIcon";
 
 const PLAN_LABELS: Record<string, string> = {
-  light: "ライト",
-  standard: "スタンダード",
-  premium: "プレミアム",
+  free: "toolio free",
+  weekly: "toolio weekly unlimited",
+  monthly: "toolio monthly unlimited",
 };
 
 const PLAN_PRICES: Record<string, number> = {
   free: 0,
-  light: 500,
-  standard: 980,
-  premium: 1480,
+  weekly: 498,
+  monthly: 1480,
 };
 
 const PRICE_IDS: Record<string, string> = {
-  light: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!,
-  standard: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!,
-  premium: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!,
+  weekly: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID!,
+  monthly: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!,
 };
 
 const PROCESSING_MESSAGES = [
@@ -128,7 +126,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
       return (
         <>
           <SuccessOverlay
-            label={`${PLAN_LABELS[plan]}プランへようこそ。\n${PLAN_LABELS[plan]}プランまでの教材がすぐにご利用いただけます。`}
+            label={`${PLAN_LABELS[plan] ?? plan}へようこそ。\n全教材がすぐにご利用いただけます。`}
           />
           <button
             onClick={onSuccess}
@@ -146,7 +144,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
 
         <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><BrandIcon name="sparkle" size={40} color="#e49bfd" /></div>
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 6 }}>プランに登録する</div>
-        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>登録後すぐに{PLAN_LABELS[plan]}プランまでの教材が使えます。</div>
+        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>登録後すぐに全教材が使えます。</div>
 
         <div style={{ background: "#f8f6ff", borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
           <div style={{ fontSize: 12, color: "#aaa", marginBottom: 4 }}>登録するプラン</div>

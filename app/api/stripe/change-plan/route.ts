@@ -11,16 +11,14 @@ const supabase = createClient(
 )
 
 const PLAN_TO_PRICE: Record<string, string> = {
-  light: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!,
-  standard: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!,
-  premium: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!,
+  weekly: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID!,
+  monthly: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!,
 }
 
 const PLAN_RANK: Record<string, number> = {
   free: 0,
-  light: 1,
-  standard: 2,
-  premium: 3,
+  weekly: 1,
+  monthly: 2,
 }
 
 export async function POST(req: NextRequest) {
@@ -154,7 +152,7 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendUpgradeEmail({
           to: email,
-          planLabel: newPlan === 'light' ? 'ライトプラン' : newPlan === 'standard' ? 'スタンダードプラン' : 'プレミアムプラン',
+          planLabel: newPlan === 'weekly' ? 'toolio weekly unlimited' : 'toolio monthly unlimited',
           currentPeriodEnd: periodEnd,
         })
       }
@@ -183,7 +181,7 @@ export async function POST(req: NextRequest) {
       if (email) {
         await sendDowngradeEmail({
           to: email,
-          newPlanLabel: newPlan === 'light' ? 'ライトプラン' : newPlan === 'standard' ? 'スタンダードプラン' : 'プレミアムプラン',
+          newPlanLabel: newPlan === 'weekly' ? 'toolio weekly unlimited' : 'toolio monthly unlimited',
           currentPeriodEnd: periodEnd,
         })
       }

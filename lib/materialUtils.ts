@@ -1,7 +1,6 @@
 // ===== プランランク =====
 export const planRank: Record<string, number> = {
-  free: 0, light: 1, standard: 2, premium: 3,
-  "無料": 0, "ライト": 1, "スタンダード": 2, "プレミアム": 3,
+  free: 0, weekly: 1, monthly: 1,
 };
 
 export function canDownload(
@@ -11,7 +10,10 @@ export function canDownload(
   materialId: string = ""
 ): boolean {
   if (purchasedIds.includes(materialId)) return true;
-  return (planRank[userPlan] ?? 0) >= (planRank[requiredPlan] ?? 0);
+  const isSubscriber = userPlan === "weekly" || userPlan === "monthly";
+  const requiresSubscription = requiredPlan === "subscribe";
+  if (requiresSubscription) return isSubscriber;
+  return true; // free materials are accessible to all
 }
 
 // ===== カードスタイル =====
@@ -58,6 +60,8 @@ type MaterialForStyle = {
   requiredPlan?: string;
   isPickup?: boolean;
   isNew?: boolean;
+  isRecommended?: boolean;
+  ranking?: number | null;
   bg?: string;
   char?: string;
   charColor?: string;
@@ -66,29 +70,21 @@ type MaterialForStyle = {
   tagColor?: string;
 };
 
-export function getCardStyle(mat: MaterialForStyle, locale: string = "ja") {
+export function getCardStyle(mat: MaterialForStyle) {
   const firstContent = mat.content?.[0] ?? "hiragana";
   const bg = mat.bg ?? bgMap[firstContent] ?? "linear-gradient(135deg,#e8efff,#d0dcff)";
   const char = mat.char ?? charMap[firstContent] ?? "✦";
   const charColor = mat.charColor ?? charColorMap[firstContent] ?? "#4a72c4";
 
-  let tag = mat.tag ?? "無料";
-  let tagBg = mat.tagBg ?? "#d6f5e5";
-  let tagColor = mat.tagColor ?? "#2a6a44";
+  let tag = mat.tag ?? "";
+  let tagBg = mat.tagBg ?? "";
+  let tagColor = mat.tagColor ?? "";
 
   if (!mat.tag) {
     if (mat.isPickup) {
       tag = "PICK"; tagBg = "#ecdeff"; tagColor = "#7040b0";
     } else if (mat.isNew) {
       tag = "NEW"; tagBg = "#ffd9ee"; tagColor = "#a03070";
-    } else if (mat.requiredPlan === "free" || mat.requiredPlan === "無料") {
-      tag = locale === "ja" ? "無料" : "Free"; tagBg = "#d6f5e5"; tagColor = "#2a6a44";
-    } else if (mat.requiredPlan === "light" || mat.requiredPlan === "ライト") {
-      tag = locale === "ja" ? "ライト" : "Light"; tagBg = "#fff8e0"; tagColor = "#a07800";
-    } else if (mat.requiredPlan === "standard" || mat.requiredPlan === "スタンダード") {
-      tag = locale === "ja" ? "スタンダード" : "Standard"; tagBg = "#e8efff"; tagColor = "#3a5a9a";
-    } else if (mat.requiredPlan === "premium" || mat.requiredPlan === "プレミアム") {
-      tag = locale === "ja" ? "プレミアム" : "Premium"; tagBg = "#fce4f8"; tagColor = "#8a2090";
     }
   }
 
@@ -98,14 +94,12 @@ type MaterialForTag = {
   requiredPlan?: string;
   isPickup?: boolean;
   isNew?: boolean;
+  isRecommended?: boolean;
+  ranking?: number | null;
 };
 
 export function getTag(mat: MaterialForTag) {
   if (mat.isPickup) return { tag: "PICK", tagBg: "#ecdeff", tagColor: "#7040b0" };
   if (mat.isNew) return { tag: "NEW", tagBg: "#ffd9ee", tagColor: "#a03070" };
-  if (mat.requiredPlan === "free" || mat.requiredPlan === "無料") return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
-  if (mat.requiredPlan === "light" || mat.requiredPlan === "ライト") return { tag: "ライト", tagBg: "#fff8e0", tagColor: "#a07800" };
-  if (mat.requiredPlan === "standard" || mat.requiredPlan === "スタンダード") return { tag: "スタンダード", tagBg: "#e8efff", tagColor: "#3a5a9a" };
-  if (mat.requiredPlan === "premium" || mat.requiredPlan === "プレミアム") return { tag: "プレミアム", tagBg: "#fce4f8", tagColor: "#8a2090" };
-  return { tag: "無料", tagBg: "#d6f5e5", tagColor: "#2a6a44" };
+  return { tag: "", tagBg: "", tagColor: "" };
 }

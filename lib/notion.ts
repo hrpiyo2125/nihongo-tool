@@ -66,10 +66,15 @@ const methodLabelToId: Record<string, string> = {
 }
 
 const requiredPlanLabelToId: Record<string, string> = {
+  'free':         'free',
+  'Free':         'free',
   '無料':         'free',
-  'ライト':       'light',
-  'スタンダード': 'standard',
-  'プレミアム':   'premium',
+  'subscribe':    'subscribe',
+  'Subscribe':    'subscribe',
+  'ライト':       'subscribe',
+  'スタンダード': 'subscribe',
+  'プレミアム':   'subscribe',
+  'paid':         'subscribe',
 }
 export async function getMaterials() {
   const response = await notion.databases.query({
@@ -102,7 +107,12 @@ export async function getMaterials() {
       isPickup:     props.isPickup?.checkbox     ?? false,
       isRecommended: props.isRecommended?.checkbox ?? false,
       ranking:      props.ranking?.number        ?? null,
-      isNew:        props.isNew?.checkbox        ?? false,
+      isNew:        (() => {
+        const publishedAt = props.publishedAt?.date?.start
+        if (!publishedAt) return props.isNew?.checkbox ?? false
+        const diff = Date.now() - new Date(publishedAt).getTime()
+        return diff <= 7 * 24 * 60 * 60 * 1000
+      })(),
       usageBasic:     props.usageBasic?.rich_text?.[0]?.plain_text ?? '',
       usageMiddle:    props.usageMiddle?.rich_text?.[0]?.plain_text ?? '',
       usageAdvanced:  props.usageAdvanced?.rich_text?.[0]?.plain_text ?? '',

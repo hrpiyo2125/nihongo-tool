@@ -183,7 +183,6 @@ export default function TeaserModal({
   
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [purchaseLockTooltip, setPurchaseLockTooltip] = useState(false);
   const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
   const isFav = favIds.includes(mat.id);
   const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
@@ -236,8 +235,14 @@ export default function TeaserModal({
         <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
           {/* タグ・レベル */}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ display: "flex", gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              {tag && <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>}
+              {mat.requiredPlan === "subscribe" && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "rgba(201,160,240,0.15)", color: "#9b6ed4" }}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/></svg>
+                  サブスク
+                </span>
+              )}
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               {(mat.level ?? []).map(lv => (
@@ -297,7 +302,7 @@ export default function TeaserModal({
                     <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
                   </div>
                   <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>
-                    無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
+                    toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
                   </div>
                   <button
                     onClick={() => { setFavLimitTooltip(false); onClose(); setTimeout(() => window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })), 0); }}
@@ -336,7 +341,7 @@ export default function TeaserModal({
                 <div onClick={() => setDownTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "fixed", top: "50%", left: "calc(50% + 80px)", transform: "translateY(-50%)", zIndex: 300, background: "white", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 32px", width: 380, border: "0.5px solid rgba(200,170,240,0.35)" }}>
                   <div style={{ fontSize: 13, color: "#7a50b0", fontWeight: 700, marginBottom: 10, lineHeight: 1.6 }}>
-                    {mat.requiredPlan === "light" ? "ライト" : mat.requiredPlan === "standard" ? "スタンダード" : "プレミアム"}プランにするとこの教材がすぐに使えます
+                    サブスクプランにアップグレードすると、この教材を今すぐ使えます。
                   </div>
                   {!isLoggedIn ? (
                     <>
@@ -345,39 +350,17 @@ export default function TeaserModal({
                     </>
                   ) : (
                     <>
-                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>プランをアップグレードする →</button>
+                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
                      {purchaseStep === "idle" && (
-                      <div style={{ position: "relative" }}>
+                      <>
+                        <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
                         <button
-                          onClick={() => {
-                            if (isFreeUser) setPurchaseLockTooltip(prev => !prev);
-                            else setShowPurchaseConfirm(true);
-                          }}
-                          style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: isFreeUser ? "#f8f5ff" : "white", color: "#9b6ed4", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                          onClick={() => setShowPurchaseConfirm(true)}
+                          style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
                         >
-                          {isFreeUser && <BrandIcon name="lock" size={12} color="#9b6ed4" />}
                           ¥350 この教材を単品購入する
                         </button>
-                        {purchaseLockTooltip && isFreeUser && (
-                          <>
-                            <div onClick={() => setPurchaseLockTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 349 }} />
-                            <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 350, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 280, border: "0.5px solid rgba(200,170,240,0.35)" }}>
-                              <div style={{ fontSize: 11, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
-                                <BrandIcon name="lock" size={12} color="#7a50b0" />単品購入について
-                              </div>
-                              <div style={{ fontSize: 11, color: "#666", lineHeight: 1.7, marginBottom: 12 }}>
-                                単品購入はライトプラン会員の方以上が使用できます。この教材を単品購入したい方はライトプラン以上のプランにご登録ください。
-                              </div>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setPurchaseLockTooltip(false); setDownTooltip(false); setShowPlanModal(true); }}
-                                style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
-                              >
-                                プランをアップグレードする →
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      </>
                      )}
                       
                       {purchaseStep === "done" && (

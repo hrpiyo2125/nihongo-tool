@@ -20,9 +20,8 @@ const supabase = createClient(
 
 // priceId → plan名のマッピング
 const PRICE_TO_PLAN: Record<string, string> = {
-  [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: 'light',
-  [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: 'standard',
-  [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: 'premium',
+  [process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID!]: 'weekly',
+  [process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!]: 'monthly',
 }
 
 export async function POST(req: NextRequest) {
@@ -100,9 +99,8 @@ export async function POST(req: NextRequest) {
         const renewalCustomer = await stripe.customers.retrieve(subscription.customer as string)
         const renewalEmail = (renewalCustomer as any).email
         const planLabels: Record<string, string> = {
-          light: 'ライトプラン',
-          standard: 'スタンダードプラン',
-          premium: 'プレミアムプラン',
+          weekly: 'toolio weekly unlimited',
+          monthly: 'toolio monthly unlimited',
         }
         if (renewalEmail) {
           await sendRenewalSuccessEmail({

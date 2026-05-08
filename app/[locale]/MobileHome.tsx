@@ -676,7 +676,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 <div style={{ fontSize: 11, color: "#999" }}>
                   {isLoggedIn ? (
                     <>
-                      {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : "無料プラン"}
+                      {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : "toolio free"}
                       {profile.cancel_at_period_end && profile.current_period_end && (
                         <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>
                           {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能

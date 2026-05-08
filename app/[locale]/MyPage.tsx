@@ -134,7 +134,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
       {hiddenFavCount > 0 && (
         <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
           <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenFavCount}件のお気に入りがあります</div>
-          <div style={{ fontSize: 12, color: "#a07ad4" }}>ライトプラン以上に登録いただくと復活します</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>サブスクプランに登録いただくと復活します</div>
         </div>
       )}
      {teaserMat && (() => {
@@ -362,7 +362,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
       {hiddenHistoryCount > 0 && (
         <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
           <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenHistoryCount}件のダウンロード履歴があります</div>
-          <div style={{ fontSize: 12, color: "#a07ad4" }}>ライトプラン以上に登録いただくと復活します</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>サブスクプランに登録いただくと復活します</div>
         </div>
       )}
       {teaserMat && (() => {
@@ -617,7 +617,7 @@ export default function MyPage({
               )}
             </div>
             <div style={{ fontSize: 12, color: "#aaa", marginBottom: 10 }}>
-              {profile.plan === "light" ? "ライトプラン" : profile.plan === "standard" ? "スタンダードプラン" : profile.plan === "premium" ? "プレミアムプラン" : tm("free_plan")}
+              {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
             </div>
             <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
             {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
@@ -901,7 +901,7 @@ export default function MyPage({
             <button
               onClick={() => { setConfirmFreePlan(true); setFreePlanError(null); }}
               style={{ fontSize: 13, padding: "11px 0", borderRadius: 12, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", fontWeight: 600, width: "100%" }}
-            >無料プランに変更する</button>
+            >toolio free に変更する</button>
           )}
           {profile?.status !== "pending_deletion" && (
             <button
@@ -1043,7 +1043,7 @@ export default function MyPage({
           </div>
         )}
 
-        {/* 無料プランに変更する確認モーダル */}
+        {/* toolio free に変更する確認モーダル */}
         {confirmFreePlan && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
@@ -1053,14 +1053,14 @@ export default function MyPage({
                 <div style={{ padding: "36px 40px", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>変更予約が完了しました</div>
-                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、無料プランへ移行します。</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、toolio free へ移行します。</div>
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>無料プランへの変更を確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>toolio free への変更を確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
                     変更予約をすると、<strong>{profile?.current_period_end ? new Date(profile.current_period_end).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong> までご利用いただけます。<br />
-                    期間終了後は無料プランに移行します。
+                    期間終了後は toolio free に移行します。
                   </div>
                   {freePlanError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>{freePlanError}</div>
@@ -1073,7 +1073,7 @@ export default function MyPage({
                     <button
                       onClick={handleFreePlan}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                    >無料プランに変更する</button>
+                    >toolio free に変更する</button>
                   </div>
                 </div>
               )}
@@ -1090,7 +1090,7 @@ export default function MyPage({
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
                 {([
                   { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴などのデータはすべて保存されます。いつでも再開できます。" },
-                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的に無料プランに変更されます（返金なし）。期間終了まではご利用いただけます。" },
+                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的にtoolio free に変更されます（返金なし）。期間終了まではご利用いただけます。" },
                   { key: "return" as const, label: "同じメールアドレスでいつでも再開できます。再ログイン後にアカウントの復元が案内されます。" },
                 ]).map(({ key, label }) => (
                   <div
@@ -1244,8 +1244,8 @@ export default function MyPage({
           {(activePage === "fav" || activePage === "dl") && (
             <span style={{ fontSize: 11, color: "#bbb", fontWeight: 500 }}>
               {(profile?.plan === "free" || !profile?.plan)
-                ? "無料プランの方は最大5件まで保存可能です"
-                : "ライトプラン以上：無制限で保存できます"}
+                ? "toolio free の方は最大5件まで保存可能です"
+                : "サブスクプラン：無制限で保存できます"}
             </span>
           )}
         </div>

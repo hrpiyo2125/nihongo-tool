@@ -161,6 +161,14 @@ export default function MaterialCard({
           購入済み
         </div>
       )}
+      {!isPurchased && mat.requiredPlan === "subscribe" && (
+        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            <rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/>
+          </svg>
+        </div>
+      )}
       {isLoggedIn && onFavToggle && (
         <div style={{ position: "absolute", top: 8, right: 8, zIndex: 10 }}>
           <button
@@ -189,7 +197,7 @@ export default function MaterialCard({
         <div style={{ height: 135, background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 36, color: charColor, fontWeight: 700 }}>{char}</div>
       )}
       <div style={{ padding: "10px 12px 14px" }}>
-        <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>
+        {tag && <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: tagBg, color: tagColor, display: "inline-block", marginBottom: 6 }}>{tag}</span>}
         {(mat.level ?? []).length > 0 && (
           <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
             {(mat.level ?? []).map((lv: string) => (
@@ -208,7 +216,7 @@ export default function MaterialCard({
               <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
             </div>
             <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>
-              無料会員の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
+              toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); onOpenFavHistory ? onOpenFavHistory() : window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}

@@ -276,7 +276,7 @@ export default function PersonalizedSection({
           }}>
             <div style={{ fontSize: 32, marginBottom: 4 }}>✨</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#555" }}>
-              この機能はライトプラン以上の方がご利用いただけます
+              この機能はサブスクプランの方がご利用いただけます
             </div>
             <div style={{ fontSize: 13, color: "#999", maxWidth: 400, lineHeight: 1.7 }}>
               お気に入りやダウンロード履歴をもとに、あなたにぴったりの教材を自動でご提案します。

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     const subscription = await stripe.subscriptions.create({
       customer: customerId,
-      items: [{ price: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID! }],
+      items: [{ price: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID! }],
       trial_end: trialEnd,
       payment_settings: {
         save_default_payment_method: 'off',

@@ -56,11 +56,10 @@ export async function POST(req: NextRequest) {
 
     if (subscription.status === "active") {
       const planMap: Record<string, string> = {
-        [process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID!]: "light",
-        [process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID!]: "standard",
-        [process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID!]: "premium",
+        [process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID!]: "weekly",
+        [process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!]: "monthly",
       };
-      const newPlan = planMap[priceId] ?? "light";
+      const newPlan = planMap[priceId] ?? "monthly";
       await supabase
         .from("profiles")
         .update({

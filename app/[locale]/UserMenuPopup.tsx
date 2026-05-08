@@ -43,7 +43,7 @@ export default function UserMenuPopup({
         <div>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
           <div style={{ fontSize: 11, color: "#aaa" }}>
-            {userPlan === "light" ? "ライトプラン" : userPlan === "standard" ? "スタンダードプラン" : userPlan === "premium" ? "プレミアムプラン" : tm("free_plan")}
+            {userPlan === "weekly" ? "toolio weekly unlimited" : userPlan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
             {cancelAtPeriodEnd && currentPeriodEnd && (
               <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>
                 {new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能

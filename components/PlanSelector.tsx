@@ -11,32 +11,21 @@ const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: fals
 const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
 
 
-const PLAN_STYLE: Record<string, { color: string; border: string; bg: string; featured: boolean; priceId: string | null }> = {
-  free:     { color: "#5580cc", border: "#c0d4ff", bg: "#f0f5ff", featured: false, priceId: null },
-  light:    { color: "#7a50b0", border: "#ddc8ff", bg: "#fdf8ff", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_LIGHT_PRICE_ID ?? null },
-  standard: { color: "#7a50b0", border: "#c9a0f0", bg: "#fdf8ff", featured: true,  priceId: process.env.NEXT_PUBLIC_STRIPE_STANDARD_PRICE_ID ?? null },
-  premium:  { color: "#c44a88", border: "#f4b9b9", bg: "#fff8fd", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_PREMIUM_PRICE_ID ?? null },
+const PLAN_STYLE: Record<string, { color: string; border: string; bg: string; featured: boolean; priceId: string | null; period: string }> = {
+  free:    { color: "#5580cc", border: "#c0d4ff", bg: "#f0f5ff", featured: false, priceId: null, period: "" },
+  weekly:  { color: "#7a50b0", border: "#ddc8ff", bg: "#fdf8ff", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID ?? null, period: "/週" },
+  monthly: { color: "#c44a88", border: "#f4b9b9", bg: "#fff8fd", featured: true,  priceId: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID ?? null, period: "/月" },
 };
 
 const FALLBACK_PLANS = [
-  { key: "free",     name: "無料",       price: null },
-  { key: "light",    name: "ライト",     price: 500 },
-  { key: "standard", name: "スタンダード", price: 980 },
-  { key: "premium",  name: "プレミアム",  price: 1480 },
+  { key: "free",    name: "toolio free",             price: null },
+  { key: "weekly",  name: "toolio weekly unlimited", price: 498 },
+  { key: "monthly", name: "toolio monthly unlimited", price: 1480 },
 ];
 
-const FALLBACK_FEATURES = [
-  { label: "お気に入り",       from: "free",     freeNote: "最大5件", paidNote: "無制限" },
-  { label: "DL履歴",           from: "free",     freeNote: "最大5件", paidNote: "無制限" },
-  { label: "単品購入",         from: "light",    freeNote: "",        paidNote: "" },
-  { label: "おすすめ教材表示", from: "light",    freeNote: "",        paidNote: "" },
-  { label: "無料教材",         from: "free",     freeNote: "",        paidNote: "" },
-  { label: "ライト教材",       from: "light",    freeNote: "",        paidNote: "" },
-  { label: "スタンダード教材", from: "standard", freeNote: "",        paidNote: "" },
-  { label: "プレミアム教材",   from: "premium",  freeNote: "",        paidNote: "" },
-] as { label: string; from: string; freeNote?: string; paidNote?: string }[];
+const FALLBACK_FEATURES: { label: string; from: string; freeNote?: string; paidNote?: string }[] = [];
 
-const planOrder = ["free", "light", "standard", "premium"];
+const planOrder = ["free", "weekly", "monthly"];
 
 function isFeatureAvailable(featureFrom: string, planKey: string) {
   return planOrder.indexOf(planKey) >= planOrder.indexOf(featureFrom);
@@ -72,6 +61,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
   const [cancellationChoiceForPlan, setCancellationChoiceForPlan] = useState<{ key: string; name: string; price: number } | null>(null);
   const [keepCancellation, setKeepCancellation] = useState<boolean | null>(null);
   const [showFreeDowngradeNotice, setShowFreeDowngradeNotice] = useState(false);
+  const [notionLoading, setNotionLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/notion/plans")
@@ -81,7 +71,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
           setPlans(notionPlans.map((p: any) => ({
             key: p.key,
             name: p.displayName || p.key,
-            price: p.key === "free" ? null : p.price,
+            price: (p.key === "free" || p.key === "toolio free" || p.price === 0) ? null : p.price,
             ...PLAN_STYLE[p.key],
           })));
         }
@@ -94,7 +84,8 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
           })));
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setNotionLoading(false));
   }, []);
 
   const handleChangePlan = async (newPlanKey: string) => {
@@ -110,7 +101,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
       })
       const data = await res.json()
       if (data.success) {
-        const planName = plans.find(p => p.key === newPlanKey)?.name ?? "無料"
+        const planName = plans.find(p => p.key === newPlanKey)?.name ?? "toolio free"
         const mode = newPlanKey === "free" ? "cancel" : "change"
         setSuccessPlan({ name: planName, mode, currentPeriodEnd: data.currentPeriodEnd })
       } else if (data.error === 'subscription_reset') {
@@ -180,7 +171,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
     <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
       <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
       <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
-        お支払い情報に問題が発生したため、現在のプランが無料プランに戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+        お支払い情報に問題が発生したため、現在のプランが toolio free に戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
       </div>
       <button
         onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}
@@ -245,17 +236,17 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
       {showFreeDowngradeNotice && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}>
           <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "36px 28px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>無料プランへの変更前にご確認ください</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>toolio free への変更前にご確認ください</div>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 20 }}>
-              無料プランでは、<strong>お気に入り登録</strong>と<strong>ダウンロード履歴</strong>の表示は最新5件までとなります。<br /><br />
-              現在の登録・履歴データは削除されません。再度ライトプラン以上にアップグレードいただくと、すべての履歴が復活します。
+              toolio free では、<strong>お気に入り登録</strong>と<strong>ダウンロード履歴</strong>の表示は最新5件までとなります。<br /><br />
+              現在の登録・履歴データは削除されません。再度サブスクプランにアップグレードいただくと、すべての履歴が復活します。
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
                 onClick={() => { setShowFreeDowngradeNotice(false); handleChangePlan("free"); }}
                 style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
               >
-                了解して無料プランに変更する
+                了解して toolio free に変更する
               </button>
               <button
                 onClick={() => setShowFreeDowngradeNotice(false)}
@@ -322,9 +313,29 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
 
       <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif" }}>
 
-
         {/* 比較テーブル */}
         <div style={{ overflowX: "auto" }}>
+        {notionLoading ? (
+          <div style={{ padding: "8px 0" }}>
+            <style>{`@keyframes sk-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+            {/* ヘッダー行スケルトン */}
+            <div style={{ display: "grid", gridTemplateColumns: "16% repeat(3, 1fr)", gap: 8, marginBottom: 8 }}>
+              <div />
+              {[0,1,2].map(i => (
+                <div key={i} style={{ height: 80, borderRadius: 12, background: "linear-gradient(90deg,#f0ecfa 25%,#e4ddf5 50%,#f0ecfa 75%)", backgroundSize: "200% 100%", animation: "sk-shimmer 1.6s infinite" }} />
+              ))}
+            </div>
+            {/* 機能行スケルトン */}
+            {[0,1,2,3,4].map(i => (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: "16% repeat(3, 1fr)", gap: 8, marginBottom: 6 }}>
+                <div style={{ height: 36, borderRadius: 8, background: "linear-gradient(90deg,#f0ecfa 25%,#e4ddf5 50%,#f0ecfa 75%)", backgroundSize: "200% 100%", animation: "sk-shimmer 1.6s infinite" }} />
+                {[0,1,2].map(j => (
+                  <div key={j} style={{ height: 36, borderRadius: 8, background: "linear-gradient(90deg,#f8f6fc 25%,#f0ecfa 50%,#f8f6fc 75%)", backgroundSize: "200% 100%", animation: `sk-shimmer 1.6s ${i * 0.1}s infinite` }} />
+                ))}
+              </div>
+            ))}
+          </div>
+        ) : (
           <table style={{ width: "100%", minWidth: 620, borderCollapse: "separate", borderSpacing: 0 }}>
             <thead>
               <tr>
@@ -335,12 +346,11 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
 
                   // 吹き出し文言を決定
                   let bubbleText: string | null = null;
-                  if (requiredPlan) {
-                    // 教材から開いた場合
-                    if (plan.key === requiredPlan) {
+                  if (requiredPlan && requiredPlan !== "free") {
+                    if (plan.key === "weekly") {
                       bubbleText = "この教材がすぐに使えます";
-                    } else if (plan.key === "premium" && requiredPlan !== "premium") {
-                      bubbleText = "すべての教材を制限なく使いたい方へ";
+                    } else if (plan.key === "monthly") {
+                      bubbleText = "weekly より月500円お得";
                     }
                   }
 
@@ -400,11 +410,11 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                         </div>
                         <div>
                           {plan.price === null ? (
-                            <span style={{ fontSize: 14, fontWeight: 800, color: "#aaa" }}>無料</span>
+                            <span style={{ fontSize: 14, fontWeight: 800, color: "#aaa" }}>¥0</span>
                           ) : (
                             <>
                               <span style={{ fontSize: 16, fontWeight: 800, color: plan.color }}>¥{plan.price.toLocaleString()}</span>
-                              <span style={{ fontSize: 9, color: "#bbb" }}>/月</span>
+                              <span style={{ fontSize: 9, color: "#bbb" }}>{PLAN_STYLE[plan.key]?.period ?? "/月"}</span>
                             </>
                           )}
                         </div>
@@ -519,7 +529,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                         </button>
                       ) : plan.key === "free" && isPaid ? (
                         <button
-                          onClick={(() => setStartPlan({ key: "free", name: "無料", price: 0, mode: "cancel" }))}
+                          onClick={(() => setStartPlan({ key: "free", name: "toolio free", price: 0, mode: "cancel" }))}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
                             background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)",
@@ -590,6 +600,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
               </tr>
             </tbody>
           </table>
+        )}
         </div>
 
         <div style={{ textAlign: "center", fontSize: 10, color: "#ccc", marginTop: 16 }}>
