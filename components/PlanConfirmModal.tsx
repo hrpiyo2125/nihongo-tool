@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "./ProcessingOverlay";
 import { BrandIcon } from "./BrandIcon";
@@ -39,6 +40,7 @@ type Props = {
 };
 
 export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancellation = null, cardInfo: cardInfoProp, onSuccess, onClose, onSubscriptionReset }: Props) {
+  const router = useRouter();
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,10 +128,10 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
       return (
         <>
           <SuccessOverlay
-            label={`${PLAN_LABELS[plan] ?? plan}へようこそ。\n全教材がすぐにご利用いただけます。`}
+            label={`${PLAN_LABELS[plan] ?? plan}へようこそ。\nサブスク限定の教材が無制限でご利用いただけます。`}
           />
           <button
-            onClick={onSuccess}
+            onClick={() => { router.refresh(); onSuccess(); }}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
           >
             教材を見る →
