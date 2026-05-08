@@ -31,7 +31,7 @@ export default function PlanModal({ currentPlan, requiredPlan, onSubscribed, onC
 
   return (
     <div
-      onClick={onClose}
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
       style={{
         position: "fixed",
         inset: 0,

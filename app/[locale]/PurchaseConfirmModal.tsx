@@ -63,7 +63,7 @@ export default function PurchaseConfirmModal({ mat, onSuccess, onClose }: Props)
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div onClick={(e) => { e.stopPropagation(); onClose(); }} style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 480, padding: "36px 32px", position: "relative", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
         <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.06)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
@@ -100,7 +100,7 @@ export default function PurchaseConfirmModal({ mat, onSuccess, onClose }: Props)
           disabled={loading}
           style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: loading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: loading ? "not-allowed" : "pointer" }}
         >
-          {loading ? "処理中..." : "今すぐ¥350を支払う"}
+          {loading ? "処理中..." : "今すぐ¥300を支払う"}
         </button>
         <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 12 }}>
           「今すぐ支払う」を押すと、上記の金額がカードに請求されます。

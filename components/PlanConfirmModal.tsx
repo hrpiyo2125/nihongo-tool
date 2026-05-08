@@ -187,7 +187,7 @@ export default function PlanConfirmModal({ plan, mode = "subscribe", keepCancell
 
   return (
     <div
-      onClick={loading || success ? undefined : onClose}
+      onClick={loading || success ? undefined : (e) => { e.stopPropagation(); onClose(); }}
       style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}
     >
       <div
