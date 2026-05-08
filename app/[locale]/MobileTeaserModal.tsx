@@ -352,7 +352,7 @@ export default function TeaserModal({
                             onClick={() => { setDownTooltip(false); onOpenPurchaseConfirm(); }}
                             style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
                           >
-                            ¥350 この教材を単品購入する
+                            ¥300 この教材を単品購入する
                           </button>
                         </>
                       )}
