@@ -70,7 +70,7 @@ type MaterialForStyle = {
   tagColor?: string;
 };
 
-export function getCardStyle(mat: MaterialForStyle) {
+export function getCardStyle(mat: MaterialForStyle, _locale?: string) {
   const firstContent = mat.content?.[0] ?? "hiragana";
   const bg = mat.bg ?? bgMap[firstContent] ?? "linear-gradient(135deg,#e8efff,#d0dcff)";
   const char = mat.char ?? charMap[firstContent] ?? "✦";
