@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // 支払い方法があれば即決済
     const paymentMethod = paymentMethods.data[0];
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: 350,
+      amount: 300,
       currency: "jpy",
       customer: customerId,
       payment_method: paymentMethod.id,
@@ -50,13 +50,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (paymentIntent.status === "succeeded") {
-      // purchasesテーブルに記録
-      await supabase.from("purchases").insert({
+      const { error: insertError } = await supabase.from("purchases").insert({
         user_id: userId,
         material_id: materialId,
         stripe_payment_intent_id: paymentIntent.id,
-        amount: 350,
+        amount: 300,
       });
+      if (insertError) {
+        console.error("Purchase insert error:", insertError);
+        return NextResponse.json({ error: "DB_INSERT_FAILED" }, { status: 500 });
+      }
       return NextResponse.json({ success: true });
     }
 
