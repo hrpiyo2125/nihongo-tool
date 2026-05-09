@@ -501,10 +501,12 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
         delete comboGroups[g];
       }
+      const headingText = item.group || item.description;
+      const subText = item.group ? item.description : '';
       rendered.push(
         <div key={`heading-${item.order}`} style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#555", marginBottom: item.description ? 8 : 0 }}>{item.group}</div>
-          {item.description && <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>}
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#555", marginBottom: subText ? 8 : 0 }}>{headingText}</div>
+          {subText && <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{subText}</p>}
         </div>
       );
     } else if (item.type === 'text') {
