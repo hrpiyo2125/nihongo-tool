@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
-import { getTextContents, getFAQs } from "@/lib/notion";
+import { getTextContents, getFAQs, getGuideBlocks, getGuideItems } from "@/lib/notion";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const [textContents, faqs] = await Promise.all([
+  const [textContents, faqs, guideBlocks, guideItems] = await Promise.all([
     getTextContents(),
     getFAQs(),
+    getGuideBlocks(),
+    getGuideItems(),
   ]);
-  return NextResponse.json({ textContents, faqs });
+  return NextResponse.json({ textContents, faqs, guideBlocks, guideItems });
 }

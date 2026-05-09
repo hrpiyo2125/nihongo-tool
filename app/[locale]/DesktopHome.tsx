@@ -17,7 +17,8 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { FaqSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
-import { PrivacyContent, TermsContent, TokushohoContent, FaqContent, AboutContent } from "./LegalPagesContent";
+import { PrivacyContent, TermsContent, TokushohoContent, FaqContent, AboutContent, HowtoContent } from "./LegalPagesContent";
+import type { NotionBlock, GuideItem } from "@/lib/notion";
 import PersonalizedSection from "./PersonalizedSection";
 import IconItem from "./IconItem";
 
@@ -56,6 +57,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M2 10h20" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M6 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M14 15h4" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
+    { id: "howto", label: "授業づくりガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="12" height="20" rx="2" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M8 7h8M8 11h8M8 15h5" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M16 2v4l2-1 2 1V2" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   ];
 
   const contentTabs = [
@@ -156,7 +158,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
-  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[]; guideBlocks?: NotionBlock[]; guideItems?: GuideItem[] } | null>(null);
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
   // URLパラメータまたはpropsからフィルターを読み込んでモーダルを自動オープン
@@ -416,6 +418,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
         {activePage !== "home" && (
           activePage === "guide" ? <FaqSection /> :
+          activePage === "howto" ? <HowtoContent onBack={() => setActivePage("home")} blocks={legalContent?.guideBlocks} guideItems={legalContent?.guideItems} /> :
           activePage === "privacy" ? <PrivacyContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['プライバシーポリシー']} /> :
           activePage === "terms" ? <TermsContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['利用規約']} /> :
           activePage === "tokushoho" ? <TokushohoContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :

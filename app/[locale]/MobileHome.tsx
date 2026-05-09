@@ -10,7 +10,8 @@ import MobileTeaserModal from "./MobileTeaserModal";
 import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
 import { FaqSection } from "./MobileTroubleGuide";
-import { PrivacyContent, TermsContent, TokushohoContent, AboutContent } from "./LegalPagesContent";
+import { PrivacyContent, TermsContent, TokushohoContent, AboutContent, HowtoContent } from "./LegalPagesContent";
+import type { NotionBlock, GuideItem } from "@/lib/notion";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
@@ -56,7 +57,7 @@ async function toggleFav(
 
 type Announcement = { id: string; title: string; date: string; type: string; material_id: string | null };
 type LegalType = "privacy" | "terms" | "tokushoho" | "about" | null;
-type MorePageType = "dl" | "guide" | "purchases" | null;
+type MorePageType = "dl" | "guide" | "purchases" | "howto" | null;
 
 function MobileHomeInner({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
   const router = useRouter();
@@ -84,7 +85,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const [editingValue, setEditingValue] = useState("");
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
-  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[]; guideBlocks?: NotionBlock[]; guideItems?: GuideItem[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrollingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -479,6 +480,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               { icon: "download" as const, label: "ダウンロード履歴", type: "dl"        as MorePageType },
               { icon: "guide"    as const, label: "よくある質問",     type: "guide"     as MorePageType },
               { icon: "purchases"as const, label: "教材購入履歴",     type: "purchases" as MorePageType },
+              { icon: "guide"    as const, label: "授業づくりガイド",     type: "howto"     as MorePageType },
             ].map((item) => (
               <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -546,6 +548,17 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
+        </div>
+      )}
+
+      {/* 授業づくりガイド */}
+      {morePageType === "howto" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>授業づくりガイド</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto" }}><HowtoContent onBack={() => setMorePageType(null)} compact blocks={legalContent?.guideBlocks} guideItems={legalContent?.guideItems} /></div>
         </div>
       )}
 

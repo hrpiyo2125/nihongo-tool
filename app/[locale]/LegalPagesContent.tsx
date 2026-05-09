@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import type { NotionBlock } from "@/lib/notion";
 
 const HERO_BG = "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)";
 const GRAD_TEXT: React.CSSProperties = { background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" };
@@ -343,6 +344,151 @@ export function AboutContent({ onBack, compact, notionBody }: { onBack: () => vo
           </section>
         </>
       )}
+    </PageShell>
+  );
+}
+
+function renderBlocks(blocks: NotionBlock[]) {
+  let numberedCount = 0;
+  return blocks.map((block, i) => {
+    if (block.type !== 'numbered_list_item') numberedCount = 0;
+    switch (block.type) {
+      case 'heading_2':
+        return <h3 key={i} style={{ fontSize: 16, fontWeight: 800, color: "#7a50b0", margin: "28px 0 10px" }}>{block.text}</h3>;
+      case 'heading_3':
+        return <h4 key={i} style={{ fontSize: 14, fontWeight: 700, color: "#555", margin: "20px 0 8px" }}>{block.text}</h4>;
+      case 'paragraph':
+        return block.text ? <p key={i} style={{ fontSize: 14, color: "#666", lineHeight: 2, margin: "0 0 10px", whiteSpace: "pre-line" }}>{block.text}</p> : <div key={i} style={{ height: 8 }} />;
+      case 'bulleted_list_item':
+        return <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 6 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#a3c0ff)", flexShrink: 0, marginTop: 7, display: "inline-block" }} /><span style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>{block.text}</span></div>;
+      case 'numbered_list_item': {
+        numberedCount++;
+        const n = numberedCount;
+        return <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 6 }}><span style={{ fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", borderRadius: "50%", width: 20, height: 20, display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 3 }}>{n}</span><span style={{ fontSize: 14, color: "#666", lineHeight: 1.9 }}>{block.text}</span></div>;
+      }
+      case 'image':
+        return <div key={i} style={{ margin: "16px 0", textAlign: "center" }}><img src={block.imageUrl} alt={block.imageCaption ?? ""} style={{ maxWidth: "100%", borderRadius: 12, border: "0.5px solid rgba(200,170,240,0.2)" }} />{block.imageCaption && <div style={{ fontSize: 12, color: "#aaa", marginTop: 6 }}>{block.imageCaption}</div>}</div>;
+      case 'divider':
+        return <hr key={i} style={{ border: "none", borderTop: "0.5px solid rgba(200,170,240,0.2)", margin: "20px 0" }} />;
+      default:
+        return null;
+    }
+  });
+}
+
+import type { GuideItem } from "@/lib/notion";
+
+const contentImageMap: Record<string, string> = {
+  ひらがな: "/contents/12_hiragana.png", カタカナ: "/contents/4_kanakana.png",
+  漢字: "/contents/3_kanji.png", 助詞: "/contents/5_joshi.png",
+  場面会話: "/contents/8_kaiwa.png", 季節・行事: "/contents/17_season.png",
+  食べ物: "/contents/15_food.png", 動物: "/contents/1_animal.png",
+  体・健康: "/contents/9_body.png", 色・形: "/contents/18_color.png",
+  数・算数: "/contents/13_number.png", 形容詞: "/contents/2_keiyoushi.png",
+  動詞: "/contents/6_doushi.png", 接続詞: "/contents/10_setsuzokushi.png",
+  文法: "/contents/16_bunpo.png", 身近なもの: "/contents/7_mijika.png",
+  ことば: "/contents/19_word.png", やさい・くだもの: "/contents/11_yasai.png",
+  自分のこと: "/contents/myself.png",
+};
+
+const methodImageMap: Record<string, string> = {
+  ドリル: "/method/10_drill.png", テスト: "/method/13_test.png",
+  カード: "/method/9_card.png", ぬりえ: "/method/2_nurie.png",
+  ロールプレイ: "/method/6_roleplay.png", ビンゴ: "/method/12_bingo.png",
+  インタビュー: "/method/4_interview.png", プレゼンテーション: "/method/presentation.png",
+  文づくり: "/method/5_sentense.png", 作文: "/method/1_sakubun.png",
+  チェック: "/method/3_checklist.png", すごろく: "/method/7_sugoroku.png",
+  ポスター: "/method/8_poster.png",
+};
+
+function IconPair({ content, method, description, contentId, methodId }: { content: string; method: string; description: string; contentId: string; methodId: string }) {
+  const href = `/?content=${contentId}&method=${methodId}`;
+  return (
+    <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", minWidth: 100 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <div style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", border: "0.5px solid rgba(200,170,240,0.25)", background: "#f8f4ff" }}>
+          <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+        <span style={{ fontSize: 13, color: "#bbb" }}>×</span>
+        <div style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", border: "0.5px solid rgba(200,170,240,0.25)", background: "#f8f4ff" }}>
+          <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        <span style={{ fontSize: 11, color: "#888" }}>{content}</span>
+        <span style={{ fontSize: 11, color: "#ccc" }}>×</span>
+        <span style={{ fontSize: 11, color: "#888" }}>{method}</span>
+      </div>
+      {description && <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", maxWidth: 100 }}>{description}</div>}
+    </a>
+  );
+}
+
+const contentIdMap: Record<string, string> = {
+  ひらがな: "hiragana", カタカナ: "katakana", 漢字: "kanji", 助詞: "joshi",
+  場面会話: "kaiwa", 季節・行事: "season", 食べ物: "food", 動物: "animal",
+  体・健康: "body", 色・形: "color", 数・算数: "number", 形容詞: "adjective",
+  動詞: "verb", 接続詞: "conjunction", 文法: "grammar", 身近なもの: "familiar",
+  ことば: "kotoba", やさい・くだもの: "vegefruit", 自分のこと: "myself",
+};
+const methodIdMap: Record<string, string> = {
+  ドリル: "drill", テスト: "test", カード: "card", ぬりえ: "nurie",
+  ロールプレイ: "roleplay", ビンゴ: "bingo", インタビュー: "interview",
+  プレゼンテーション: "presentation", 文づくり: "sentence", 作文: "essay",
+  チェック: "check", すごろく: "sugoroku", ポスター: "poster",
+};
+
+export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: () => void; compact?: boolean; blocks?: NotionBlock[]; guideItems?: GuideItem[] }) {
+  const groups: Record<string, GuideItem[]> = {};
+  for (const item of guideItems ?? []) {
+    if (!groups[item.group]) groups[item.group] = [];
+    groups[item.group].push(item);
+  }
+  const groupEntries = Object.entries(groups);
+
+  return (
+    <PageShell title="授業づくりガイド" compact={compact}>
+      {groupEntries.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          {groupEntries.map(([group, items]) => (
+            <div key={group} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "20px 20px 24px" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 18 }}>{group}</div>
+              {items.every(item => !item.content && !item.method) ? (
+                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-line" }}>
+                  {items.map(item => item.description).join('\n')}
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+                  {items.map((item, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      {item.content || item.method ? (
+                        <IconPair
+                          content={item.content}
+                          method={item.method}
+                          description={item.description}
+                          contentId={contentIdMap[item.content] ?? "all"}
+                          methodId={methodIdMap[item.method] ?? "all"}
+                        />
+                      ) : (
+                        <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
+                      )}
+                      {i < items.length - 1 && (
+                        <span style={{ fontSize: 18, color: "#ccc", marginTop: -16 }}>→</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
+          <div style={{ fontSize: 32, marginBottom: 12 }}>📖</div>
+          <div style={{ fontSize: 14 }}>コンテンツを準備中です</div>
+        </div>
+      )}
+      {blocks && blocks.length > 0 && <div style={{ marginTop: 32 }}>{renderBlocks(blocks)}</div>}
     </PageShell>
   );
 }
