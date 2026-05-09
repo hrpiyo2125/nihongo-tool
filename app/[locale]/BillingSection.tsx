@@ -50,7 +50,7 @@ function StatusBadge({ plan_status, cancel_at_period_end, isPendingDeletion }: {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f8ee", color: "#2a6a44" }}>トライアル中</span>;
   }
   if (cancel_at_period_end) {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>toolio free へ変更予定</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>キャンセル予約済み</span>;
   }
   if (plan_status === "past_due") {
     return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#ffe8e8", color: "#a02020" }}>お支払い確認中</span>;
@@ -267,7 +267,7 @@ export default function BillingSection({
               )}
               {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
                 <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} にtoolio free へ移行
+                  {formatDate(profile.current_period_end)} にサブスクがキャンセルされます
                 </div>
               )}
               {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
@@ -304,7 +304,7 @@ export default function BillingSection({
                     onClick={() => setConfirmCancel(true)}
                     style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer", whiteSpace: "nowrap" }}
                   >
-                    無料に変更
+                    サブスクをキャンセル
                   </button>
                 )}
                 {isPaid && profile.cancel_at_period_end && (
@@ -313,7 +313,7 @@ export default function BillingSection({
                     disabled={reactivateLoading}
                     style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", whiteSpace: "nowrap" }}
                   >
-                    {reactivateLoading ? "処理中..." : "変更を取り消す"}
+                    {reactivateLoading ? "処理中..." : "キャンセルを取り消す"}
                   </button>
                 )}
               </div>
@@ -383,10 +383,10 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {reactivateLoading ? (
-                <ProcessingOverlay messages={["変更取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={["キャンセル取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="toolio free への変更を取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label="キャンセルを取り消しました。引き続きご利用いただけます。" />
                 </div>
               )}
             </div>
@@ -398,16 +398,16 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {cancelLoading ? (
-                <ProcessingOverlay messages={["変更処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={["キャンセル処理中...", "もう少しで完了します", "データを更新しています"]} />
               ) : cancelSuccess ? (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="toolio free への変更予約が完了しました。期間終了までご利用いただけます。" />
+                  <SuccessOverlay label="サブスクのキャンセルを受け付けました。期間終了までご利用いただけます。" />
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>toolio free への変更を確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>サブスクのキャンセルを確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                    変更予約をすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
+                    キャンセルすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
                     期間終了後は toolio free に移行します。
                   </div>
                   {cancelError && (
@@ -426,7 +426,7 @@ export default function BillingSection({
                       onClick={handleCancel}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                     >
-                      toolio free に変更する
+                      サブスクをキャンセルする
                     </button>
                   </div>
                 </div>
