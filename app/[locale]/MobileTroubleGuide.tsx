@@ -24,7 +24,13 @@ function FaqSection() {
       });
   }, []);
 
-  if (categories.length === 0) return null;
+  if (categories.length === 0) return (
+    <div style={{ padding: "24px 20px 80px", display: "flex", flexDirection: "column" as const, gap: 10 }}>
+      {[1,2,3,4].map(i => (
+        <div key={i} style={{ height: 48, borderRadius: 10, background: "rgba(200,170,240,0.08)", border: "0.5px solid rgba(200,170,240,0.15)" }} />
+      ))}
+    </div>
+  );
 
   return (
     <div style={{ padding: "24px 20px 80px", display: "flex", flexDirection: "column" as const, gap: 28 }}>
