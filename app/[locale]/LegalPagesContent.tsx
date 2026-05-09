@@ -427,38 +427,63 @@ function LevelTag({ lv, compact }: { lv: string; compact?: boolean }) {
 
 function IconPair({ content, method, description, level, contentId, methodId, compact }: { content: string; method: string; description: string; level: string[]; contentId: string; methodId: string; compact?: boolean }) {
   const href = `/?content=${contentId}&method=${methodId}`;
-  const iconSize = compact ? 36 : 44;
+  const iconSize = compact ? 34 : 44;
+
+  const iconsRow = (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: compact ? 8 : 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
+          <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+        <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{content}</span>
+      </div>
+      <span style={{ fontSize: compact ? 12 : 16, color: "#ccc", marginTop: compact ? 8 : 12 }}>×</span>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+        <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff" }}>
+          <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+        <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
+      </div>
+    </div>
+  );
+
+  if (compact) {
+    return (
+      <a href={href} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+        {iconsRow}
+        {(level.length > 0 || description) && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flex: 1 }}>
+            {level.map((lv, i) => (
+              <React.Fragment key={lv}>
+                {i > 0 && <span style={{ fontSize: 11, color: "#ccc" }}>×</span>}
+                <LevelTag lv={lv} compact={compact} />
+              </React.Fragment>
+            ))}
+            {level.length > 0 && description && <span style={{ fontSize: 16, color: "#b07de0" }}>→</span>}
+            {description && <span style={{ fontSize: 10, color: "#999", lineHeight: 1.5 }}>{description}</span>}
+          </div>
+        )}
+      </a>
+    );
+  }
+
   return (
     <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, textDecoration: "none" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: compact ? 10 : 14 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-          <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
-            <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-          <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{content}</span>
-        </div>
-        <span style={{ fontSize: compact ? 13 : 16, color: "#ccc", marginTop: compact ? 9 : 12 }}>×</span>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-          <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff" }}>
-            <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          </div>
-          <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
-        </div>
-      </div>
+      {iconsRow}
       {(level.length > 0 || description) && (
-        <div style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {level.length > 0 && (
             <>
               {level.map((lv, i) => (
                 <React.Fragment key={lv}>
-                  {i > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
-                  <LevelTag lv={lv} compact={compact} />
+                  {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
+                  <LevelTag lv={lv} />
                 </React.Fragment>
               ))}
-              {description && <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span>}
+              {description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
             </>
           )}
-          {description && <span style={{ fontSize: compact ? 10 : 11, color: "#999", lineHeight: 1.6 }}>{description}</span>}
+          {description && <span style={{ fontSize: 11, color: "#999", lineHeight: 1.8 }}>{description}</span>}
         </div>
       )}
     </a>
@@ -498,10 +523,10 @@ function ComboGroup({ group, items, compact }: { group: string; items: GuideItem
             </div>
           ))}
         </div>
-      ) : (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: compact ? 16 : 24, flexWrap: "wrap" }}>
+      ) : compact ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {items.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: compact ? 16 : 24 }}>
+            <React.Fragment key={i}>
               {item.content || item.method ? (
                 <IconPair
                   content={item.content}
@@ -513,23 +538,58 @@ function ComboGroup({ group, items, compact }: { group: string; items: GuideItem
                   compact={compact}
                 />
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, flexWrap: "wrap" }}>
-                  {(item.level ?? []).map((lv: string, i: number) => (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  {(item.level ?? []).map((lv: string, j: number) => (
                     <React.Fragment key={lv}>
-                      {i > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
+                      {j > 0 && <span style={{ fontSize: 11, color: "#ccc" }}>×</span>}
                       <LevelTag lv={lv} compact={compact} />
                     </React.Fragment>
                   ))}
-                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span>}
-                  {item.description && <span style={{ fontSize: compact ? 10 : 11, color: "#999" }}>{item.description}</span>}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 16, color: "#b07de0" }}>→</span>}
+                  {item.description && <span style={{ fontSize: 10, color: "#999" }}>{item.description}</span>}
                 </div>
               )}
               {i < items.length - 1 && (() => {
                 const conn = item.connector;
-                const pillStyle = { fontSize: 10, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: compact ? "3px 8px" : "4px 10px", marginTop: compact ? 8 : 12 };
+                const pillStyle = { fontSize: 10, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "3px 8px", alignSelf: "flex-start" as const };
                 if (conn === 'or') return <span style={pillStyle}>or</span>;
                 if (conn === 'and') return <span style={{ ...pillStyle, color: "#5a7fd4", background: "rgba(163,192,255,0.15)", border: "1px solid rgba(163,192,255,0.5)" }}>and</span>;
-                return <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0", marginTop: compact ? 6 : 8 }}>→</span>;
+                return <span style={{ fontSize: 18, color: "#b07de0" }}>→</span>;
+              })()}
+            </React.Fragment>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
+              {item.content || item.method ? (
+                <IconPair
+                  content={item.content}
+                  method={item.method}
+                  description={item.description}
+                  level={item.level ?? []}
+                  contentId={contentIdMap[item.content] ?? "all"}
+                  methodId={methodIdMap[item.method] ?? "all"}
+                />
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                  {(item.level ?? []).map((lv: string, j: number) => (
+                    <React.Fragment key={lv}>
+                      {j > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
+                      <LevelTag lv={lv} />
+                    </React.Fragment>
+                  ))}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
+                  {item.description && <span style={{ fontSize: 11, color: "#999" }}>{item.description}</span>}
+                </div>
+              )}
+              {i < items.length - 1 && (() => {
+                const conn = item.connector;
+                const pillStyle = { fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: 12 };
+                if (conn === 'or') return <span style={pillStyle}>or</span>;
+                if (conn === 'and') return <span style={{ ...pillStyle, color: "#5a7fd4", background: "rgba(163,192,255,0.15)", border: "1px solid rgba(163,192,255,0.5)" }}>and</span>;
+                return <span style={{ fontSize: 24, color: "#b07de0", marginTop: 8 }}>→</span>;
               })()}
             </div>
           ))}
