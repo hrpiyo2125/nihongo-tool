@@ -250,7 +250,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                 onClick={() => { setShowFreeDowngradeNotice(false); handleChangePlan("free"); }}
                 style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
               >
-                了解して toolio free に変更する
+                了解して toolio freeへ変更する
               </button>
               <button
                 onClick={() => setShowFreeDowngradeNotice(false)}

@@ -1050,14 +1050,14 @@ export default function MyPage({
                 <div style={{ padding: "36px 40px", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
                   <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>キャンセル予約が完了しました</div>
-                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、toolio free へ移行します。</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、toolio freeへ移行します。</div>
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
                   <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>サブスクのキャンセルを確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
                     キャンセルすると、<strong>{profile?.current_period_end ? new Date(profile.current_period_end).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong> までご利用いただけます。<br />
-                    期間終了後は toolio free に移行します。
+                    期間終了後は toolio freeへ移行します。
                   </div>
                   {freePlanError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>{freePlanError}</div>

@@ -408,7 +408,7 @@ export default function BillingSection({
                   <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>サブスクのキャンセルを確認</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
                     キャンセルすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
-                    期間終了後は toolio free に移行します。
+                    期間終了後は toolio freeへ移行します。
                   </div>
                   {cancelError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
