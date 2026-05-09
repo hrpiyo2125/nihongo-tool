@@ -184,9 +184,34 @@ export default function TeaserModal({
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [purchaseCardInfo, setPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
+  const [localUserPlan, setLocalUserPlan] = useState(userPlan);
+  const [localPurchasedIds, setLocalPurchasedIds] = useState(purchasedIds);
+  const isFreeUser = localUserPlan === "free" || localUserPlan === "" || !localUserPlan;
   const isFav = favIds.includes(mat.id);
-  const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
+  const canDl = canDownload(localUserPlan, mat.requiredPlan, localPurchasedIds, mat.id);
+
+  const refreshAfterPurchase = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+    if (data) {
+      const ids = data.map((d: { material_id: string }) => d.material_id);
+      setLocalPurchasedIds(ids);
+      window.dispatchEvent(new CustomEvent("toolio:purchase-complete", { detail: { materialId: mat.id, purchasedIds: ids } }));
+    }
+  };
+
+  const refreshAfterPlanUpgrade = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
+    if (data?.plan) {
+      setLocalUserPlan(data.plan);
+      window.dispatchEvent(new CustomEvent("toolio:plan-upgraded", { detail: { plan: data.plan } }));
+    }
+  };
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -384,6 +409,7 @@ export default function TeaserModal({
           mat={mat}
           cardInfo={purchaseCardInfo}
           onSuccess={() => {
+            refreshAfterPurchase();
             setShowPurchaseConfirm(false);
             setDownTooltip(false);
           }}
@@ -393,9 +419,10 @@ export default function TeaserModal({
 
       {showPlanModal && (
         <PlanModal
-          currentPlan={userPlan}
+          currentPlan={localUserPlan}
           requiredPlan={mat.requiredPlan}
           onSubscribed={() => {
+            refreshAfterPlanUpgrade();
             setShowPlanModal(false);
             setDownTooltip(false);
           }}

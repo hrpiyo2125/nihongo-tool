@@ -188,6 +188,17 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     return () => window.removeEventListener("toolio:navigate-mypage", handler);
   }, []);
 
+  useEffect(() => {
+    const handlePurchase = () => { loadProfile(); };
+    const handlePlan = () => { loadProfile(); };
+    window.addEventListener("toolio:purchase-complete", handlePurchase);
+    window.addEventListener("toolio:plan-upgraded", handlePlan);
+    return () => {
+      window.removeEventListener("toolio:purchase-complete", handlePurchase);
+      window.removeEventListener("toolio:plan-upgraded", handlePlan);
+    };
+  }, [loadProfile]);
+
   const switchLanguage = () => {
     const nextLocale = locale === 'ja' ? 'en' : 'ja';
     router.push(`/${nextLocale}${pathname.replace(`/${locale}`, '') || '/'}`);

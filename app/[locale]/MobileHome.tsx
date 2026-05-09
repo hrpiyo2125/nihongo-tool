@@ -794,7 +794,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <PlanModal
           currentPlan={profile.plan ?? "free"}
           requiredPlan={(teaserMat as any).requiredPlan}
-          onSubscribed={() => setTeaserPlanOpen(false)}
+          onSubscribed={() => { loadProfile(); setTeaserPlanOpen(false); }}
           onClose={() => setTeaserPlanOpen(false)}
         />
       )}
@@ -815,7 +815,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <PurchaseConfirmModal
           mat={teaserMat as any}
           cardInfo={teaserPurchaseCardInfo}
-          onSuccess={() => setTeaserPurchaseOpen(false)}
+          onSuccess={() => { loadProfile(); setTeaserPurchaseOpen(false); }}
           onClose={() => setTeaserPurchaseOpen(false)}
         />
       )}
