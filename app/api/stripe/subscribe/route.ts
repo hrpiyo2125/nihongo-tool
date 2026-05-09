@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
             proration_behavior: "always_invoice",
           });
           const newPlan = PLAN_MAP[priceId] ?? "monthly";
-          await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: updatedSub.id }).eq("id", userId);
+          const periodEnd = updatedSub.items.data[0]?.current_period_end
+            ? new Date(updatedSub.items.data[0].current_period_end * 1000).toISOString()
+            : null;
+          await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: updatedSub.id, current_period_end: periodEnd }).eq("id", userId);
           return NextResponse.json({ success: true });
         }
       } catch (e: any) {
@@ -80,7 +83,10 @@ export async function POST(req: NextRequest) {
 
     if (subscription.status === "active") {
       const newPlan = PLAN_MAP[priceId] ?? "monthly";
-      await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: subscription.id }).eq("id", userId);
+      const periodEnd = subscription.items.data[0]?.current_period_end
+        ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+        : null;
+      await supabase.from("profiles").update({ plan: newPlan, stripe_subscription_id: subscription.id, current_period_end: periodEnd }).eq("id", userId);
       return NextResponse.json({ success: true });
     }
 
