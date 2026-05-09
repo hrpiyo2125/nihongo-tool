@@ -500,7 +500,16 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                   methodId={methodIdMap[item.method] ?? "all"}
                 />
               ) : (
-                <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  {(item.level ?? []).map((lv: string, i: number) => (
+                    <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                      <LevelTag lv={lv} />
+                    </span>
+                  ))}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+                  {item.description && <span style={{ fontSize: 11, color: "#999" }}>{item.description}</span>}
+                </div>
               )}
               {i < items.length - 1 && (() => {
                 const conn = item.connector;
