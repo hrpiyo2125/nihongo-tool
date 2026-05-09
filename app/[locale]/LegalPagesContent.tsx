@@ -450,11 +450,11 @@ function IconPair({ content, method, description, level, contentId, methodId }: 
             <>
               {level.map((lv, i) => (
                 <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                  {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                   <LevelTag lv={lv} />
                 </span>
               ))}
-              {description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+              {description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
             </>
           )}
           {description && <span style={{ fontSize: 11, color: "#999", lineHeight: 1.8 }}>{description}</span>}
@@ -488,11 +488,11 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
               {item.level.map((lv, j) => (
                 <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  {j > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                  {j > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                   <LevelTag lv={lv} />
                 </span>
               ))}
-              {item.level.length > 0 && item.description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+              {item.level.length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
               {item.description && <span style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{item.description}</span>}
             </div>
           ))}
@@ -514,11 +514,11 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   {(item.level ?? []).map((lv: string, i: number) => (
                     <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                      {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                       <LevelTag lv={lv} />
                     </span>
                   ))}
-                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
                   {item.description && <span style={{ fontSize: 11, color: "#999" }}>{item.description}</span>}
                 </div>
               )}
@@ -573,11 +573,11 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
           {item.level.map((lv: string, i: number) => (
             <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+              {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
               <LevelTag lv={lv} />
             </span>
           ))}
-          {item.description && <><span style={{ fontSize: 11, color: "#bbb" }}>→</span><span style={{ fontSize: 11, color: "#999" }}>{item.description}</span></>}
+          {item.description && <><span style={{ fontSize: 24, color: "#b07de0" }}>→</span><span style={{ fontSize: 11, color: "#999" }}>{item.description}</span></>}
         </div>
       );
     } else {
