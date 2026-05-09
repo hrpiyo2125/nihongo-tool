@@ -483,8 +483,19 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
     <div style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px 32px" }}>
       <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 24 }}>{group}</div>
       {items.every(item => !item.content && !item.method) ? (
-        <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-line" }}>
-          {items.map(item => item.description).join('\n')}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+              {item.level.map((lv, j) => (
+                <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {j > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                  <LevelTag lv={lv} />
+                </span>
+              ))}
+              {item.level.length > 0 && item.description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+              {item.description && <span style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{item.description}</span>}
+            </div>
+          ))}
         </div>
       ) : (
         <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
@@ -553,10 +564,25 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
       rendered.push(
         <p key={`text-${item.order}`} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>
       );
+    } else if (!item.group && item.level.length > 0) {
+      for (const [g, gitems] of Object.entries(comboGroups)) {
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        delete comboGroups[g];
+      }
+      rendered.push(
+        <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+          {item.level.map((lv: string, i: number) => (
+            <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+              <LevelTag lv={lv} />
+            </span>
+          ))}
+          {item.description && <><span style={{ fontSize: 11, color: "#bbb" }}>→</span><span style={{ fontSize: 11, color: "#999" }}>{item.description}</span></>}
+        </div>
+      );
     } else {
-      const groupKey = item.group || Object.keys(comboGroups).pop() || '';
-      if (!comboGroups[groupKey]) comboGroups[groupKey] = [];
-      comboGroups[groupKey].push(item);
+      if (!comboGroups[item.group]) comboGroups[item.group] = [];
+      comboGroups[item.group].push(item);
     }
   }
   for (const [g, gitems] of Object.entries(comboGroups)) {
