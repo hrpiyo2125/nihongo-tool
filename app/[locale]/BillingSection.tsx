@@ -503,8 +503,8 @@ export default function BillingSection({
                             <span style={{ fontSize: 13, color: "#555" }}>{dateStr}</span>
                             <span style={{ fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                             <span style={{ fontSize: 13, color: "#555" }}>¥{item.amount_paid.toLocaleString()}</span>
-                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, background: item.type === "purchase" ? "#f0e8ff" : "#e8efff", color: item.type === "purchase" ? "#8040c0" : "#3a5a9a", whiteSpace: "nowrap" }}>
-                              {item.type === "purchase" ? "単品" : "定期"}
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, background: item.type === "purchase" ? "#f0e8ff" : "#e8efff", color: item.type === "purchase" ? "#8040c0" : "#3a5a9a", whiteSpace: "nowrap", textAlign: "center", display: "inline-block" }}>
+                              {item.type === "purchase" ? "単品" : "サブスク"}
                             </span>
                             {item.invoice_pdf ? (
                               <a href={item.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>領収書↓</a>
