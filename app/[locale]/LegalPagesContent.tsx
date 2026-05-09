@@ -527,7 +527,7 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                 const pillStyle = { fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: 12 };
                 if (conn === 'or') return <span style={pillStyle}>or</span>;
                 if (conn === 'and') return <span style={{ ...pillStyle, color: "#5a7fd4", background: "rgba(163,192,255,0.15)", border: "1px solid rgba(163,192,255,0.5)" }}>and</span>;
-                return <span style={{ fontSize: 16, color: "#ccc", marginTop: 8 }}>→</span>;
+                return <span style={{ fontSize: 24, color: "#b07de0", marginTop: 8 }}>→</span>;
               })()}
             </div>
           ))}
