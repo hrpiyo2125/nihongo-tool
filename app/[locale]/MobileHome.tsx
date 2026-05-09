@@ -476,8 +476,8 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             {[
               { icon: "download" as const, label: "ダウンロード履歴", type: "dl"        as MorePageType },
               { icon: "guide"    as const, label: "よくある質問",     type: "guide"     as MorePageType },
-              { icon: "purchases"as const, label: "教材購入履歴",     type: "purchases" as MorePageType },
-              { icon: "guide"    as const, label: "授業づくりガイド",     type: "howto"     as MorePageType },
+              { icon: "document" as const, label: "教材購入履歴",     type: "purchases" as MorePageType },
+              { icon: "books"    as const, label: "授業づくりガイド", type: "howto"     as MorePageType },
             ].map((item) => (
               <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
