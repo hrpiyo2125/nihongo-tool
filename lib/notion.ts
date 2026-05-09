@@ -225,6 +225,7 @@ export async function getMaterialById(id: string) {
       studyTime:   props.studyTime?.rich_text?.[0]?.plain_text ?? '',
       searchKeywords: props.searchKeywords?.rich_text?.[0]?.plain_text ?? '',
       pdfFile: props.pdfFile?.files[0]?.file?.url ?? props.pdfFile?.files[0]?.external?.url ?? '',
+      relatedMaterialIds: (props.relatedMaterials?.relation ?? []).map((r: any) => r.id),
     }
   } catch (e) {
     

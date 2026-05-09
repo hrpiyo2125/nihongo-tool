@@ -234,16 +234,7 @@ export default function MaterialDetailPage() {
       .then(async (data) => {
         setMaterial(data);
         setLoading(false);
-        const allRes = await fetch("/api/materials");
-        const allMats: Material[] = await allRes.json();
-        const related = allMats.filter((m) =>
-          m.id !== data.id &&
-          (
-            (m.content ?? []).some((c: string) => (data.content ?? []).includes(c)) ||
-            (m.method ?? []).some((me: string) => (data.method ?? []).includes(me))
-          )
-        ).slice(0, 6);
-        setRelatedMaterials(related);
+        setRelatedMaterials(data.relatedMaterials ?? []);
       })
       .catch(() => setLoading(false));
   }, [id]);

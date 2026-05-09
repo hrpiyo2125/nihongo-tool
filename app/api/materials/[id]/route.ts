@@ -1,11 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getMaterialById } from '@/lib/notion'
+import { getMaterialById, getMaterials } from '@/lib/notion'
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params
     const material = await getMaterialById(id)
-    return NextResponse.json(material)
+
+    let relatedMaterials: any[] = []
+    if (material.relatedMaterialIds?.length > 0) {
+      const allMaterials = await getMaterials()
+      relatedMaterials = material.relatedMaterialIds
+        .map((rid: string) => allMaterials.find((m) => m.id === rid))
+        .filter(Boolean)
+    }
+
+    return NextResponse.json({ ...material, relatedMaterials })
   } catch (error) {
     console.error(error)
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
