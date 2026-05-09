@@ -502,8 +502,8 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         delete comboGroups[g];
       }
       rendered.push(
-        <div key={`heading-${item.order}`} style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#555", marginBottom: item.description ? 8 : 0 }}>{item.group}</div>
+        <div key={`heading-${item.order}`} style={{ marginTop: 32 }}>
+          <div style={{ fontSize: 16, fontWeight: 600, color: "#555", marginBottom: item.description ? 8 : 0 }}>{item.group}</div>
           {item.description && <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>}
         </div>
       );
