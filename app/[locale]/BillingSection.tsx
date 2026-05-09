@@ -261,13 +261,13 @@ export default function BillingSection({
                 </div>
               )}
               {isPendingDeletion && profile.current_period_end && (
-                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8, lineHeight: 1.6 }}>
-                  {formatDate(profile.current_period_end)} まで利用可。その後退会されます。
+                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
+                  {formatDate(profile.current_period_end)}に退会予定
                 </div>
               )}
               {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
                 <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)} にサブスクがキャンセルされます
+                  {formatDate(profile.current_period_end)}にfreeへ移行
                 </div>
               )}
               {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
