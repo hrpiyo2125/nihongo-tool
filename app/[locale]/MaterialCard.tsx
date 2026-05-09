@@ -157,7 +157,7 @@ export default function MaterialCard({
   return (
     <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
       {(mat.requiredPlan === "subscribe" || isPurchased) && (
-        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, display: "flex", alignItems: "center", gap: 4, minHeight: 28 }}>
           {mat.requiredPlan === "subscribe" && (
             <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
