@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from 'next/navigation';
 import { createClient } from "../../lib/supabase";
@@ -177,22 +177,29 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
 
-  useEffect(() => {
+  const fetchPurchased = useCallback(async () => {
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { setLoading(false); return; }
-      const { data } = await supabase
-        .from("purchases")
-        .select("material_id")
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
-      if (data) {
-        const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
-        setPurchasedMaterials(allMaterials.filter((m) => ids.includes(m.id)));
-      }
-      setLoading(false);
-    });
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(false); return; }
+    const { data } = await supabase
+      .from("purchases")
+      .select("material_id")
+      .eq("user_id", session.user.id)
+      .order("created_at", { ascending: false });
+    if (data) {
+      const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
+      setPurchasedMaterials(allMaterials.filter((m) => ids.includes(m.id)));
+    }
+    setLoading(false);
   }, [allMaterials]);
+
+  useEffect(() => { fetchPurchased(); }, [fetchPurchased]);
+
+  useEffect(() => {
+    const handler = () => { fetchPurchased(); };
+    window.addEventListener("toolio:purchase-complete", handler);
+    return () => window.removeEventListener("toolio:purchase-complete", handler);
+  }, [fetchPurchased]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
