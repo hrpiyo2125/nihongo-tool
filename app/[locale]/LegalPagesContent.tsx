@@ -497,13 +497,15 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
 
   for (const item of items) {
     if (item.type === 'heading') {
-      // 手前のcomboGroupsを先に出力
       for (const [g, gitems] of Object.entries(comboGroups)) {
         rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
         delete comboGroups[g];
       }
       rendered.push(
-        <div key={`heading-${item.order}`} style={{ fontSize: 16, fontWeight: 800, color: "#555", marginTop: 8, marginBottom: 4 }}>{item.description}</div>
+        <div key={`heading-${item.order}`} style={{ marginTop: 8 }}>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#555", marginBottom: item.description ? 8 : 0 }}>{item.group}</div>
+          {item.description && <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>}
+        </div>
       );
     } else if (item.type === 'text') {
       for (const [g, gitems] of Object.entries(comboGroups)) {
@@ -511,9 +513,7 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         delete comboGroups[g];
       }
       rendered.push(
-        <div key={`text-${item.order}`} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "20px 28px" }}>
-          <p style={{ fontSize: 13, color: "#666", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>
-        </div>
+        <p key={`text-${item.order}`} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>
       );
     } else {
       if (!comboGroups[item.group]) comboGroups[item.group] = [];
