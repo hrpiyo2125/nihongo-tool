@@ -150,7 +150,6 @@ export async function getGuideItems(): Promise<GuideItem[]> {
   const response = await notion.databases.query({
     database_id: dbId,
     sorts: [
-      { property: 'group', direction: 'ascending' },
       { property: 'order', direction: 'ascending' },
     ],
   } as any);
