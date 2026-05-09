@@ -494,16 +494,17 @@ export default function BillingSection({
                       {items.map((item) => {
                         const d = new Date(item.created * 1000);
                         const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+                        const subLabel = item.amount_paid <= 498 ? "toolio weekly unlimited" : "toolio monthly unlimited";
                         const label = item.type === "purchase"
                           ? (materialMap[item.material_id ?? ""] ?? "単品教材")
-                          : "サブスク";
+                          : subLabel;
                         return (
                           <div key={item.id} style={{ padding: "13px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "110px 1fr 72px 72px 72px", alignItems: "center", gap: 8 }}>
                             <span style={{ fontSize: 13, color: "#555" }}>{dateStr}</span>
                             <span style={{ fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                             <span style={{ fontSize: 13, color: "#555" }}>¥{item.amount_paid.toLocaleString()}</span>
                             <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, background: item.type === "purchase" ? "#f0e8ff" : "#e8efff", color: item.type === "purchase" ? "#8040c0" : "#3a5a9a", whiteSpace: "nowrap" }}>
-                              {item.type === "purchase" ? "単品" : "サブスク"}
+                              {item.type === "purchase" ? "単品" : "定期"}
                             </span>
                             {item.invoice_pdf ? (
                               <a href={item.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>領収書↓</a>
