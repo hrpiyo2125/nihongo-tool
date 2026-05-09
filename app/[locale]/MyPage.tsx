@@ -10,6 +10,7 @@ import TeaserModal from "./TeaserModal";
 import PlanSelector from "../../components/PlanSelector";
 import BillingSection from "./BillingSection";
 import { ProcessingOverlay } from "../../components/ProcessingOverlay";
+import { useAuth } from "./AuthContext";
 
 type Material = {
   id: string;
@@ -37,6 +38,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   locale: string;
   tmm: (key: string) => string;
   userPlan: string;}) {
+  const { purchasedIds } = useAuth();
   const [favMaterials, setFavMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -146,6 +148,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
+            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}
@@ -167,6 +170,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
 }
 
 function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
+  const { purchasedIds } = useAuth();
   const [purchasedMaterials, setPurchasedMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -259,6 +263,7 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
+            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}
@@ -277,6 +282,7 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
 }
 
 function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
+  const { purchasedIds } = useAuth();
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
@@ -374,6 +380,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
+            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}
@@ -1090,7 +1097,7 @@ export default function MyPage({
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
                 {([
                   { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴などのデータはすべて保存されます。いつでも再開できます。" },
-                  { key: "subscription" as const, label: "有料プランに加入中の場合は、退会時に自動的にtoolio free に変更されます（返金なし）。期間終了まではご利用いただけます。" },
+                  { key: "subscription" as const, label: "サブスクプランに加入中の場合は、退会時に自動的にtoolio free に変更されます（返金なし）。期間終了まではご利用いただけます。" },
                   { key: "return" as const, label: "同じメールアドレスでいつでも再開できます。再ログイン後にアカウントの復元が案内されます。" },
                 ]).map(({ key, label }) => (
                   <div
