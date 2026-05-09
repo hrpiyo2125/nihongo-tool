@@ -416,7 +416,16 @@ const methodColorMap: Record<string, string> = {
   チェック: "#e8f8ee", すごろく: "#fff0e8", ポスター: "#e8efff",
 };
 
-function IconPair({ content, method, description, contentId, methodId }: { content: string; method: string; description: string; contentId: string; methodId: string }) {
+function LevelTag({ lv }: { lv: string }) {
+  const style = lv === "Basic"
+    ? { background: "#d6f5e5", color: "#2a6a44" }
+    : lv === "Middle"
+    ? { background: "#e8efff", color: "#3a5a9a" }
+    : { background: "#ffe8f4", color: "#a03070" };
+  return <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, ...style }}>{lv}</span>;
+}
+
+function IconPair({ content, method, description, level, contentId, methodId }: { content: string; method: string; description: string; level: string[]; contentId: string; methodId: string }) {
   const href = `/?content=${contentId}&method=${methodId}`;
   return (
     <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, textDecoration: "none" }}>
@@ -435,7 +444,12 @@ function IconPair({ content, method, description, contentId, methodId }: { conte
           <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
         </div>
       </div>
-      {description && <div style={{ fontSize: 11, color: "#999", textAlign: "center", lineHeight: 1.8, marginTop: 14 }}>{description}</div>}
+      {level.length > 0 && (
+        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
+          {level.map(lv => <LevelTag key={lv} lv={lv} />)}
+        </div>
+      )}
+      {description && <div style={{ fontSize: 11, color: "#999", textAlign: "center", lineHeight: 1.8, marginTop: 6 }}>{description}</div>}
     </a>
   );
 }
@@ -471,6 +485,7 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                   content={item.content}
                   method={item.method}
                   description={item.description}
+                  level={item.level ?? []}
                   contentId={contentIdMap[item.content] ?? "all"}
                   methodId={methodIdMap[item.method] ?? "all"}
                 />
@@ -478,7 +493,7 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                 <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
               )}
               {i < items.length - 1 && (
-                <span style={{ fontSize: 18, color: "#ccc", marginTop: -16 }}>→</span>
+                <span style={{ fontSize: 24, color: "#b07de0", marginTop: -20 }}>→</span>
               )}
             </div>
           ))}
