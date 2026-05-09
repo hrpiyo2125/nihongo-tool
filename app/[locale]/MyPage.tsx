@@ -114,6 +114,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
     isLoggedIn={isLoggedIn}
     userPlan={userPlan}
     favIds={favIds}
+    purchasedIds={purchasedIds}
     {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
     onFavToggle={async (mat) => {
       const supabase = createClient();
@@ -235,6 +236,7 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
             favIds={favIds}
+            purchasedIds={purchasedIds}
             onClick={() => setTeaserMat(mat)}
             {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
             onFavToggle={async (mat) => {
@@ -346,6 +348,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
             favIds={favIds}
+            purchasedIds={purchasedIds}
             onClick={() => setTeaserMat(mat)}
             {...(() => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return { bg, char, charColor, tag, tagBg, tagColor }; })()}
             onFavToggle={async (mat) => {
