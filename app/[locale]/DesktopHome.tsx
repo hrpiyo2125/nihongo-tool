@@ -17,8 +17,8 @@ import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { FaqSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
-import { PrivacyContent, TermsContent, TokushohoContent, FaqContent, AboutContent, HowtoContent } from "./LegalPagesContent";
-import type { NotionBlock, GuideItem } from "@/lib/notion";
+import { PrivacyContent, TermsContent, TokushohoContent, FaqContent, AboutContent } from "./LegalPagesContent";
+import type { NotionBlock } from "@/lib/notion";
 import PersonalizedSection from "./PersonalizedSection";
 import IconItem from "./IconItem";
 
@@ -157,7 +157,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
   const effectiveFavIds = (!profile.plan || profile.plan === "free") ? topFavIds.slice(0, 5) : topFavIds;
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState<string>("");
-  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[]; guideBlocks?: NotionBlock[]; guideItems?: GuideItem[] } | null>(null);
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const userIconRef = useRef<HTMLDivElement | null>(null);
 
   // URLパラメータまたはpropsからフィルターを読み込んでモーダルを自動オープン

@@ -135,38 +135,6 @@ export async function getTextContents(): Promise<Record<string, string>> {
   return result
 }
 
-export type GuideItem = {
-  group: string;
-  content: string;
-  method: string;
-  description: string;
-  order: number;
-  type: 'combo' | 'heading' | 'text' | '';
-  level: string[];
-  connector: 'arrow' | 'or' | 'and' | 'cross' | '';
-};
-
-export async function getGuideItems(): Promise<GuideItem[]> {
-  const dbId = process.env.NOTION_GUIDE_DB_ID;
-  if (!dbId) return [];
-  const response = await notion.databases.query({
-    database_id: dbId,
-    sorts: [
-      { property: 'order', direction: 'ascending' },
-    ],
-  } as any);
-  return (response.results as any[]).map((page) => ({
-    group:       page.properties['group']?.title?.[0]?.plain_text ?? '',
-    content:     page.properties['content']?.select?.name ?? '',
-    method:      page.properties['method']?.select?.name ?? '',
-    description: (page.properties['description']?.rich_text ?? []).map((r: any) => r.plain_text).join(''),
-    order:       page.properties['order']?.number ?? 0,
-    type:        (page.properties['type']?.select?.name ?? '') as GuideItem['type'],
-    level:       (page.properties['level']?.multi_select ?? []).map((s: any) => s.name),
-    connector:   (page.properties['connector']?.select?.name ?? '') as GuideItem['connector'],
-  })).filter((item) => item.group || item.type === 'text' || item.type === 'heading' || item.level.length > 0);
-}
-
 export type NotionBlock = {
   type: 'paragraph' | 'heading_2' | 'heading_3' | 'bulleted_list_item' | 'numbered_list_item' | 'image' | 'divider' | 'unknown';
   text?: string;
@@ -174,36 +142,6 @@ export type NotionBlock = {
   imageCaption?: string;
 };
 
-export async function getGuideBlocks(): Promise<NotionBlock[]> {
-  const pageId = process.env.NOTION_GUIDE_PAGE_ID;
-  if (!pageId) return [];
-  const response = await notion.blocks.children.list({ block_id: pageId, page_size: 100 });
-  return (response.results as any[]).map((block): NotionBlock => {
-    const richText = (arr: any[]) => (arr ?? []).map((r: any) => r.plain_text).join('');
-    switch (block.type) {
-      case 'paragraph':
-        return { type: 'paragraph', text: richText(block.paragraph.rich_text) };
-      case 'heading_2':
-        return { type: 'heading_2', text: richText(block.heading_2.rich_text) };
-      case 'heading_3':
-        return { type: 'heading_3', text: richText(block.heading_3.rich_text) };
-      case 'bulleted_list_item':
-        return { type: 'bulleted_list_item', text: richText(block.bulleted_list_item.rich_text) };
-      case 'numbered_list_item':
-        return { type: 'numbered_list_item', text: richText(block.numbered_list_item.rich_text) };
-      case 'image': {
-        const img = block.image;
-        const url = img.type === 'external' ? img.external.url : img.file?.url ?? '';
-        const caption = richText(img.caption ?? []);
-        return { type: 'image', imageUrl: url, imageCaption: caption };
-      }
-      case 'divider':
-        return { type: 'divider' };
-      default:
-        return { type: 'unknown' };
-    }
-  });
-}
 
 export async function getFAQs(): Promise<{ question: string; answer: string; category: string }[]> {
   const dbId = process.env.NOTION_FAQ_DB_ID!

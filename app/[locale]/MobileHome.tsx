@@ -11,7 +11,6 @@ import MaterialCard from "./MaterialCard";
 import MobileMaterialsModal from "./MobileMaterialsModal";
 import { FaqSection } from "./MobileTroubleGuide";
 import { PrivacyContent, TermsContent, TokushohoContent, AboutContent } from "./LegalPagesContent";
-import type { NotionBlock, GuideItem } from "@/lib/notion";
 import PersonalizedSection from "./PersonalizedSection";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
@@ -80,7 +79,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const [editingValue, setEditingValue] = useState("");
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [activeCardTab, setActiveCardTab] = useState("pickup");
-  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[]; guideBlocks?: NotionBlock[]; guideItems?: GuideItem[] } | null>(null);
+  const [legalContent, setLegalContent] = useState<{ textContents: Record<string, string>; faqs: { question: string; answer: string; category: string }[] } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const isScrollingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
