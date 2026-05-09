@@ -422,7 +422,7 @@ function LevelTag({ lv }: { lv: string }) {
     : lv === "Middle"
     ? { background: "#e8efff", color: "#3a5a9a" }
     : { background: "#ffe8f4", color: "#a03070" };
-  return <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4, ...style }}>{lv}</span>;
+  return <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 6, ...style }}>{lv}</span>;
 }
 
 function IconPair({ content, method, description, level, contentId, methodId }: { content: string; method: string; description: string; level: string[]; contentId: string; methodId: string }) {
@@ -485,7 +485,7 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
       {items.every(item => !item.content && !item.method) ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {items.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               {item.level.map((lv, j) => (
                 <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   {j > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
@@ -511,7 +511,7 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                   methodId={methodIdMap[item.method] ?? "all"}
                 />
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                   {(item.level ?? []).map((lv: string, i: number) => (
                     <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
@@ -570,7 +570,7 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         delete comboGroups[g];
       }
       rendered.push(
-        <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+        <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           {item.level.map((lv: string, i: number) => (
             <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
               {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
