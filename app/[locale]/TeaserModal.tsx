@@ -354,7 +354,7 @@ export default function TeaserModal({
           <div style={{ position: "relative" }}>
             <button
               onClick={() => {
-                if (canDl) { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }
+                if (canDl) { window.open(`/materials/${mat.id}`, "_blank"); }
                 else setDownTooltip(!downTooltip);
               }}
               style={{ width: "100%", padding: "13px", background: canDl ? "#a3c0ff" : "#f0eeff", color: canDl ? "white" : "#7F77DD", border: canDl ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}

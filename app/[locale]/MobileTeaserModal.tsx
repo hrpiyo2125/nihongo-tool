@@ -322,7 +322,7 @@ export default function TeaserModal({
           <div style={{ position: "relative" }}>
             <button
               onClick={() => {
-                if (canDl) { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }
+                if (canDl) { window.open(`/materials/${mat.id}`, "_blank"); }
                 else setDownTooltip(!downTooltip);
               }}
               style={{ width: "100%", padding: "13px", background: canDl ? "#a3c0ff" : "#f0eeff", color: canDl ? "white" : "#7F77DD", border: canDl ? "none" : "1px solid rgba(163,192,255,0.4)", borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
@@ -359,7 +359,7 @@ export default function TeaserModal({
                       {purchaseStep === "done" && (
                         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
                           <div style={{ fontSize: 11, color: "#3a8a5a", fontWeight: 700, textAlign: "center" }}>✓ 購入完了！</div>
-                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); onClose(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
+                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
                         </div>
                       )}
                     </>
