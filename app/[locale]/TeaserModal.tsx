@@ -196,6 +196,12 @@ export default function TeaserModal({
   const canDl = canDownload(localUserPlan, mat.requiredPlan, localPurchasedIds, mat.id);
 
   const refreshAfterPurchase = async () => {
+    // オプティミスティック更新：即座にロック解除
+    const optimisticIds = [...new Set([...localPurchasedIds, mat.id])];
+    setLocalPurchasedIds(optimisticIds);
+    setAuthPurchasedIds(optimisticIds);
+
+    // Supabase で確定取得
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
@@ -423,8 +429,8 @@ export default function TeaserModal({
         <PurchaseConfirmModal
           mat={mat}
           cardInfo={purchaseCardInfo}
-          onSuccess={() => {
-            refreshAfterPurchase();
+          onSuccess={async () => {
+            await refreshAfterPurchase();
             setShowPurchaseConfirm(false);
             setDownTooltip(false);
           }}

@@ -815,7 +815,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <PurchaseConfirmModal
           mat={teaserMat as any}
           cardInfo={teaserPurchaseCardInfo}
-          onSuccess={() => { loadProfile(); setTeaserPurchaseOpen(false); }}
+          onSuccess={async () => { await loadProfile(); setTeaserPurchaseOpen(false); }}
           onClose={() => setTeaserPurchaseOpen(false)}
         />
       )}

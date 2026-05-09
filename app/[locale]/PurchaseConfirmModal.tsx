@@ -9,7 +9,7 @@ import { useAuth } from "./AuthContext";
 type Props = {
   mat: { id: string; title: string };
   cardInfo?: { brand: string; last4: string };
-  onSuccess: () => void;
+  onSuccess: () => void | Promise<void>;
   onClose: () => void;
 };
 
@@ -83,7 +83,7 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
         <>
           <SuccessOverlay label={`「${mat.title}」を購入しました。\n今すぐダウンロードできます。`} />
           <button
-            onClick={() => { loadProfile(); router.refresh(); onSuccess(); }}
+            onClick={async () => { await onSuccess(); loadProfile(); router.refresh(); }}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
           >
             教材を見る →
