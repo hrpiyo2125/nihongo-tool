@@ -60,11 +60,15 @@ export async function POST(req: NextRequest) {
         [process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID!]: "monthly",
       };
       const newPlan = planMap[priceId] ?? "monthly";
+      const periodEnd = subscription.items.data[0]?.current_period_end
+        ? new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+        : null;
       await supabase
         .from("profiles")
         .update({
           plan: newPlan,
           stripe_subscription_id: subscription.id,
+          current_period_end: periodEnd,
         })
         .eq("id", userId);
       return NextResponse.json({ success: true });
