@@ -420,7 +420,7 @@ function IconPair({ content, method, description, contentId, methodId }: { conte
   const href = `/?content=${contentId}&method=${methodId}`;
   return (
     <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, textDecoration: "none" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
             <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -474,9 +474,9 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
                   {items.map(item => item.description).join('\n')}
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
                   {items.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 24 }}>
                       {item.content || item.method ? (
                         <IconPair
                           content={item.content}
