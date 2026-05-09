@@ -13,14 +13,15 @@ type Profile = Record<string, any> & {
   stripe_subscription_id?: string;
 };
 
-type Invoice = {
+type BillingItem = {
   id: string;
   created: number;
   amount_paid: number;
   status: string;
-  hosted_invoice_url: string;
-  invoice_pdf: string;
-  description: string;
+  hosted_invoice_url: string | null;
+  invoice_pdf: string | null;
+  type: 'subscription' | 'purchase';
+  material_id: string | null;
 };
 
 const FALLBACK_PLAN_LABEL: Record<string, string> = {
@@ -65,15 +66,17 @@ export default function BillingSection({
   onChangePlan,
   onProfileUpdate,
   mobileMode,
+  allMaterials = [],
 }: {
   profile: Profile;
   onChangePlan: () => void;
   onProfileUpdate: (updates: Partial<Profile>) => void;
   mobileMode?: boolean;
+  allMaterials?: { id: string; title: string }[];
 }) {
   const [planLabel, setPlanLabel] = useState<Record<string, string>>(FALLBACK_PLAN_LABEL);
   const [planPrice, setPlanPrice] = useState<Record<string, string>>(FALLBACK_PLAN_PRICE);
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoices, setInvoices] = useState<BillingItem[]>([]);
   const [invoicesLoading, setInvoicesLoading] = useState(true);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelSuccess, setCancelSuccess] = useState(false);
@@ -468,27 +471,52 @@ export default function BillingSection({
               <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><BrandIcon name="billing" size={38} color="#dbb0f5" /></div>
               支払い履歴はまだありません
             </div>
-          ) : (
-            <div style={{ overflowX: "auto" }}>
-              <div style={{ minWidth: 360 }}>
-              <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "160px 80px 80px 80px", fontSize: 11, color: "#bbb", fontWeight: 700 }}>
-                <span style={{ whiteSpace: "nowrap" }}>日付</span><span style={{ whiteSpace: "nowrap" }}>金額</span><span style={{ whiteSpace: "nowrap" }}>ステータス</span><span></span>
-              </div>
-              {invoices.map((inv) => (
-                <div key={inv.id} style={{ padding: "14px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "160px 80px 80px 80px", alignItems: "center" }}>
-                  <span style={{ fontSize: 13, color: "#555", whiteSpace: "nowrap" }}>{formatDate(new Date(inv.created * 1000).toISOString())}</span>
-                  <span style={{ fontSize: 13, color: "#555", whiteSpace: "nowrap" }}>¥{inv.amount_paid.toLocaleString()}</span>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: inv.status === "paid" ? "#2a6a44" : "#a02020", whiteSpace: "nowrap" }}>
-                    {inv.status === "paid" ? "支払済" : "未払い"}
-                  </span>
-                  <a href={inv.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>
-                    領収書 ↓
-                  </a>
+          ) : (() => {
+            // 月別グループ化
+            const groups: { monthLabel: string; items: BillingItem[] }[] = [];
+            for (const item of invoices) {
+              const d = new Date(item.created * 1000);
+              const label = `${d.getFullYear()}年${d.getMonth() + 1}月`;
+              const last = groups[groups.length - 1];
+              if (last && last.monthLabel === label) last.items.push(item);
+              else groups.push({ monthLabel: label, items: [item] });
+            }
+            const materialMap = Object.fromEntries(allMaterials.map(m => [m.id, m.title]));
+            return (
+              <div style={{ overflowX: "auto" }}>
+                <div style={{ minWidth: 380 }}>
+                  <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "110px 1fr 72px 72px 72px", fontSize: 11, color: "#bbb", fontWeight: 700, gap: 8 }}>
+                    <span>日付</span><span>内容</span><span>金額</span><span>種別</span><span></span>
+                  </div>
+                  {groups.map(({ monthLabel, items }) => (
+                    <div key={monthLabel}>
+                      <div style={{ padding: "8px 24px", background: "rgba(228,155,253,0.06)", fontSize: 11, fontWeight: 800, color: "#b080d8", borderBottom: "0.5px solid rgba(200,170,240,0.12)" }}>{monthLabel}</div>
+                      {items.map((item) => {
+                        const d = new Date(item.created * 1000);
+                        const dateStr = `${d.getMonth() + 1}/${d.getDate()}`;
+                        const label = item.type === "purchase"
+                          ? (materialMap[item.material_id ?? ""] ?? "単品教材")
+                          : "サブスク";
+                        return (
+                          <div key={item.id} style={{ padding: "13px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.07)", display: "grid", gridTemplateColumns: "110px 1fr 72px 72px 72px", alignItems: "center", gap: 8 }}>
+                            <span style={{ fontSize: 13, color: "#555" }}>{dateStr}</span>
+                            <span style={{ fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+                            <span style={{ fontSize: 13, color: "#555" }}>¥{item.amount_paid.toLocaleString()}</span>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, background: item.type === "purchase" ? "#f0e8ff" : "#e8efff", color: item.type === "purchase" ? "#8040c0" : "#3a5a9a", whiteSpace: "nowrap" }}>
+                              {item.type === "purchase" ? "単品" : "サブスク"}
+                            </span>
+                            {item.invoice_pdf ? (
+                              <a href={item.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>領収書↓</a>
+                            ) : <span />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
-              ))}
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
       </div>
     </div>

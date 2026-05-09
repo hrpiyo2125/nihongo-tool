@@ -17,31 +17,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 })
     }
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('stripe_customer_id')
-      .eq('id', userId)
-      .single()
+    const [profileRes, purchasesRes] = await Promise.all([
+      supabase.from('profiles').select('stripe_customer_id').eq('id', userId).single(),
+      supabase.from('purchases').select('id, material_id, amount, created_at, stripe_payment_intent_id').eq('user_id', userId).order('created_at', { ascending: false }),
+    ])
 
-    if (!profile?.stripe_customer_id) {
-      return NextResponse.json({ invoices: [] })
+    // Stripe invoices (subscription billing)
+    let stripeItems: {
+      id: string; created: number; amount_paid: number; status: string;
+      hosted_invoice_url: string | null; invoice_pdf: string | null; type: 'subscription'; material_id: null;
+    }[] = []
+
+    if (profileRes.data?.stripe_customer_id) {
+      const invoiceList = await stripe.invoices.list({
+        customer: profileRes.data.stripe_customer_id,
+        limit: 48,
+      })
+      stripeItems = invoiceList.data.map((inv) => ({
+        id: inv.id,
+        created: inv.created,
+        amount_paid: inv.amount_paid,
+        status: inv.status ?? 'unknown',
+        hosted_invoice_url: inv.hosted_invoice_url ?? null,
+        invoice_pdf: inv.invoice_pdf ?? null,
+        type: 'subscription' as const,
+        material_id: null,
+      }))
     }
 
-    const invoiceList = await stripe.invoices.list({
-      customer: profile.stripe_customer_id,
-      limit: 24,
-    })
-
-    const invoices = invoiceList.data.map((inv) => ({
-      id: inv.id,
-      created: inv.created,
-      amount_paid: inv.amount_paid,
-      status: inv.status,
-      hosted_invoice_url: inv.hosted_invoice_url,
-      invoice_pdf: inv.invoice_pdf,
+    // Single purchase items
+    const purchaseItems = (purchasesRes.data ?? []).map((p) => ({
+      id: `purchase_${p.id}`,
+      created: Math.floor(new Date(p.created_at).getTime() / 1000),
+      amount_paid: p.amount ?? 300,
+      status: 'paid',
+      hosted_invoice_url: null,
+      invoice_pdf: null,
+      type: 'purchase' as const,
+      material_id: p.material_id as string,
     }))
 
-    return NextResponse.json({ invoices })
+    const all = [...stripeItems, ...purchaseItems].sort((a, b) => b.created - a.created)
+
+    return NextResponse.json({ invoices: all })
 
   } catch (error) {
     console.error('invoices error:', error)
