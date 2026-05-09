@@ -186,6 +186,9 @@ export default function TeaserModal({
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [localUserPlan, setLocalUserPlan] = useState(userPlan);
   const [localPurchasedIds, setLocalPurchasedIds] = useState(purchasedIds);
+
+  useEffect(() => { setLocalPurchasedIds(purchasedIds); }, [purchasedIds]);
+  useEffect(() => { setLocalUserPlan(userPlan); }, [userPlan]);
   const isFreeUser = localUserPlan === "free" || localUserPlan === "" || !localUserPlan;
   const isFav = favIds.includes(mat.id);
   const canDl = canDownload(localUserPlan, mat.requiredPlan, localPurchasedIds, mat.id);

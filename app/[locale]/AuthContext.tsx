@@ -39,6 +39,7 @@ type AuthContextType = {
   loadProfile: () => Promise<void>
   updateProfile: (partial: Partial<Profile>) => void
   setFavIds: React.Dispatch<React.SetStateAction<string[]>>
+  setPurchasedIds: React.Dispatch<React.SetStateAction<string[]>>
   setUserName: React.Dispatch<React.SetStateAction<string>>
   setUserInitial: React.Dispatch<React.SetStateAction<string>>
   setAvatarUrl: React.Dispatch<React.SetStateAction<string | null>>
@@ -69,6 +70,7 @@ const AuthContext = createContext<AuthContextType>({
   loadProfile: async () => {},
   updateProfile: () => {},
   setFavIds: () => {},
+  setPurchasedIds: () => {},
   setUserName: () => {},
   setUserInitial: () => {},
   setAvatarUrl: () => {},
@@ -287,7 +289,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       profile, favIds, favIdsLoaded, dlIds, purchasedIds,
       authProviders,
       loadProfile, updateProfile, initializeAuth,
-      setFavIds, setUserName, setUserInitial, setAvatarUrl,
+      setFavIds, setPurchasedIds, setUserName, setUserInitial, setAvatarUrl,
     }}>
       {children}
     </AuthContext.Provider>

@@ -141,7 +141,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
   const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
     favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
     purchasedIds, loadProfile,
-    setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
+    setFavIds: setTopFavIds, setPurchasedIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
   const { sbOpen, setSbOpen, activePage, setActivePage } = useDesktopUI();
   const [activeTab, setActiveTab] = useState("pickup");
@@ -189,7 +189,11 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
   }, []);
 
   useEffect(() => {
-    const handlePurchase = () => { loadProfile(); };
+    const handlePurchase = (e: Event) => {
+      const { purchasedIds: newIds } = (e as CustomEvent).detail;
+      if (newIds) setPurchasedIds([...new Set(newIds as string[])]);
+      loadProfile();
+    };
     const handlePlan = () => { loadProfile(); };
     window.addEventListener("toolio:purchase-complete", handlePurchase);
     window.addEventListener("toolio:plan-upgraded", handlePlan);
@@ -197,7 +201,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
       window.removeEventListener("toolio:purchase-complete", handlePurchase);
       window.removeEventListener("toolio:plan-upgraded", handlePlan);
     };
-  }, [loadProfile]);
+  }, [loadProfile, setPurchasedIds]);
 
   const switchLanguage = () => {
     const nextLocale = locale === 'ja' ? 'en' : 'ja';
