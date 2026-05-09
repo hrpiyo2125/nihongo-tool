@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const [profileRes, purchasesRes] = await Promise.all([
       supabase.from('profiles').select('stripe_customer_id').eq('id', userId).single(),
-      supabase.from('purchases').select('id, material_id, amount, purchased_at, stripe_payment_intent_id').eq('user_id', userId).order('purchased_at', { ascending: false }),
+      supabase.from('purchases').select('id, material_id, purchased_at').eq('user_id', userId).order('purchased_at', { ascending: false }),
     ])
 
     // Stripe invoices (subscription billing)
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const purchaseItems = (purchasesRes.data ?? []).map((p) => ({
       id: `purchase_${p.id}`,
       created: Math.floor(new Date(p.purchased_at).getTime() / 1000),
-      amount_paid: p.amount ?? 300,
+      amount_paid: 300,
       status: 'paid',
       hosted_invoice_url: null,
       invoice_pdf: null,
