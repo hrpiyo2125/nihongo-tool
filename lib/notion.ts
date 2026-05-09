@@ -160,7 +160,7 @@ export async function getGuideItems(): Promise<GuideItem[]> {
     description: (page.properties['description']?.rich_text ?? []).map((r: any) => r.plain_text).join(''),
     order:       page.properties['order']?.number ?? 0,
     type:        (page.properties['type']?.select?.name ?? '') as GuideItem['type'],
-  })).filter((item) => item.group);
+  })).filter((item) => item.group || item.type === 'text' || item.type === 'heading');
 }
 
 export type NotionBlock = {
