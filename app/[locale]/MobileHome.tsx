@@ -680,9 +680,19 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                   {isLoggedIn ? (
                     <>
                       {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : "toolio free"}
-                      {profile.cancel_at_period_end && profile.current_period_end && (
-                        <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>
-                          {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能
+                      {profile.plan !== "free" && profile.current_period_end && profile.status !== "pending_deletion" && (
+                        <span style={{ fontSize: 10, display: "block", marginTop: 2,
+                          ...(profile.cancel_at_period_end ? { color: "#a04020" } : { color: "#3a5a9a" })
+                        }}>
+                          {profile.cancel_at_period_end
+                            ? `${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}にfreeへ移行`
+                            : `次回更新日：${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
+                          }
+                        </span>
+                      )}
+                      {profile.status === "pending_deletion" && profile.current_period_end && (
+                        <span style={{ fontSize: 10, color: "#a04020", display: "block", marginTop: 2 }}>
+                          {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
                         </span>
                       )}
                     </>
