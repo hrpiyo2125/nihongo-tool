@@ -270,9 +270,9 @@ export default function BillingSection({
                   {formatDate(profile.current_period_end)} にtoolio free へ移行
                 </div>
               )}
-              {isPaid && !profile.cancel_at_period_end && profile.current_period_end && (
-                <div style={{ fontSize: 11, color: "#888" }}>
-                  次回更新：{formatDate(profile.current_period_end)}
+              {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
+                <div style={{ fontSize: 11, color: "#3a5a9a", background: "#e8efff", padding: "5px 10px", borderRadius: 8 }}>
+                  次回更新日：{formatDate(profile.current_period_end)}
                 </div>
               )}
               {profile.plan_status === "past_due" && (
