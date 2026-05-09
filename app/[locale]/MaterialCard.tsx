@@ -156,17 +156,19 @@ export default function MaterialCard({
 
   return (
     <div onClick={onClick} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white", cursor: "pointer", position: "relative" }}>
-      {isPurchased && (
-        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>
-          購入済み
-        </div>
-      )}
-      {!isPurchased && mat.requiredPlan === "subscribe" && (
-        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            <rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/>
-          </svg>
+      {mat.requiredPlan === "subscribe" && (
+        <div style={{ position: "absolute", top: 8, left: 8, zIndex: 10, display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "0.5px solid rgba(200,180,230,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/>
+            </svg>
+          </div>
+          {isPurchased && (
+            <div style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>
+              購入済み
+            </div>
+          )}
         </div>
       )}
       {isLoggedIn && onFavToggle && (
