@@ -347,9 +347,11 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
                 <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 12, letterSpacing: 2 }}>or</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginBottom: 32 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
                 <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
-                <button onClick={() => setActivePage("howto")} style={{ fontSize: 13, color: "#b090d0", background: "none", border: "none", cursor: "pointer", padding: 0 }}>授業づくりのヒントはこちらから →</button>
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+                <button onClick={() => setActivePage("howto")} style={{ fontSize: 14, color: "#9b6ed4", background: "rgba(200,170,240,0.12)", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 14, cursor: "pointer", padding: "12px 28px", fontWeight: 700, letterSpacing: 0.3 }}>授業づくりのヒントはこちらから →</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>

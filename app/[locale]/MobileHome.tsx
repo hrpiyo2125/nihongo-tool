@@ -338,9 +338,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 <button onClick={() => { const el = document.getElementById("mobile-anchor-method"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop - 64, behavior: "smooth" }); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginBottom: 48 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
                 <button onClick={() => openMaterialsModal("all", "all")} style={{ fontSize: 12, padding: "14px 32px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
-                <button onClick={() => setMorePageType("howto")} style={{ fontSize: 12, color: "#b090d0", background: "none", border: "none", cursor: "pointer", padding: 0 }}>授業づくりのヒントはこちらから →</button>
+              </div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
+                <button onClick={() => setMorePageType("howto")} style={{ fontSize: 12, color: "#9b6ed4", background: "rgba(200,170,240,0.12)", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 14, cursor: "pointer", padding: "12px 24px", fontWeight: 700, letterSpacing: 0.3 }}>授業づくりのヒントはこちらから →</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
