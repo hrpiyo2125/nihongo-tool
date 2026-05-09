@@ -45,6 +45,8 @@ export async function POST(req: NextRequest) {
       }))
     }
 
+    console.log('purchases query result:', JSON.stringify({ data: purchasesRes.data, error: purchasesRes.error }))
+
     // Single purchase items
     const purchaseItems = (purchasesRes.data ?? []).map((p) => ({
       id: `purchase_${p.id}`,
