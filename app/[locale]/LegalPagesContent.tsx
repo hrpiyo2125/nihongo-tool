@@ -416,48 +416,49 @@ const methodColorMap: Record<string, string> = {
   チェック: "#e8f8ee", すごろく: "#fff0e8", ポスター: "#e8efff",
 };
 
-function LevelTag({ lv }: { lv: string }) {
+function LevelTag({ lv, compact }: { lv: string; compact?: boolean }) {
   const style = lv === "Basic"
     ? { background: "#d6f5e5", color: "#2a6a44" }
     : lv === "Middle"
     ? { background: "#e8efff", color: "#3a5a9a" }
     : { background: "#ffe8f4", color: "#a03070" };
-  return <span style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 6, ...style }}>{lv}</span>;
+  return <span style={{ fontSize: compact ? 10 : 12, fontWeight: 700, padding: compact ? "3px 8px" : "4px 10px", borderRadius: 6, ...style }}>{lv}</span>;
 }
 
-function IconPair({ content, method, description, level, contentId, methodId }: { content: string; method: string; description: string; level: string[]; contentId: string; methodId: string }) {
+function IconPair({ content, method, description, level, contentId, methodId, compact }: { content: string; method: string; description: string; level: string[]; contentId: string; methodId: string; compact?: boolean }) {
   const href = `/?content=${contentId}&method=${methodId}`;
+  const iconSize = compact ? 36 : 44;
   return (
     <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, textDecoration: "none" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: compact ? 10 : 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+          <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
             <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
-          <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{content}</span>
+          <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{content}</span>
         </div>
-        <span style={{ fontSize: 16, color: "#ccc", marginTop: 12 }}>×</span>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff" }}>
+        <span style={{ fontSize: compact ? 13 : 16, color: "#ccc", marginTop: compact ? 9 : 12 }}>×</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+          <div style={{ width: iconSize, height: iconSize, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff" }}>
             <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
-          <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
+          <span style={{ fontSize: 9, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
         </div>
       </div>
       {(level.length > 0 || description) && (
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
           {level.length > 0 && (
             <>
               {level.map((lv, i) => (
                 <React.Fragment key={lv}>
-                  {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
-                  <LevelTag lv={lv} />
+                  {i > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
+                  <LevelTag lv={lv} compact={compact} />
                 </React.Fragment>
               ))}
-              {description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
+              {description && <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span>}
             </>
           )}
-          {description && <span style={{ fontSize: 11, color: "#999", lineHeight: 1.8 }}>{description}</span>}
+          {description && <span style={{ fontSize: compact ? 10 : 11, color: "#999", lineHeight: 1.6 }}>{description}</span>}
         </div>
       )}
     </a>
@@ -478,29 +479,29 @@ const methodIdMap: Record<string, string> = {
   チェック: "check", すごろく: "sugoroku", ポスター: "poster",
 };
 
-function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
+function ComboGroup({ group, items, compact }: { group: string; items: GuideItem[]; compact?: boolean }) {
   return (
-    <div style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px 32px" }}>
-      <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 24 }}>{group}</div>
+    <div style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: compact ? "16px 16px 20px" : "24px 28px 32px" }}>
+      <div style={{ fontSize: compact ? 13 : 14, fontWeight: 800, color: "#7a50b0", marginBottom: compact ? 16 : 24 }}>{group}</div>
       {items.every(item => !item.content && !item.method) ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {items.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, flexWrap: "wrap" }}>
               {item.level.map((lv, j) => (
                 <React.Fragment key={lv}>
-                  {j > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
-                  <LevelTag lv={lv} />
+                  {j > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
+                  <LevelTag lv={lv} compact={compact} />
                 </React.Fragment>
               ))}
-              {item.level.length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
-              {item.description && <span style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{item.description}</span>}
+              {item.level.length > 0 && item.description && <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span>}
+              {item.description && <span style={{ fontSize: compact ? 11 : 13, color: "#666", lineHeight: 1.7 }}>{item.description}</span>}
             </div>
           ))}
         </div>
       ) : (
-        <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: compact ? 16 : 24, flexWrap: "wrap" }}>
           {items.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 24 }}>
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: compact ? 16 : 24 }}>
               {item.content || item.method ? (
                 <IconPair
                   content={item.content}
@@ -509,25 +510,26 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
                   level={item.level ?? []}
                   contentId={contentIdMap[item.content] ?? "all"}
                   methodId={methodIdMap[item.method] ?? "all"}
+                  compact={compact}
                 />
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, flexWrap: "wrap" }}>
                   {(item.level ?? []).map((lv: string, i: number) => (
                     <React.Fragment key={lv}>
-                      {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
-                      <LevelTag lv={lv} />
+                      {i > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
+                      <LevelTag lv={lv} compact={compact} />
                     </React.Fragment>
                   ))}
-                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
-                  {item.description && <span style={{ fontSize: 11, color: "#999" }}>{item.description}</span>}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span>}
+                  {item.description && <span style={{ fontSize: compact ? 10 : 11, color: "#999" }}>{item.description}</span>}
                 </div>
               )}
               {i < items.length - 1 && (() => {
                 const conn = item.connector;
-                const pillStyle = { fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: 12 };
+                const pillStyle = { fontSize: 10, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: compact ? "3px 8px" : "4px 10px", marginTop: compact ? 8 : 12 };
                 if (conn === 'or') return <span style={pillStyle}>or</span>;
                 if (conn === 'and') return <span style={{ ...pillStyle, color: "#5a7fd4", background: "rgba(163,192,255,0.15)", border: "1px solid rgba(163,192,255,0.5)" }}>and</span>;
-                return <span style={{ fontSize: 24, color: "#b07de0", marginTop: 8 }}>→</span>;
+                return <span style={{ fontSize: compact ? 18 : 24, color: "#b07de0", marginTop: compact ? 6 : 8 }}>→</span>;
               })()}
             </div>
           ))}
@@ -547,7 +549,7 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
   for (const item of items) {
     if (item.type === 'heading') {
       for (const [g, gitems] of Object.entries(comboGroups)) {
-        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} compact={compact} />);
         delete comboGroups[g];
       }
       rendered.push(
@@ -558,7 +560,7 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
       );
     } else if (item.type === 'text') {
       for (const [g, gitems] of Object.entries(comboGroups)) {
-        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} compact={compact} />);
         delete comboGroups[g];
       }
       rendered.push(
@@ -566,18 +568,18 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
       );
     } else if (!item.group && item.level.length > 0) {
       for (const [g, gitems] of Object.entries(comboGroups)) {
-        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} compact={compact} />);
         delete comboGroups[g];
       }
       rendered.push(
-        <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+        <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: compact ? 8 : 14, flexWrap: "wrap" }}>
           {item.level.map((lv: string, i: number) => (
             <React.Fragment key={lv}>
-              {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
-              <LevelTag lv={lv} />
+              {i > 0 && <span style={{ fontSize: compact ? 12 : 16, color: "#ccc" }}>×</span>}
+              <LevelTag lv={lv} compact={compact} />
             </React.Fragment>
           ))}
-          {item.description && <><span style={{ fontSize: 24, color: "#b07de0" }}>→</span><span style={{ fontSize: 11, color: "#999" }}>{item.description}</span></>}
+          {item.description && <><span style={{ fontSize: compact ? 18 : 24, color: "#b07de0" }}>→</span><span style={{ fontSize: compact ? 10 : 11, color: "#999" }}>{item.description}</span></>}
         </div>
       );
     } else {
