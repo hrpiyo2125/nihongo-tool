@@ -379,16 +379,16 @@ function renderBlocks(blocks: NotionBlock[]) {
 import type { GuideItem } from "@/lib/notion";
 
 const contentImageMap: Record<string, string> = {
-  ひらがな: "/contents/12_hiragana.png", カタカナ: "/contents/4_kanakana.png",
-  漢字: "/contents/3_kanji.png", 助詞: "/contents/5_joshi.png",
-  場面会話: "/contents/8_kaiwa.png", 季節・行事: "/contents/17_season.png",
-  食べ物: "/contents/15_food.png", 動物: "/contents/1_animal.png",
-  体・健康: "/contents/9_body.png", 色・形: "/contents/18_color.png",
-  数・算数: "/contents/13_number.png", 形容詞: "/contents/2_keiyoushi.png",
-  動詞: "/contents/6_doushi.png", 接続詞: "/contents/10_setsuzokushi.png",
-  文法: "/contents/16_bunpo.png", 身近なもの: "/contents/7_mijika.png",
-  ことば: "/contents/19_word.png", やさい・くだもの: "/contents/11_yasai.png",
-  自分のこと: "/contents/myself.png",
+  "ひらがな": "/contents/12_hiragana.png", "カタカナ": "/contents/4_kanakana.png",
+  "漢字": "/contents/3_kanji.png", "助詞": "/contents/5_joshi.png",
+  "場面会話": "/contents/8_kaiwa.png", "季節・行事": "/contents/17_season.png",
+  "食べ物": "/contents/15_food.png", "動物": "/contents/1_animal.png",
+  "体・健康": "/contents/9_body.png", "色・形": "/contents/18_color.png",
+  "数・算数": "/contents/13_number.png", "形容詞": "/contents/2_keiyoushi.png",
+  "動詞": "/contents/6_doushi.png", "接続詞": "/contents/10_setsuzokushi.png",
+  "文法": "/contents/16_bunpo.png", "身近なもの": "/contents/7_mijika.png",
+  "ことば": "/contents/19_word.png", "やさい・くだもの": "/contents/11_yasai.png",
+  "自分のこと": "/contents/myself.png",
 };
 
 const methodImageMap: Record<string, string> = {
@@ -425,11 +425,11 @@ function IconPair({ content, method, description, contentId, methodId }: { conte
 }
 
 const contentIdMap: Record<string, string> = {
-  ひらがな: "hiragana", カタカナ: "katakana", 漢字: "kanji", 助詞: "joshi",
-  場面会話: "kaiwa", 季節・行事: "season", 食べ物: "food", 動物: "animal",
-  体・健康: "body", 色・形: "color", 数・算数: "number", 形容詞: "adjective",
-  動詞: "verb", 接続詞: "conjunction", 文法: "grammar", 身近なもの: "familiar",
-  ことば: "kotoba", やさい・くだもの: "vegefruit", 自分のこと: "myself",
+  "ひらがな": "hiragana", "カタカナ": "katakana", "漢字": "kanji", "助詞": "joshi",
+  "場面会話": "kaiwa", "季節・行事": "season", "食べ物": "food", "動物": "animal",
+  "体・健康": "body", "色・形": "color", "数・算数": "number", "形容詞": "adjective",
+  "動詞": "verb", "接続詞": "conjunction", "文法": "grammar", "身近なもの": "familiar",
+  "ことば": "kotoba", "やさい・くだもの": "vegefruit", "自分のこと": "myself",
 };
 const methodIdMap: Record<string, string> = {
   ドリル: "drill", テスト: "test", カード: "card", ぬりえ: "nurie",
