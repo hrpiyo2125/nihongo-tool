@@ -57,7 +57,6 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><polyline points="14,2 14,8 20,8" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="13" x2="8" y2="13" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="17" x2="8" y2="17" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
-    { id: "howto", label: "授業づくりガイド", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   ];
 
   const contentTabs = [
@@ -351,7 +350,6 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
                 <button onClick={() => openModal("all", "all")} style={{ fontSize: 15, padding: "14px 48px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
-                <button onClick={() => setActivePage("howto")} style={{ fontSize: 14, color: "#9b6ed4", background: "rgba(200,170,240,0.12)", border: "0.5px solid rgba(200,170,240,0.35)", borderRadius: 14, cursor: "pointer", padding: "12px 28px", fontWeight: 700, letterSpacing: 0.3 }}>授業づくりのヒントはこちらから →</button>
               </div>
               {!isLoggedIn && (
                 <div style={{ display: "inline-flex", alignItems: "center", gap: 24, background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "14px 40px" }}>
@@ -421,7 +419,6 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
         {activePage !== "home" && (
           activePage === "guide" ? <FaqSection /> :
-          activePage === "howto" ? <HowtoContent onBack={() => setActivePage("home")} blocks={legalContent?.guideBlocks} guideItems={legalContent?.guideItems} /> :
           activePage === "privacy" ? <PrivacyContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['プライバシーポリシー']} /> :
           activePage === "terms" ? <TermsContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['利用規約']} /> :
           activePage === "tokushoho" ? <TokushohoContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :
