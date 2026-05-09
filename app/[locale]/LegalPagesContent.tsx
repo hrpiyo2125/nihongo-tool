@@ -466,16 +466,16 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
       {groupEntries.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           {groupEntries.map(([group, items]) => (
-            <div key={group} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "20px 20px 24px" }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 18 }}>{group}</div>
+            <div key={group} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px 32px" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 24 }}>{group}</div>
               {items.every(item => !item.content && !item.method) ? (
                 <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-line" }}>
                   {items.map(item => item.description).join('\n')}
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
                   {items.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 16 }}>
                       {item.content || item.method ? (
                         <IconPair
                           content={item.content}
