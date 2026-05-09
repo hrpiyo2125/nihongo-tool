@@ -3,6 +3,10 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "../../lib/supabase";
 import { canDownload } from "../../lib/materialUtils";
 import { BrandIcon } from "../../components/BrandIcon";
+import PurchaseStartModal from "../../components/PurchaseStartModal";
+import PurchaseConfirmModal from "./PurchaseConfirmModal";
+import PlanModal from "../../components/PlanModal";
+import { useAuth } from "./AuthContext";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const THUMB_BASE = `${SUPABASE_URL}/storage/v1/object/public/thumbnails`;
@@ -168,7 +172,6 @@ type Props = {
   tagColor: string;
   isLoggedIn: boolean;
   userPlan: string;
-  purchasedIds?: string[];
   favIds: string[];
   contentTabs: ContentTab[];
   methodTabs: MethodTab[];
@@ -177,27 +180,55 @@ type Props = {
   onClose: () => void;
   onFavChange?: (materialId: string, isFav: boolean) => void;
   onOpenAuth?: (mode: "signup" | "login") => void;
-  onOpenPlanModal: () => void;
-  onOpenPurchaseConfirm: () => void;
   onOpenFavHistory?: () => void;
 };
 
 export default function TeaserModal({
   mat, bg, char, charColor, tag, tagBg, tagColor,
-  isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
+  isLoggedIn, userPlan, favIds: initialFavIds,
   contentTabs, methodTabs, locale: _locale, tmm,
-  onClose, onFavChange, onOpenAuth,
-  onOpenPlanModal, onOpenPurchaseConfirm, onOpenFavHistory,
+  onClose, onFavChange, onOpenAuth, onOpenFavHistory,
 }: Props) {
+  const { purchasedIds: authPurchasedIds, setPurchasedIds: setAuthPurchasedIds, profile, updateProfile } = useAuth();
+  const effectivePlan = profile.plan || userPlan;
+  const localUserPlan = effectivePlan;
+  const localPurchasedIds = authPurchasedIds;
+
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
   const [favLimitTooltip, setFavLimitTooltip] = useState(false);
   const [downTooltip, setDownTooltip] = useState(false);
-  const [purchaseStep] = useState<"idle" | "confirm" | "loading" | "done">("idle");
+  const [showPurchaseStart, setShowPurchaseStart] = useState(false);
+  const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
+  const [purchaseCardInfo, setPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
+  const [showPlanModal, setShowPlanModal] = useState(false);
 
   const isFav = favIds.includes(mat.id);
-  const isFreeUser = userPlan === "free" || userPlan === "" || !userPlan;
-  const canDl = canDownload(userPlan, mat.requiredPlan, purchasedIds, mat.id);
+  const isFreeUser = effectivePlan === "free" || effectivePlan === "" || !effectivePlan;
+  const canDl = canDownload(effectivePlan, mat.requiredPlan, localPurchasedIds, mat.id);
+
+  const refreshAfterPurchase = async () => {
+    const optimisticIds = [...new Set([...authPurchasedIds, mat.id])];
+    setAuthPurchasedIds(optimisticIds);
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
+    if (data) {
+      const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
+      setAuthPurchasedIds(ids);
+    }
+  };
+
+  const refreshAfterPlanUpgrade = async () => {
+    const supabase = createClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const { data } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
+    if (data?.plan) {
+      updateProfile({ plan: data.plan });
+    }
+  };
 
   const handleFav = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -235,7 +266,7 @@ export default function TeaserModal({
                 <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: tagBg, color: tagColor }}>{tag}</span>
               </div>
             )}
-            {(mat.requiredPlan === "subscribe" || purchasedIds.includes(mat.id)) && (
+            {(mat.requiredPlan === "subscribe" || localPurchasedIds.includes(mat.id)) && (
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 {mat.requiredPlan === "subscribe" && (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "rgba(201,160,240,0.15)", color: "#9b6ed4" }}>
@@ -243,7 +274,7 @@ export default function TeaserModal({
                     サブスク
                   </span>
                 )}
-                {purchasedIds.includes(mat.id) && (
+                {localPurchasedIds.includes(mat.id) && (
                   <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>購入済み</span>
                 )}
               </div>
@@ -321,7 +352,7 @@ export default function TeaserModal({
                   <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。</div>
                   <button onClick={() => { setFavLimitTooltip(false); onClose(); onOpenFavHistory?.(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}>お気に入り履歴を開く →</button>
                   <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>無制限でお気に入り登録したい方はプランのアップグレードをしてください。</div>
-                  <button onClick={() => { setFavLimitTooltip(false); onOpenPlanModal(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                  <button onClick={() => { setFavLimitTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
                 </div>
               </>
             )}
@@ -353,24 +384,14 @@ export default function TeaserModal({
                     </>
                   ) : (
                     <>
-                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); onOpenPlanModal(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
-                      {purchaseStep === "idle" && (
-                        <>
-                          <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
-                          <button
-                            onClick={() => { setDownTooltip(false); onOpenPurchaseConfirm(); }}
-                            style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
-                          >
-                            ¥300 この教材を単品購入する
-                          </button>
-                        </>
-                      )}
-                      {purchaseStep === "done" && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
-                          <div style={{ fontSize: 11, color: "#3a8a5a", fontWeight: 700, textAlign: "center" }}>✓ 購入完了！</div>
-                          <button onClick={() => { window.open(`/materials/${mat.id}`, "_blank"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "#a3c0ff", color: "white", cursor: "pointer" }}>ダウンロードする</button>
-                        </div>
-                      )}
+                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
+                      <button
+                        onClick={() => { setDownTooltip(false); setShowPurchaseStart(true); }}
+                        style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
+                      >
+                        ¥300 この教材を単品購入する
+                      </button>
                     </>
                   )}
                 </div>
@@ -379,6 +400,44 @@ export default function TeaserModal({
           </div>
         </div>
       </div>
+
+      {showPurchaseStart && (
+        <PurchaseStartModal
+          matTitle={mat.title}
+          onConfirm={(cardInfo) => {
+            setPurchaseCardInfo(cardInfo);
+            setShowPurchaseStart(false);
+            setShowPurchaseConfirm(true);
+          }}
+          onClose={() => setShowPurchaseStart(false)}
+        />
+      )}
+
+      {showPurchaseConfirm && (
+        <PurchaseConfirmModal
+          mat={mat}
+          cardInfo={purchaseCardInfo}
+          onSuccess={async () => {
+            await refreshAfterPurchase();
+            setShowPurchaseConfirm(false);
+            setDownTooltip(false);
+          }}
+          onClose={() => setShowPurchaseConfirm(false)}
+        />
+      )}
+
+      {showPlanModal && (
+        <PlanModal
+          currentPlan={localUserPlan}
+          requiredPlan={mat.requiredPlan}
+          onSubscribed={() => {
+            refreshAfterPlanUpgrade();
+            setShowPlanModal(false);
+            setDownTooltip(false);
+          }}
+          onClose={() => setShowPlanModal(false)}
+        />
+      )}
     </div>
   );
 }

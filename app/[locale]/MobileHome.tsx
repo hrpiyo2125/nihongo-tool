@@ -17,9 +17,7 @@ import AuthModal, { AuthModalMode } from "../../components/AuthModal";
 import AnnouncementModal from "./AnnouncementModal";
 import MyPage from "./MyPage";
 import PlanSelector from "../../components/PlanSelector";
-import PlanModal from "../../components/PlanModal";
-import PurchaseStartModal from "../../components/PurchaseStartModal";
-import PurchaseConfirmModal from "./PurchaseConfirmModal";
+
 import { BrandIcon } from "../../components/BrandIcon";
 
 type Material = {
@@ -76,10 +74,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const [announcementModal, setAnnouncementModal] = useState<Announcement | null>(null);
   const [morePageType, setMorePageType] = useState<MorePageType>(null);
   const [legalType, setLegalType] = useState<LegalType>(null);
-  const [teaserPlanOpen, setTeaserPlanOpen] = useState(false);
-  const [teaserPurchaseStartOpen, setTeaserPurchaseStartOpen] = useState(false);
-  const [teaserPurchaseOpen, setTeaserPurchaseOpen] = useState(false);
-  const [teaserPurchaseCardInfo, setTeaserPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
+
   const [scrolled, setScrolled] = useState(false);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
@@ -149,8 +144,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
     const onPopState = () => {
       if (legalType) { setLegalType(null); history.pushState({ modal: true }, ""); return; }
       if (mySubPage) { setMySubPage(null); history.pushState({ modal: true }, ""); return; }
-      if (teaserPlanOpen) { setTeaserPlanOpen(false); history.pushState({ modal: true }, ""); return; }
-      if (teaserPurchaseOpen) { setTeaserPurchaseOpen(false); history.pushState({ modal: true }, ""); return; }
+
       if (morePageType) { setMorePageType(null); history.pushState({ modal: true }, ""); return; }
       if (announcementModal) { setAnnouncementModal(null); history.pushState({ modal: true }, ""); return; }
       if (teaserMat) { setTeaserMat(null); history.pushState({ modal: true }, ""); return; }
@@ -160,7 +154,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, [legalType, mySubPage, teaserPlanOpen, teaserPurchaseOpen, morePageType, announcementModal, teaserMat, authMode, myPageOpen, materialsFilter]);
+  }, [legalType, mySubPage, morePageType, announcementModal, teaserMat, authMode, myPageOpen, materialsFilter]);
 
   // ─── ナビゲーション関数 ──────────────────────────────────
   const switchLanguage = () => {
@@ -634,7 +628,6 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={profile.plan ?? "free"}
-            purchasedIds={purchasedIds}
             favIds={effectiveFavIds}
             contentTabs={contentTabsForModal}
             methodTabs={methodTabsForModal}
@@ -646,8 +639,6 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               else setFavIds(prev => prev.filter(id => id !== materialId));
             }}
             onOpenAuth={openAuth}
-            onOpenPlanModal={() => setTeaserPlanOpen(true)}
-            onOpenPurchaseConfirm={() => setTeaserPurchaseStartOpen(true)}
             onOpenFavHistory={() => { setTeaserMat(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
           />
         );
@@ -815,36 +806,6 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         </div>
       )}
 
-      {/* teaser内プランモーダル */}
-      {teaserPlanOpen && teaserMat && (
-        <PlanModal
-          currentPlan={profile.plan ?? "free"}
-          requiredPlan={(teaserMat as any).requiredPlan}
-          onSubscribed={() => { loadProfile(); setTeaserPlanOpen(false); }}
-          onClose={() => setTeaserPlanOpen(false)}
-        />
-      )}
-
-      {teaserPurchaseStartOpen && teaserMat && (
-        <PurchaseStartModal
-          matTitle={(teaserMat as any).title}
-          onConfirm={(cardInfo) => {
-            setTeaserPurchaseCardInfo(cardInfo);
-            setTeaserPurchaseStartOpen(false);
-            setTeaserPurchaseOpen(true);
-          }}
-          onClose={() => setTeaserPurchaseStartOpen(false)}
-        />
-      )}
-
-      {teaserPurchaseOpen && teaserMat && (
-        <PurchaseConfirmModal
-          mat={teaserMat as any}
-          cardInfo={teaserPurchaseCardInfo}
-          onSuccess={async () => { await loadProfile(); setTeaserPurchaseOpen(false); }}
-          onClose={() => setTeaserPurchaseOpen(false)}
-        />
-      )}
     </div>
   );
 }
