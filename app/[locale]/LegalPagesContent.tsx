@@ -484,7 +484,7 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         </div>
       ) : (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
-          <div style={{ fontSize: 32, marginBottom: 12 }}>📖</div>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#e0d0f0" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: 12 }}><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
           <div style={{ fontSize: 14 }}>コンテンツを準備中です</div>
         </div>
       )}

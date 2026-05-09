@@ -530,13 +530,13 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
             {!isLoggedIn ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <BrandIcon name="purchases" size={32} color="#e0d0f0" />
+                <BrandIcon name="document" size={32} color="#e0d0f0" />
                 <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>ログインすると購入履歴を確認できます</div>
                 <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
               </div>
             ) : (() => {
               const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
-              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="purchases" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
+              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="document" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
               return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} purchasedIds={purchasedIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
