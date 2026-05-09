@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import type { NotionBlock } from "@/lib/notion";
 
 const HERO_BG = "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)";
@@ -445,14 +445,14 @@ function IconPair({ content, method, description, level, contentId, methodId }: 
         </div>
       </div>
       {(level.length > 0 || description) && (
-        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, flexWrap: "wrap", justifyContent: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 10, flexWrap: "wrap", justifyContent: "center" }}>
           {level.length > 0 && (
             <>
               {level.map((lv, i) => (
-                <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <React.Fragment key={lv}>
                   {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                   <LevelTag lv={lv} />
-                </span>
+                </React.Fragment>
               ))}
               {description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
             </>
@@ -487,10 +487,10 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
           {items.map((item, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
               {item.level.map((lv, j) => (
-                <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <React.Fragment key={lv}>
                   {j > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                   <LevelTag lv={lv} />
-                </span>
+                </React.Fragment>
               ))}
               {item.level.length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
               {item.description && <span style={{ fontSize: 13, color: "#666", lineHeight: 1.9 }}>{item.description}</span>}
@@ -513,10 +513,10 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                   {(item.level ?? []).map((lv: string, i: number) => (
-                    <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <React.Fragment key={lv}>
                       {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
                       <LevelTag lv={lv} />
-                    </span>
+                    </React.Fragment>
                   ))}
                   {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 24, color: "#b07de0" }}>→</span>}
                   {item.description && <span style={{ fontSize: 11, color: "#999" }}>{item.description}</span>}
@@ -572,10 +572,10 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
       rendered.push(
         <div key={`level-${item.order}`} style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
           {item.level.map((lv: string, i: number) => (
-            <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <React.Fragment key={lv}>
               {i > 0 && <span style={{ fontSize: 16, color: "#ccc" }}>×</span>}
               <LevelTag lv={lv} />
-            </span>
+            </React.Fragment>
           ))}
           {item.description && <><span style={{ fontSize: 24, color: "#b07de0" }}>→</span><span style={{ fontSize: 11, color: "#999" }}>{item.description}</span></>}
         </div>
