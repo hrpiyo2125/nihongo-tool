@@ -277,10 +277,10 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
       {cancellationChoiceForPlan && (
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 440, padding: "36px 32px", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{isPendingDeletion ? "退会予約について" : "無料プランへの変更予約について"}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{isPendingDeletion ? "退会予約について" : "キャンセル予約について"}</div>
             <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, marginBottom: 24 }}>
-              現在、<strong>{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong>に{isPendingDeletion ? "退会予約" : "無料プランへの変更予約"}が設定されています。<br />
-              <strong>{cancellationChoiceForPlan.name}プラン</strong>に変更する場合、{isPendingDeletion ? "退会予約" : "変更予約"}はどうしますか？
+              現在、<strong>{currentPeriodEnd ? new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong>に{isPendingDeletion ? "退会予約" : "キャンセル予約"}が設定されています。<br />
+              <strong>{cancellationChoiceForPlan.name}プラン</strong>に変更する場合、{isPendingDeletion ? "退会予約" : "キャンセル予約"}はどうしますか？
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <button
@@ -291,7 +291,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                 }}
                 style={{ padding: "14px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
               >
-                {isPendingDeletion ? "退会予約を取り消してプランを変更する" : "変更予約を取り消してプランを変更する"}
+                {isPendingDeletion ? "退会予約を取り消してプランを変更する" : "キャンセル予約を取り消してプランを変更する"}
               </button>
               <button
                 onClick={() => {
@@ -301,7 +301,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                 }}
                 style={{ padding: "14px", borderRadius: 12, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#666", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
-                {isPendingDeletion ? "退会予約を維持したままプランを変更する" : "変更予約を維持したままプランを変更する"}
+                {isPendingDeletion ? "退会予約を維持したままプランを変更する" : "キャンセル予約を維持したままプランを変更する"}
               </button>
               <button
                 onClick={() => setCancellationChoiceForPlan(null)}

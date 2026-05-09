@@ -45,11 +45,11 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
       <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "100%", maxWidth: 400, padding: "40px 32px", textAlign: "center", boxShadow: "0 16px 64px rgba(0,0,0,0.2)" }}>
         <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><BrandIcon name={isCancel ? "refresh" : "sparkle"} size={44} color="#e49bfd" /></div>
         <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 8 }}>
-          {isCancel ? "無料プランに戻しますか？" : `${planName}プランを始めますか？`}
+          {isCancel ? "サブスクをキャンセルしますか？" : `${planName}プランを始めますか？`}
         </div>
         <div style={{ fontSize: 13, color: "#999", marginBottom: showCard ? 16 : 32, lineHeight: 1.8 }}>
           {isCancel
-            ? `現在のプランは${periodEndText ?? "現在の期間終了日"}まで引き続きご利用いただけます。期間終了後、自動的に無料プランへ移行します。`
+            ? `${periodEndText ?? "現在の期間終了日"}まで引き続きご利用いただけます。期間終了後、自動的にtoolio freeへ移行します。`
             : `月額 ¥${price.toLocaleString()} で、いつでもプランを変更できます。`}
         </div>
 
@@ -71,7 +71,7 @@ export default function PlanStartModal({ planName, price, mode, currentPeriodEnd
             onClick={() => onConfirm(cardInfo ?? undefined)}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: isCancel ? "linear-gradient(135deg,#a3c0ff,#7aa0f0)" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
           >
-            {isCancel ? "無料プランに戻す" : "はい、始めます"}
+            {isCancel ? "キャンセルする" : "はい、始めます"}
           </button>
           <button
             onClick={onClose}
