@@ -598,7 +598,7 @@ export default function MyPage({
               {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
             </div>
             {profile.plan !== "free" && profile.current_period_end && profile.status !== "pending_deletion" && (
-              <div style={{ fontSize: 11, marginBottom: 10, padding: "4px 10px", borderRadius: 8, display: "inline-block",
+              <div style={{ fontSize: 11, marginBottom: 10, padding: "5px 10px", borderRadius: 8,
                 ...(profile.cancel_at_period_end
                   ? { background: "#fff0e8", color: "#a04020" }
                   : { background: "#e8efff", color: "#3a5a9a" })
@@ -610,7 +610,7 @@ export default function MyPage({
               </div>
             )}
             {profile.status === "pending_deletion" && profile.current_period_end && (
-              <div style={{ fontSize: 11, marginBottom: 10, padding: "4px 10px", borderRadius: 8, display: "inline-block", background: "#fff0e8", color: "#a04020" }}>
+              <div style={{ fontSize: 11, marginBottom: 10, padding: "5px 10px", borderRadius: 8, background: "#fff0e8", color: "#a04020" }}>
                 {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
               </div>
             )}
