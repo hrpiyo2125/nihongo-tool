@@ -449,18 +449,24 @@ function IconPair({ content, method, description, level, contentId, methodId, co
 
   if (compact) {
     return (
-      <a href={href} style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+      <a href={href} style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", width: "100%" }}>
         {iconsRow}
         {(level.length > 0 || description) && (
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", flex: 1 }}>
-            {level.map((lv, i) => (
-              <React.Fragment key={lv}>
-                {i > 0 && <span style={{ fontSize: 11, color: "#ccc" }}>×</span>}
-                <LevelTag lv={lv} compact={compact} />
-              </React.Fragment>
-            ))}
-            {level.length > 0 && description && <span style={{ fontSize: 16, color: "#b07de0" }}>→</span>}
-            {description && <span style={{ fontSize: 10, color: "#999", lineHeight: 1.5 }}>{description}</span>}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 0 }}>
+            {level.length > 0 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                {level.map((lv, i) => (
+                  <React.Fragment key={lv}>
+                    {i > 0 && <span style={{ fontSize: 11, color: "#ccc" }}>×</span>}
+                    <LevelTag lv={lv} compact={compact} />
+                  </React.Fragment>
+                ))}
+                {description && <span style={{ fontSize: 14, color: "#b07de0" }}>→</span>}
+              </div>
+            )}
+            {description && (
+              <span style={{ fontSize: 11, color: "#666", lineHeight: 1.6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{description}</span>
+            )}
           </div>
         )}
       </a>
@@ -524,7 +530,7 @@ function ComboGroup({ group, items, compact }: { group: string; items: GuideItem
           ))}
         </div>
       ) : compact ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
           {items.map((item, i) => (
             <React.Fragment key={i}>
               {item.content || item.method ? (
@@ -538,23 +544,23 @@ function ComboGroup({ group, items, compact }: { group: string; items: GuideItem
                   compact={compact}
                 />
               ) : (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "center" }}>
                   {(item.level ?? []).map((lv: string, j: number) => (
                     <React.Fragment key={lv}>
                       {j > 0 && <span style={{ fontSize: 11, color: "#ccc" }}>×</span>}
                       <LevelTag lv={lv} compact={compact} />
                     </React.Fragment>
                   ))}
-                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 16, color: "#b07de0" }}>→</span>}
+                  {(item.level ?? []).length > 0 && item.description && <span style={{ fontSize: 14, color: "#b07de0" }}>→</span>}
                   {item.description && <span style={{ fontSize: 10, color: "#999" }}>{item.description}</span>}
                 </div>
               )}
               {i < items.length - 1 && (() => {
                 const conn = item.connector;
-                const pillStyle = { fontSize: 10, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "3px 8px", alignSelf: "flex-start" as const };
+                const pillStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "3px 10px" };
                 if (conn === 'or') return <span style={pillStyle}>or</span>;
                 if (conn === 'and') return <span style={{ ...pillStyle, color: "#5a7fd4", background: "rgba(163,192,255,0.15)", border: "1px solid rgba(163,192,255,0.5)" }}>and</span>;
-                return <span style={{ fontSize: 18, color: "#b07de0" }}>→</span>;
+                return <span style={{ fontSize: 20, color: "#b07de0", lineHeight: 1 }}>↓</span>;
               })()}
             </React.Fragment>
           ))}
