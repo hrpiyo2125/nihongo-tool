@@ -45,10 +45,10 @@ function PageShell({ title, children, compact }: { title: string; children: Reac
   }
   return (
     <div>
-      <div style={{ padding: "60px 48px 40px", background: HERO_BG, borderRadius: "16px 16px 0 0" }}>
+      <div style={{ padding: "40px 48px 20px", background: HERO_BG, borderRadius: "16px 16px 0 0" }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 0, ...GRAD_TEXT }}>{title}</h2>
       </div>
-      <div style={{ padding: "32px 48px 56px" }}>{children}</div>
+      <div style={{ padding: "20px 48px 56px" }}>{children}</div>
     </div>
   );
 }
@@ -494,9 +494,10 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
               )}
               {i < items.length - 1 && (() => {
                 const conn = item.connector;
-                if (conn === 'or') return <span style={{ fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: -16 }}>or</span>;
-                if (conn === 'and') return <span style={{ fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: -16 }}>and</span>;
-                return <span style={{ fontSize: 24, color: "#b07de0", marginTop: -20 }}>→</span>;
+                const pillStyle = { fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", alignSelf: "center" as const, marginTop: -16 };
+                if (conn === 'or') return <span style={pillStyle}>or</span>;
+                if (conn === 'and') return <span style={pillStyle}>and</span>;
+                return <span style={{ fontSize: 24, color: "#b07de0", alignSelf: "center" as const, marginTop: -20 }}>→</span>;
               })()}
             </div>
           ))}
