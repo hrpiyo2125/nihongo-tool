@@ -177,7 +177,13 @@ export default function TeaserModal({
   contentTabs, methodTabs, locale: _locale, tmm,
   onClose, onFavChange, onOpenAuth,
 }: Props) {
-  const { setPurchasedIds: setAuthPurchasedIds } = useAuth();
+  // AuthContextから直接取得（プロップチェーンに依存しない）
+  const { purchasedIds: authPurchasedIds, setPurchasedIds: setAuthPurchasedIds, profile, updateProfile } = useAuth();
+  const effectivePlan = profile.plan || userPlan;
+  const effectivePurchasedIds = authPurchasedIds.length > 0 ? authPurchasedIds : purchasedIds;
+  const localUserPlan = effectivePlan;
+  const localPurchasedIds = effectivePurchasedIds;
+
   const [favIds, setFavIds] = useState<string[]>(initialFavIds);
   const [favTooltip, setFavTooltip] = useState(false);
   const [favLimitTooltip, setFavLimitTooltip] = useState(false);
@@ -186,29 +192,24 @@ export default function TeaserModal({
   const [showPurchaseConfirm, setShowPurchaseConfirm] = useState(false);
   const [purchaseCardInfo, setPurchaseCardInfo] = useState<{ brand: string; last4: string } | undefined>(undefined);
   const [showPlanModal, setShowPlanModal] = useState(false);
-  const [localUserPlan, setLocalUserPlan] = useState(userPlan);
-  const [localPurchasedIds, setLocalPurchasedIds] = useState(purchasedIds);
 
-  useEffect(() => { setLocalPurchasedIds(purchasedIds); }, [purchasedIds]);
-  useEffect(() => { setLocalUserPlan(userPlan); }, [userPlan]);
-  const isFreeUser = localUserPlan === "free" || localUserPlan === "" || !localUserPlan;
+  const isFreeUser = effectivePlan === "free" || effectivePlan === "" || !effectivePlan;
   const isFav = favIds.includes(mat.id);
-  const canDl = canDownload(localUserPlan, mat.requiredPlan, localPurchasedIds, mat.id);
+
+  const canDl = canDownload(effectivePlan, mat.requiredPlan, effectivePurchasedIds, mat.id);
 
   const refreshAfterPurchase = async () => {
-    // オプティミスティック更新：即座にロック解除
-    const optimisticIds = [...new Set([...localPurchasedIds, mat.id])];
-    setLocalPurchasedIds(optimisticIds);
+    // 即座にAuthContextを更新（UIがすぐ反映される）
+    const optimisticIds = [...new Set([...authPurchasedIds, mat.id])];
     setAuthPurchasedIds(optimisticIds);
 
-    // Supabase で確定取得
+    // Supabase で確定取得してAuthContextを更新
     const supabase = createClient();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
     const { data } = await supabase.from("purchases").select("material_id").eq("user_id", session.user.id);
     if (data) {
       const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
-      setLocalPurchasedIds(ids);
       setAuthPurchasedIds(ids);
       window.dispatchEvent(new CustomEvent("toolio:purchase-complete", { detail: { materialId: mat.id, purchasedIds: ids } }));
     }
@@ -220,7 +221,7 @@ export default function TeaserModal({
     if (!session) return;
     const { data } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
     if (data?.plan) {
-      setLocalUserPlan(data.plan);
+      updateProfile({ plan: data.plan });
       window.dispatchEvent(new CustomEvent("toolio:plan-upgraded", { detail: { plan: data.plan } }));
     }
   };
