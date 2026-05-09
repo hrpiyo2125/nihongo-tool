@@ -98,7 +98,6 @@ export default function AnnouncementModal({
         isLoggedIn={isLoggedIn}
         userPlan={userPlan}
         favIds={favIds}
-        purchasedIds={purchasedIds}
         contentTabs={contentTabs}
         methodTabs={methodTabs}
         locale={locale}

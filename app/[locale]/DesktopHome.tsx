@@ -141,7 +141,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
   const { isLoggedIn, userId, userEmail, userName, userInitial, avatarUrl, profile, authProviders,
     favIds: topFavIds, favIdsLoaded: topFavIdsLoaded, dlIds: topDlIds,
     purchasedIds, loadProfile,
-    setFavIds: setTopFavIds, setPurchasedIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
+    setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
   const { sbOpen, setSbOpen, activePage, setActivePage } = useDesktopUI();
   const [activeTab, setActiveTab] = useState("pickup");
@@ -188,20 +188,6 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     return () => window.removeEventListener("toolio:navigate-mypage", handler);
   }, []);
 
-  useEffect(() => {
-    const handlePurchase = (e: Event) => {
-      const { purchasedIds: newIds } = (e as CustomEvent).detail;
-      if (newIds) setPurchasedIds([...new Set(newIds as string[])]);
-      loadProfile();
-    };
-    const handlePlan = () => { loadProfile(); };
-    window.addEventListener("toolio:purchase-complete", handlePurchase);
-    window.addEventListener("toolio:plan-upgraded", handlePlan);
-    return () => {
-      window.removeEventListener("toolio:purchase-complete", handlePurchase);
-      window.removeEventListener("toolio:plan-upgraded", handlePlan);
-    };
-  }, [loadProfile, setPurchasedIds]);
 
   const switchLanguage = () => {
     const nextLocale = locale === 'ja' ? 'en' : 'ja';
@@ -424,7 +410,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
       {topTeaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(topTeaserMat as any, locale);
-        return <TeaserModal mat={topTeaserMat as any} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} purchasedIds={purchasedIds} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} onClose={() => setTopTeaserMat(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />;
+        return <TeaserModal mat={topTeaserMat as any} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} onClose={() => setTopTeaserMat(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />;
       })()}
 
       {selectedAnnouncement && <AnnouncementModal announcement={selectedAnnouncement} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} purchasedIds={purchasedIds} locale={locale} onClose={() => setSelectedAnnouncement(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />}

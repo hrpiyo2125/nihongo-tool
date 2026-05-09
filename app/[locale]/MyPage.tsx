@@ -149,7 +149,6 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
-            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}
@@ -236,7 +235,6 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
-            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}
@@ -354,7 +352,6 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             tag={tag} tagBg={tagBg} tagColor={tagColor}
             isLoggedIn={isLoggedIn}
             userPlan={userPlan}
-            purchasedIds={purchasedIds}
             favIds={favIds}
             contentTabs={contentTabs}
             methodTabs={methodTabs}

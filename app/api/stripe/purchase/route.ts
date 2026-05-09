@@ -49,14 +49,14 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: userId, material_id: materialId },
     });
 
-    if (paymentIntent.status === "succeeded") {
+    if (paymentIntent.status === "succeeded" || paymentIntent.status === "processing") {
       const { error: insertError } = await supabase.from("purchases").insert({
         user_id: userId,
         material_id: materialId,
         stripe_payment_intent_id: paymentIntent.id,
         amount: 300,
       });
-      if (insertError) {
+      if (insertError && insertError.code !== "23505") {
         console.error("Purchase insert error:", insertError);
         return NextResponse.json({ error: "DB_INSERT_FAILED" }, { status: 500 });
       }

@@ -160,7 +160,6 @@ type Props = {
   tagColor: string;
   isLoggedIn: boolean;
   userPlan: string;
-  purchasedIds?: string[];
   favIds: string[];
   contentTabs: ContentTab[];
   methodTabs: MethodTab[];
@@ -173,14 +172,14 @@ type Props = {
 
 export default function TeaserModal({
   mat, tag, tagBg, tagColor,
-  isLoggedIn, userPlan, purchasedIds = [], favIds: initialFavIds,
+  isLoggedIn, userPlan, favIds: initialFavIds,
   contentTabs, methodTabs, locale: _locale, tmm,
   onClose, onFavChange, onOpenAuth,
 }: Props) {
   // AuthContextから直接取得（プロップチェーンに依存しない）
   const { purchasedIds: authPurchasedIds, setPurchasedIds: setAuthPurchasedIds, profile, updateProfile } = useAuth();
   const effectivePlan = profile.plan || userPlan;
-  const effectivePurchasedIds = authPurchasedIds.length > 0 ? authPurchasedIds : purchasedIds;
+  const effectivePurchasedIds = authPurchasedIds;
   const localUserPlan = effectivePlan;
   const localPurchasedIds = effectivePurchasedIds;
 
@@ -211,7 +210,6 @@ export default function TeaserModal({
     if (data) {
       const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
       setAuthPurchasedIds(ids);
-      window.dispatchEvent(new CustomEvent("toolio:purchase-complete", { detail: { materialId: mat.id, purchasedIds: ids } }));
     }
   };
 
@@ -222,7 +220,6 @@ export default function TeaserModal({
     const { data } = await supabase.from("profiles").select("plan").eq("id", session.user.id).single();
     if (data?.plan) {
       updateProfile({ plan: data.plan });
-      window.dispatchEvent(new CustomEvent("toolio:plan-upgraded", { detail: { plan: data.plan } }));
     }
   };
 
