@@ -141,6 +141,7 @@ export type GuideItem = {
   method: string;
   description: string;
   order: number;
+  type: 'combo' | 'heading' | 'text' | '';
 };
 
 export async function getGuideItems(): Promise<GuideItem[]> {
@@ -159,6 +160,7 @@ export async function getGuideItems(): Promise<GuideItem[]> {
     method:      page.properties['method']?.select?.name ?? '',
     description: (page.properties['description']?.rich_text ?? []).map((r: any) => r.plain_text).join(''),
     order:       page.properties['order']?.number ?? 0,
+    type:        (page.properties['type']?.select?.name ?? '') as GuideItem['type'],
   })).filter((item) => item.group);
 }
 

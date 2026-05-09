@@ -454,49 +454,81 @@ const methodIdMap: Record<string, string> = {
   チェック: "check", すごろく: "sugoroku", ポスター: "poster",
 };
 
-export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: () => void; compact?: boolean; blocks?: NotionBlock[]; guideItems?: GuideItem[] }) {
-  const groups: Record<string, GuideItem[]> = {};
-  for (const item of guideItems ?? []) {
-    if (!groups[item.group]) groups[item.group] = [];
-    groups[item.group].push(item);
-  }
-  const groupEntries = Object.entries(groups);
-
+function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
   return (
-    <PageShell title="授業づくりガイド" compact={compact}>
-      {groupEntries.length > 0 ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-          {groupEntries.map(([group, items]) => (
-            <div key={group} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px 32px" }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 24 }}>{group}</div>
-              {items.every(item => !item.content && !item.method) ? (
-                <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-line" }}>
-                  {items.map(item => item.description).join('\n')}
-                </div>
+    <div style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "24px 28px 32px" }}>
+      <div style={{ fontSize: 14, fontWeight: 800, color: "#7a50b0", marginBottom: 24 }}>{group}</div>
+      {items.every(item => !item.content && !item.method) ? (
+        <div style={{ fontSize: 13, color: "#666", lineHeight: 1.9, whiteSpace: "pre-line" }}>
+          {items.map(item => item.description).join('\n')}
+        </div>
+      ) : (
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
+          {items.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 24 }}>
+              {item.content || item.method ? (
+                <IconPair
+                  content={item.content}
+                  method={item.method}
+                  description={item.description}
+                  contentId={contentIdMap[item.content] ?? "all"}
+                  methodId={methodIdMap[item.method] ?? "all"}
+                />
               ) : (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 24, flexWrap: "wrap" }}>
-                  {items.map((item, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                      {item.content || item.method ? (
-                        <IconPair
-                          content={item.content}
-                          method={item.method}
-                          description={item.description}
-                          contentId={contentIdMap[item.content] ?? "all"}
-                          methodId={methodIdMap[item.method] ?? "all"}
-                        />
-                      ) : (
-                        <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
-                      )}
-                      {i < items.length - 1 && (
-                        <span style={{ fontSize: 18, color: "#ccc", marginTop: -16 }}>→</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
+              )}
+              {i < items.length - 1 && (
+                <span style={{ fontSize: 18, color: "#ccc", marginTop: -16 }}>→</span>
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: () => void; compact?: boolean; blocks?: NotionBlock[]; guideItems?: GuideItem[] }) {
+  const items = guideItems ?? [];
+
+  // heading/text は独立表示、それ以外はgroupでまとめる
+  const rendered: React.ReactNode[] = [];
+  const comboGroups: Record<string, GuideItem[]> = {};
+
+  for (const item of items) {
+    if (item.type === 'heading') {
+      // 手前のcomboGroupsを先に出力
+      for (const [g, gitems] of Object.entries(comboGroups)) {
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        delete comboGroups[g];
+      }
+      rendered.push(
+        <div key={`heading-${item.order}`} style={{ fontSize: 16, fontWeight: 800, color: "#555", marginTop: 8, marginBottom: 4 }}>{item.description}</div>
+      );
+    } else if (item.type === 'text') {
+      for (const [g, gitems] of Object.entries(comboGroups)) {
+        rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+        delete comboGroups[g];
+      }
+      rendered.push(
+        <div key={`text-${item.order}`} style={{ background: "#fafafa", borderRadius: 16, border: "0.5px solid rgba(200,170,240,0.2)", padding: "20px 28px" }}>
+          <p style={{ fontSize: 13, color: "#666", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>
+        </div>
+      );
+    } else {
+      if (!comboGroups[item.group]) comboGroups[item.group] = [];
+      comboGroups[item.group].push(item);
+    }
+  }
+  for (const [g, gitems] of Object.entries(comboGroups)) {
+    rendered.push(<ComboGroup key={`group-${g}`} group={g} items={gitems} />);
+  }
+
+  return (
+    <PageShell title="授業づくりガイド" compact={compact}>
+      {rendered.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {rendered}
         </div>
       ) : (
         <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}>
