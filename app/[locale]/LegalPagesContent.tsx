@@ -444,12 +444,22 @@ function IconPair({ content, method, description, level, contentId, methodId }: 
           <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
         </div>
       </div>
-      {level.length > 0 && (
-        <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
-          {level.map(lv => <LevelTag key={lv} lv={lv} />)}
+      {(level.length > 0 || description) && (
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          {level.length > 0 && (
+            <>
+              {level.map((lv, i) => (
+                <span key={lv} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  {i > 0 && <span style={{ fontSize: 10, color: "#bbb" }}>×</span>}
+                  <LevelTag lv={lv} />
+                </span>
+              ))}
+              {description && <span style={{ fontSize: 11, color: "#bbb" }}>→</span>}
+            </>
+          )}
+          {description && <span style={{ fontSize: 11, color: "#999", lineHeight: 1.8 }}>{description}</span>}
         </div>
       )}
-      {description && <div style={{ fontSize: 11, color: "#999", textAlign: "center", lineHeight: 1.8, marginTop: 6 }}>{description}</div>}
     </a>
   );
 }
