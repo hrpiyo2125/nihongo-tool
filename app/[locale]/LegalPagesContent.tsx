@@ -419,22 +419,23 @@ const methodColorMap: Record<string, string> = {
 function IconPair({ content, method, description, contentId, methodId }: { content: string; method: string; description: string; contentId: string; methodId: string }) {
   const href = `/?content=${contentId}&method=${methodId}`;
   return (
-    <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", minWidth: 110 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff", flexShrink: 0 }}>
-          <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+    <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0, textDecoration: "none" }}>
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff" }}>
+            <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+          <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{content}</span>
         </div>
-        <span style={{ fontSize: 13, color: "#bbb" }}>×</span>
-        <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff", flexShrink: 0 }}>
-          <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <span style={{ fontSize: 16, color: "#ccc", marginTop: 12 }}>×</span>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff" }}>
+            <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+          <span style={{ fontSize: 10, color: "#777", fontWeight: 600, whiteSpace: "nowrap" }}>{method}</span>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-        <span style={{ fontSize: 11, color: "#888" }}>{content}</span>
-        <span style={{ fontSize: 11, color: "#ccc" }}>×</span>
-        <span style={{ fontSize: 11, color: "#888" }}>{method}</span>
-      </div>
-      {description && <div style={{ fontSize: 13, color: "#777", textAlign: "center", lineHeight: 1.8, maxWidth: 110 }}>{description}</div>}
+      {description && <div style={{ fontSize: 11, color: "#999", textAlign: "center", lineHeight: 1.8, marginTop: 14 }}>{description}</div>}
     </a>
   );
 }
