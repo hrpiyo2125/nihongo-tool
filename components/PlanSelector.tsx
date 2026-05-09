@@ -11,10 +11,10 @@ const PlanConfirmModal = dynamic(() => import("./PlanConfirmModal"), { ssr: fals
 const PlanStartModal = dynamic(() => import("./PlanStartModal"), { ssr: false });
 
 
-const PLAN_STYLE: Record<string, { color: string; border: string; bg: string; featured: boolean; priceId: string | null; period: string }> = {
-  free:    { color: "#5580cc", border: "#c0d4ff", bg: "#f0f5ff", featured: false, priceId: null, period: "" },
-  weekly:  { color: "#7a50b0", border: "#ddc8ff", bg: "#fdf8ff", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID ?? null, period: "/週" },
-  monthly: { color: "#c44a88", border: "#f4b9b9", bg: "#fff8fd", featured: true,  priceId: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID ?? null, period: "/月" },
+const PLAN_STYLE: Record<string, { color: string; border: string; bg: string; featured: boolean; priceId: string | null; period: string; gradientFrom: string; gradientTo: string }> = {
+  free:    { color: "#5580cc", border: "#c0d4ff", bg: "#f0f5ff", featured: false, priceId: null, period: "", gradientFrom: "#a3c0ff", gradientTo: "#7aa0f0" },
+  weekly:  { color: "#7a8a9a", border: "#b8c8d8", bg: "#f4f6f8", featured: false, priceId: process.env.NEXT_PUBLIC_STRIPE_WEEKLY_PRICE_ID ?? null, period: "/週", gradientFrom: "#c8d4dc", gradientTo: "#9aaab8" },
+  monthly: { color: "#9a7820", border: "#e0c060", bg: "#fffdf0", featured: true,  priceId: process.env.NEXT_PUBLIC_STRIPE_MONTHLY_PRICE_ID ?? null, period: "/月", gradientFrom: "#e8c84a", gradientTo: "#c49a28" },
 };
 
 const FALLBACK_PLANS = [
@@ -40,7 +40,7 @@ type Props = {
   isPendingDeletion?: boolean;
 };
 
-type Plan = { key: string; name: string; price: number | null; priceId: string | null; color: string; border: string; bg: string; featured: boolean };
+type Plan = { key: string; name: string; price: number | null; priceId: string | null; color: string; border: string; bg: string; featured: boolean; gradientFrom: string; gradientTo: string };
 type Feature = { label: string; from: string; freeNote?: string; paidNote?: string };
 
 export default function PlanSelector({ currentPlan = "free", requiredPlan, cancelAtPeriodEnd = false, currentPeriodEnd = null, onSubscribed, isPendingDeletion = false }: Props) {
@@ -315,7 +315,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
       )}
       
 
-      <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif" }}>
+      <div style={{ fontFamily: "'Hiragino Sans', 'Yu Gothic', 'Noto Sans JP', sans-serif", marginTop: -8 }}>
 
         {/* 比較テーブル */}
         <div style={{ overflowX: "auto" }}>
@@ -349,38 +349,54 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                   const isCurrent = plan.key === currentPlan;
 
                   // 吹き出し文言を決定
-                  let bubbleText: string | null = null;
+                  let bubbleTexts: string[] = [];
                   if (requiredPlan && requiredPlan !== "free") {
                     if (plan.key === "weekly") {
-                      bubbleText = "この教材がすぐに使えます";
+                      bubbleTexts = ["この教材がすぐに使えます"];
                     } else if (plan.key === "monthly") {
-                      bubbleText = "weekly より月500円お得";
+                      bubbleTexts = ["この教材がすぐに使えます", "weeklyより月500円お得"];
                     }
                   }
 
+                  // 単品購入との比較ヒント
+                  let upgradeHints: string[] = [];
+                  if (plan.key === "weekly") {
+                    upgradeHints = ["単品購入を週に2回以上する方におすすめ"];
+                  } else if (plan.key === "monthly") {
+                    upgradeHints = ["単品購入を月に5回以上する方におすすめ", "weeklyプランを1ヶ月使うより500円お得"];
+                  }
+
+                  // 表示する吹き出しヒントを決定（requiredPlanがある時はbubbleTexts優先）
+                  const hints: string[] = bubbleTexts.length > 0 ? bubbleTexts : upgradeHints;
+
                   return (
                     <th key={plan.key} onClick={() => setSelectedPlan(selectedPlan === plan.key ? null : plan.key)} style={{ width: "18%", padding: "14px 6px 12px", textAlign: "center", verticalAlign: "bottom", cursor: "pointer" }}>
+                      {/* freeカラムのスペーサー（吹き出し分の高さを確保） */}
+                      {hints.length === 0 && <div style={{ height: 80 }} />}
                       {/* 吹き出し */}
-                      {bubbleText && (
+                      {hints.length > 0 && (
                         <div style={{
-                          background: plan.key === requiredPlan ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#f0f0f0",
-                          color: plan.key === requiredPlan ? "white" : "#999",
-                          fontSize: 9,
+                          background: `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`,
+                          color: "white",
+                          fontSize: 11,
                           fontWeight: 700,
-                          padding: "4px 8px",
-                          borderRadius: 8,
-                          marginBottom: 6,
-                          lineHeight: 1.4,
+                          padding: "10px 10px",
+                          borderRadius: 10,
+                          marginBottom: 20,
+                          lineHeight: 1.7,
                           position: "relative",
-                          whiteSpace: "nowrap",
+                          textAlign: "center",
+                          boxShadow: `0 3px 10px ${plan.gradientTo}66`,
                         }}>
-                          {bubbleText}
+                          {hints.map((hint, i) => (
+                            <div key={i}>{hint}</div>
+                          ))}
                           <div style={{
                             position: "absolute", bottom: -5, left: "50%", transform: "translateX(-50%)",
                             width: 0, height: 0,
                             borderLeft: "5px solid transparent",
                             borderRight: "5px solid transparent",
-                            borderTop: `5px solid ${plan.key === requiredPlan ? "#e49bfd" : "#f0f0f0"}`,
+                            borderTop: `5px solid ${plan.gradientTo}`,
                           }} />
                         </div>
                       )}
@@ -390,13 +406,14 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                         background: plan.bg,
                         border: `${plan.featured ? 2 : 1}px solid ${isCurrent ? plan.color : plan.border}`,
                         borderRadius: "12px 12px 0 0",
-                        padding: "14px 8px 10px",
+                        padding: "18px 10px 14px",
                         position: "relative",
+                        minHeight: 90,
                       }}>
                         {plan.featured && !isCurrent && (
                           <div style={{
                             position: "absolute", top: -10, left: "50%", transform: "translateX(-50%)",
-                            background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                            background: `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`,
                             color: "white", fontSize: 9, fontWeight: 700,
                             padding: "2px 10px", borderRadius: 8, whiteSpace: "nowrap",
                           }}>おすすめ</div>
@@ -409,16 +426,16 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                             padding: "2px 10px", borderRadius: 8, whiteSpace: "nowrap",
                           }}>現在</div>
                         )}
-                        <div style={{ fontSize: 12, fontWeight: 800, color: plan.color, marginBottom: 4, whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 14, fontWeight: 800, color: plan.color, marginBottom: 6, whiteSpace: "nowrap" }}>
                           {plan.name}
                         </div>
                         <div>
                           {plan.price === null ? (
-                            <span style={{ fontSize: 14, fontWeight: 800, color: "#aaa" }}>¥0</span>
+                            <span style={{ fontSize: 17, fontWeight: 800, color: "#aaa" }}>¥0</span>
                           ) : (
                             <>
-                              <span style={{ fontSize: 16, fontWeight: 800, color: plan.color }}>¥{plan.price.toLocaleString()}</span>
-                              <span style={{ fontSize: 9, color: "#bbb" }}>{PLAN_STYLE[plan.key]?.period ?? "/月"}</span>
+                              <span style={{ fontSize: 20, fontWeight: 800, color: plan.color }}>¥{plan.price.toLocaleString()}</span>
+                              <span style={{ fontSize: 13, color: "#999", fontWeight: 700 }}>{PLAN_STYLE[plan.key]?.period ?? "/月"}</span>
                             </>
                           )}
                         </div>
@@ -462,12 +479,8 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                         <div style={{
                           width: 18, height: 18, borderRadius: "50%", margin: "0 auto",
                           background: ok
-                          ? plan.featured
-                            ? "linear-gradient(135deg,#e879a0,#9b59d4)"
-                            : plan.key === "free"
-                            ? "#a3c0ff"
-                            : "#9b6ed4"
-                          : "#e8e8e8",
+                            ? `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`
+                            : "#e8e8e8",
                           display: "flex", alignItems: "center", justifyContent: "center",
                         }}>
                           {ok ? (
@@ -481,7 +494,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                           )}
                         </div>
                         {subText && (
-                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : "#9b6ed4", marginTop: 4, fontWeight: 600, whiteSpace: "nowrap" }}>{subText}</div>
+                          <div style={{ fontSize: 9, color: plan.key === "free" ? "#aaa" : plan.color, marginTop: 4, fontWeight: 600, whiteSpace: "nowrap" }}>{subText}</div>
                         )}
                       </td>
                     );
@@ -556,7 +569,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                           }}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
-                            background: "linear-gradient(135deg,#f4b9b9,#e49bfd)",
+                            background: `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`,
                             color: "white", fontSize: 10, fontWeight: 700,
                             cursor: "pointer", whiteSpace: "nowrap",
                           }}
@@ -574,7 +587,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                           }}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
-                            background: "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
+                            background: `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`,
                             color: "white", fontSize: 10, fontWeight: 700,
                             cursor: "pointer", whiteSpace: "nowrap",
                           }}
@@ -587,9 +600,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
                           disabled={loading === plan.key}
                           style={{
                             width: "100%", height: 40, borderRadius: 20, border: "none",
-                            background: plan.featured
-                              ? "linear-gradient(135deg,#f4b9b9,#e49bfd)"
-                              : "linear-gradient(135deg,#e0d0f8,#c9a0f0)",
+                            background: `linear-gradient(135deg,${plan.gradientFrom},${plan.gradientTo})`,
                             color: "white", fontSize: 10, fontWeight: 700,
                             cursor: loading === plan.key ? "not-allowed" : "pointer", whiteSpace: "nowrap",
                             opacity: loading === plan.key ? 0.7 : 1,
@@ -607,7 +618,7 @@ export default function PlanSelector({ currentPlan = "free", requiredPlan, cance
         )}
         </div>
 
-        <div style={{ textAlign: "center", fontSize: 10, color: "#ccc", marginTop: 16 }}>
+        <div style={{ textAlign: "center", fontSize: 10, color: "#ccc", marginTop: 32, marginBottom: 24 }}>
           クレジットカードで安全に決済。いつでもプランを変更できます。
         </div>
       </div>
