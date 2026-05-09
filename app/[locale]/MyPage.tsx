@@ -1209,7 +1209,7 @@ export default function MyPage({
       onChangePlan={() => setActivePage("plan")}
       onProfileUpdate={updateProfile}
       mobileMode={mobileMode}
-      allMaterials={allMaterials}
+      allMaterials={materials}
     />
   );
 
