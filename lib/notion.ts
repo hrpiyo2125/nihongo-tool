@@ -143,6 +143,7 @@ export type GuideItem = {
   order: number;
   type: 'combo' | 'heading' | 'text' | '';
   level: string[];
+  connector: 'arrow' | 'or' | 'and' | '';
 };
 
 export async function getGuideItems(): Promise<GuideItem[]> {
@@ -162,6 +163,7 @@ export async function getGuideItems(): Promise<GuideItem[]> {
     order:       page.properties['order']?.number ?? 0,
     type:        (page.properties['type']?.select?.name ?? '') as GuideItem['type'],
     level:       (page.properties['level']?.multi_select ?? []).map((s: any) => s.name),
+    connector:   (page.properties['connector']?.select?.name ?? '') as GuideItem['connector'],
   })).filter((item) => item.group || item.type === 'text' || item.type === 'heading');
 }
 

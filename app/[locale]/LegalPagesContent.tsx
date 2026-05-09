@@ -492,9 +492,12 @@ function ComboGroup({ group, items }: { group: string; items: GuideItem[] }) {
               ) : (
                 <div style={{ fontSize: 12, color: "#aaa", maxWidth: 120, textAlign: "center" }}>{item.description}</div>
               )}
-              {i < items.length - 1 && (
-                <span style={{ fontSize: 24, color: "#b07de0", marginTop: -20 }}>→</span>
-              )}
+              {i < items.length - 1 && (() => {
+                const conn = item.connector;
+                if (conn === 'or') return <span style={{ fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: -16 }}>or</span>;
+                if (conn === 'and') return <span style={{ fontSize: 11, fontWeight: 700, color: "#b07de0", background: "rgba(176,125,224,0.1)", border: "1px solid rgba(176,125,224,0.3)", borderRadius: 20, padding: "4px 10px", marginTop: -16 }}>and</span>;
+                return <span style={{ fontSize: 24, color: "#b07de0", marginTop: -20 }}>→</span>;
+              })()}
             </div>
           ))}
         </div>
