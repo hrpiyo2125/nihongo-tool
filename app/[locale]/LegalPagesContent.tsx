@@ -545,8 +545,9 @@ export function HowtoContent({ onBack, compact, blocks, guideItems }: { onBack: 
         <p key={`text-${item.order}`} style={{ fontSize: 13, color: "#777", lineHeight: 1.9, margin: 0, whiteSpace: "pre-line" }}>{item.description}</p>
       );
     } else {
-      if (!comboGroups[item.group]) comboGroups[item.group] = [];
-      comboGroups[item.group].push(item);
+      const groupKey = item.group || Object.keys(comboGroups).pop() || '';
+      if (!comboGroups[groupKey]) comboGroups[groupKey] = [];
+      comboGroups[groupKey].push(item);
     }
   }
   for (const [g, gitems] of Object.entries(comboGroups)) {
