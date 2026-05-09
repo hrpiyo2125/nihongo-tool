@@ -172,34 +172,11 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
 
 function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
   const { purchasedIds } = useAuth();
-  const [purchasedMaterials, setPurchasedMaterials] = useState<Material[]>([]);
-  const [loading, setLoading] = useState(true);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
 
-  const fetchPurchased = useCallback(async () => {
-    const supabase = createClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { setLoading(false); return; }
-    const { data } = await supabase
-      .from("purchases")
-      .select("material_id")
-      .eq("user_id", session.user.id)
-      .order("created_at", { ascending: false });
-    if (data) {
-      const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
-      setPurchasedMaterials(allMaterials.filter((m) => ids.includes(m.id)));
-    }
-    setLoading(false);
-  }, [allMaterials]);
-
-  useEffect(() => { fetchPurchased(); }, [fetchPurchased]);
-
-  useEffect(() => {
-    const handler = () => { fetchPurchased(); };
-    window.addEventListener("toolio:purchase-complete", handler);
-    return () => window.removeEventListener("toolio:purchase-complete", handler);
-  }, [fetchPurchased]);
+  // AuthContextのpurchasedIds（サービスロールAPI経由で確実に取得済み）を直接使用
+  const purchasedMaterials = allMaterials.filter((m) => purchasedIds.includes(m.id));
 
   useEffect(() => {
     if (!isLoggedIn) return;
@@ -211,19 +188,6 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
     });
   }, [isLoggedIn]);
 
-  if (loading) return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div key={i} style={{ borderRadius: 14, border: "0.5px solid #eee", overflow: "hidden", background: "white" }}>
-          <div className="skeleton" style={{ height: 110 }} />
-          <div style={{ padding: "12px", display: "flex", flexDirection: "column", gap: 8 }}>
-            <div className="skeleton" style={{ height: 13, width: "75%" }} />
-            <div className="skeleton" style={{ height: 11, width: "50%" }} />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
   if (purchasedMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>🛒</div>
