@@ -401,16 +401,31 @@ const methodImageMap: Record<string, string> = {
   ポスター: "/method/8_poster.png",
 };
 
+const contentColorMap: Record<string, string> = {
+  "ひらがな": "#e8efff", "カタカナ": "#f0e8ff", "漢字": "#ffe8f4", "助詞": "#fff0ec",
+  "場面会話": "#f8e8ff", "季節・行事": "#e8efff", "食べ物": "#fff0e8", "動物": "#e8f8ee",
+  "体・健康": "#ffe8f4", "色・形": "#f0e8ff", "数・算数": "#e8f8ff", "形容詞": "#fff8e0",
+  "動詞": "#e8f8ee", "接続詞": "#f0e8ff", "文法": "#f0ffe8", "身近なもの": "#e8efff",
+  "ことば": "#fff0e8", "やさい・くだもの": "#e8f8ee", "自分のこと": "#e8efff",
+};
+
+const methodColorMap: Record<string, string> = {
+  ドリル: "#fff0e8", テスト: "#e8f8ee", カード: "#e8efff", ぬりえ: "#ffe8f4",
+  ロールプレイ: "#f8e8ff", ビンゴ: "#fff8e0", インタビュー: "#e8f8ff",
+  プレゼンテーション: "#f0e8ff", 文づくり: "#f0ffe8", 作文: "#ffe8f4",
+  チェック: "#e8f8ee", すごろく: "#fff0e8", ポスター: "#e8efff",
+};
+
 function IconPair({ content, method, description, contentId, methodId }: { content: string; method: string; description: string; contentId: string; methodId: string }) {
   const href = `/?content=${contentId}&method=${methodId}`;
   return (
-    <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", minWidth: 100 }}>
+    <a href={href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textDecoration: "none", minWidth: 110 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <div style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", border: "0.5px solid rgba(200,170,240,0.25)", background: "#f8f4ff" }}>
+        <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: contentColorMap[content] ?? "#e8efff", flexShrink: 0 }}>
           <img src={contentImageMap[content] ?? "/contents/14_all.png"} alt={content} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
         <span style={{ fontSize: 13, color: "#bbb" }}>×</span>
-        <div style={{ width: 48, height: 48, borderRadius: 12, overflow: "hidden", border: "0.5px solid rgba(200,170,240,0.25)", background: "#f8f4ff" }}>
+        <div style={{ width: 56, height: 56, borderRadius: "50%", overflow: "hidden", border: "1px solid rgba(0,0,0,0.06)", background: methodColorMap[method] ?? "#e8efff", flexShrink: 0 }}>
           <img src={methodImageMap[method] ?? "/contents/14_all.png"} alt={method} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         </div>
       </div>
@@ -419,7 +434,7 @@ function IconPair({ content, method, description, contentId, methodId }: { conte
         <span style={{ fontSize: 11, color: "#ccc" }}>×</span>
         <span style={{ fontSize: 11, color: "#888" }}>{method}</span>
       </div>
-      {description && <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", maxWidth: 100 }}>{description}</div>}
+      {description && <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", maxWidth: 110 }}>{description}</div>}
     </a>
   );
 }
