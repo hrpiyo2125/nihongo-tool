@@ -54,11 +54,10 @@ export async function POST(req: NextRequest) {
         user_id: userId,
         material_id: materialId,
         stripe_payment_intent_id: paymentIntent.id,
-        amount: 300,
       });
       if (insertError && insertError.code !== "23505") {
-        console.error("Purchase insert error:", insertError);
-        return NextResponse.json({ error: "DB_INSERT_FAILED" }, { status: 500 });
+        console.error("Purchase insert error:", JSON.stringify(insertError));
+        return NextResponse.json({ error: "DB_INSERT_FAILED", detail: insertError.message, code: insertError.code }, { status: 500 });
       }
       return NextResponse.json({ success: true });
     }

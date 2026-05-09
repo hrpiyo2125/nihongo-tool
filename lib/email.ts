@@ -115,9 +115,9 @@ export async function sendTrialStartEmail({
     subject: `【toolio】14日間の無料トライアルが始まりました`,
     html: `
       <p>toolioをご利用いただきありがとうございます。</p>
-      <p>ライトプランの<strong>14日間無料トライアル</strong>が始まりました。</p>
+      <p>toolio weekly unlimitedプランの<strong>14日間無料トライアル</strong>が始まりました。</p>
       <p>トライアル終了日：<strong>${formatDate(trialEnd)}</strong></p>
-      <p>期間中はライトプランのすべての機能をお使いいただけます。</p>
+      <p>期間中はサブスクプランのすべての機能をお使いいただけます。</p>
       <p>トライアル終了後は無料プランに自動で戻ります。クレジットカードの登録は不要です。</p>
       <br />
       <p style="color:#aaa;font-size:12px;">toolio | nihongo-tool.com</p>

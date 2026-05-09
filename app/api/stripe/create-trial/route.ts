@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     await supabase
       .from('profiles')
       .update({
-        plan: 'light',
+        plan: 'weekly',
         plan_status: 'trialing',
         stripe_subscription_id: subscription.id,
         trial_end: new Date(trialEnd * 1000).toISOString(),

@@ -64,7 +64,7 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
       } else if (data.error === "Internal Server Error") {
         setError("サーバーエラーが発生しました。しばらく経ってから再度お試しください。");
       } else {
-        setError(`購入に失敗しました（${data.error ?? 'Unknown error'}）。もう一度お試しください。`);
+        setError(`購入に失敗しました（${data.error ?? 'Unknown error'}${data.detail ? ': ' + data.detail : ''}）。もう一度お試しください。`);
       }
     } catch {
       setError("通信エラーが発生しました。接続を確認してから再度お試しください。");
