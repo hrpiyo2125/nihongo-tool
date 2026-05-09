@@ -587,35 +587,37 @@ export default function MyPage({
             )}
           </div>
           <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) { setShowPresetPicker(false); handleAvatarUpload(f); } e.target.value = ""; }} />
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
-              {profile.status === "pending_deletion" && (
-                <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#fff0e8", color: "#a04020", whiteSpace: "nowrap" }}>退会予約済み</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flex: 1, gap: 10 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
+                {profile.status === "pending_deletion" && (
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#fff0e8", color: "#a04020", whiteSpace: "nowrap" }}>退会予約済み</span>
+                )}
+              </div>
+              <div style={{ fontSize: 12, color: "#aaa", marginBottom: 6 }}>
+                {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
+              </div>
+              {profile.plan !== "free" && profile.current_period_end && profile.status !== "pending_deletion" && (
+                <div style={{ fontSize: 11, padding: "5px 10px", borderRadius: 8,
+                  ...(profile.cancel_at_period_end
+                    ? { background: "#fff0e8", color: "#a04020" }
+                    : { background: "#e8efff", color: "#3a5a9a" })
+                }}>
+                  {profile.cancel_at_period_end
+                    ? `${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}にfreeへ移行`
+                    : `次回更新日：${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
+                  }
+                </div>
               )}
+              {profile.status === "pending_deletion" && profile.current_period_end && (
+                <div style={{ fontSize: 11, padding: "5px 10px", borderRadius: 8, background: "#fff0e8", color: "#a04020" }}>
+                  {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
+                </div>
+              )}
+              {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
             </div>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: profile.plan !== "free" ? 6 : 10 }}>
-              {profile.plan === "weekly" ? "toolio weekly unlimited" : profile.plan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
-            </div>
-            {profile.plan !== "free" && profile.current_period_end && profile.status !== "pending_deletion" && (
-              <div style={{ fontSize: 11, marginBottom: 10, padding: "5px 10px", borderRadius: 8,
-                ...(profile.cancel_at_period_end
-                  ? { background: "#fff0e8", color: "#a04020" }
-                  : { background: "#e8efff", color: "#3a5a9a" })
-              }}>
-                {profile.cancel_at_period_end
-                  ? `${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}にfreeへ移行`
-                  : `次回更新日：${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
-                }
-              </div>
-            )}
-            {profile.status === "pending_deletion" && profile.current_period_end && (
-              <div style={{ fontSize: 11, marginBottom: 10, padding: "5px 10px", borderRadius: 8, background: "#fff0e8", color: "#a04020" }}>
-                {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
-              </div>
-            )}
-            <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "5px 14px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600 }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
-            {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
+            <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
           </div>
         </div>
         {showPresetPicker && typeof document !== "undefined" && createPortal(

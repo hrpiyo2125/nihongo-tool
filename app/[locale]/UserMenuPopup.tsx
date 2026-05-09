@@ -10,6 +10,7 @@ type Props = {
   userPlan: string;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
+  userStatus?: string | null;
   onClose: () => void;
   onNavigate: (page: string) => void;
   onRouterPush: (href: string) => void;
@@ -18,7 +19,7 @@ type Props = {
 };
 
 export default function UserMenuPopup({
-  userIconRef, userInitial, avatarUrl, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, userPlan, cancelAtPeriodEnd, currentPeriodEnd, tm,
+  userIconRef, userInitial, avatarUrl, userName, onClose, onNavigate, onRouterPush, onLogout, sbOpen, userPlan, cancelAtPeriodEnd, currentPeriodEnd, userStatus, tm,
 }: Props) {
   const el = userIconRef.current; if (!el) return null;
   const rect = el.getBoundingClientRect(); if (!rect) return null;
@@ -44,9 +45,16 @@ export default function UserMenuPopup({
           <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{userName}</div>
           <div style={{ fontSize: 11, color: "#aaa" }}>
             {userPlan === "weekly" ? "toolio weekly unlimited" : userPlan === "monthly" ? "toolio monthly unlimited" : tm("free_plan")}
-            {cancelAtPeriodEnd && currentPeriodEnd && (
-              <span style={{ fontSize: 10, color: "#a04020", display: "block" }}>
-                {new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}まで利用可能
+            {userPlan !== "free" && currentPeriodEnd && userStatus !== "pending_deletion" && (
+              <span style={{ fontSize: 10, display: "block", marginTop: 2, color: cancelAtPeriodEnd ? "#a04020" : "#3a5a9a" }}>
+                {cancelAtPeriodEnd
+                  ? `${new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}にfreeへ移行`
+                  : `次回更新日：${new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`}
+              </span>
+            )}
+            {userStatus === "pending_deletion" && currentPeriodEnd && (
+              <span style={{ fontSize: 10, display: "block", marginTop: 2, color: "#a04020" }}>
+                {new Date(currentPeriodEnd).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
               </span>
             )}
           </div>
