@@ -333,7 +333,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                   <input
                     type="text"
-                    placeholder="ひらがな　カード　など..."
+                    placeholder="教材のキーワードを検索"
                     value={heroSearch}
                     onChange={(e) => { setHeroSearch(e.target.value); heroSearchConfirmed.current = false; }}
                     onKeyDown={(e) => {
@@ -343,7 +343,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                       setMaterialsFilter({ content: "all", method: "all", searchQuery: heroSearch.trim() });
                     }}
                     className="hero-search-input"
-                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }}
+                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 16, color: "#555", outline: "none" }}
                   />
                   {heroSearch && (
                     <button onClick={() => setHeroSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb" }}>

@@ -77,7 +77,7 @@
   },
   "materials_modal": {
     "title": "教材を探す",
-    "search_placeholder": "教材を検索...",
+    "search_placeholder": "ひらがな、カードなど教材のキーワードを検索",
     "no_results": "該当する教材がありません",
     "free": "無料",
     "subscribe": "サブスク",
