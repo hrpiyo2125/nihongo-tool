@@ -117,6 +117,7 @@ function TagBadge({ tag }: { tag: string }) {
 // ===== 関連教材パネル（独立コンポーネント）=====
 function RelatedPanel({
   relatedMaterials, isLoggedIn, userPlan, purchasedIds, teaserFavIds, setTeaserFavIds,
+  teaserMat, setTeaserMat,
 }: {
   relatedMaterials: Material[];
   isLoggedIn: boolean;
@@ -124,79 +125,46 @@ function RelatedPanel({
   purchasedIds: string[];
   teaserFavIds: string[];
   setTeaserFavIds: React.Dispatch<React.SetStateAction<string[]>>;
+  teaserMat: Material | null;
+  setTeaserMat: React.Dispatch<React.SetStateAction<Material | null>>;
 }) {
-  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
-  const isMobile = useIsMobile();
-
-  const contentTabsMapped = contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }));
-  const methodTabsMapped = methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }));
-  const tmmFn = (key: string) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key);
-
   return (
-    <div style={{ padding: "20px 18px", position: "relative" as const, height: "100%" }}>
-      {teaserMat ? (() => {
-        const { bg, char, charColor } = getCardStyle(teaserMat);
-        const { tag, tagBg, tagColor } = getTag(teaserMat);
-        const commonProps = {
-          mat: teaserMat as any,
-          bg, char, charColor, tag, tagBg, tagColor,
-          isLoggedIn, userPlan,
-          purchasedIds,
-          favIds: teaserFavIds,
-          contentTabs: contentTabsMapped,
-          methodTabs: methodTabsMapped,
-          locale: "ja",
-          tmm: tmmFn,
-          onClose: () => setTeaserMat(null),
-          onFavChange: (materialId: string, isFav: boolean) => {
-            if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
-            else setTeaserFavIds(prev => prev.filter(id => id !== materialId));
-          },
-          onOpenPlanModal: () => {},
-          onOpenPurchaseConfirm: () => {},
-        };
-        return isMobile
-          ? <MobileTeaserModal {...commonProps} />
-          : <TeaserModal {...commonProps} />;
-      })() : (
-        <>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
-          {relatedMaterials.length === 0 ? (
-            <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.8 }}>関連する教材が見つかりませんでした。</div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {relatedMaterials.map((m) => {
-                const { bg, char, charColor } = getCardStyle(m);
-                const { tag, tagBg, tagColor } = getTag(m);
-                return (
-                  <MaterialCard
-                    key={m.id}
-                    mat={m as any}
-                    onClick={() => setTeaserMat(m)}
-                    locale="ja"
-                    isLoggedIn={isLoggedIn}
-                    favIds={teaserFavIds}
-                    bg={bg} char={char} charColor={charColor}
-                    tag={tag} tagBg={tagBg} tagColor={tagColor}
-                    onFavToggle={async (mat) => {
-                      if (!isLoggedIn) return;
-                      const supabase = createClient();
-                      const { data: { session } } = await supabase.auth.getSession();
-                      if (!session) return;
-                      if (teaserFavIds.includes(mat.id)) {
-                        await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
-                        setTeaserFavIds(prev => prev.filter(fid => fid !== mat.id));
-                      } else {
-                        await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
-                        setTeaserFavIds(prev => [...prev, mat.id]);
-                      }
-                    }}
-                  />
-                );
-              })}
-            </div>
-          )}
-        </>
+    <div style={{ padding: "20px 18px" }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>関連する教材</div>
+      {relatedMaterials.length === 0 ? (
+        <div style={{ fontSize: 13, color: "#bbb", lineHeight: 1.8 }}>関連する教材が見つかりませんでした。</div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {relatedMaterials.map((m) => {
+            const { bg, char, charColor } = getCardStyle(m);
+            const { tag, tagBg, tagColor } = getTag(m);
+            return (
+              <MaterialCard
+                key={m.id}
+                mat={m as any}
+                onClick={() => setTeaserMat(m)}
+                locale="ja"
+                isLoggedIn={isLoggedIn}
+                favIds={teaserFavIds}
+                bg={bg} char={char} charColor={charColor}
+                tag={tag} tagBg={tagBg} tagColor={tagColor}
+                onFavToggle={async (mat) => {
+                  if (!isLoggedIn) return;
+                  const supabase = createClient();
+                  const { data: { session } } = await supabase.auth.getSession();
+                  if (!session) return;
+                  if (teaserFavIds.includes(mat.id)) {
+                    await supabase.from("favorites").delete().eq("user_id", session.user.id).eq("material_id", mat.id);
+                    setTeaserFavIds(prev => prev.filter(fid => fid !== mat.id));
+                  } else {
+                    await supabase.from("favorites").insert({ user_id: session.user.id, material_id: mat.id });
+                    setTeaserFavIds(prev => [...prev, mat.id]);
+                  }
+                }}
+              />
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -215,6 +183,7 @@ export default function MaterialDetailPage() {
   const [activePanel, setActivePanel] = useState<string | null>(null);
   const [activeTooltip, setActiveTooltip] = useState<TooltipType | null>(null);
   const [teaserFavIds, setTeaserFavIds] = useState<string[]>([]);
+  const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [purchasedIds, setPurchasedIds] = useState<string[]>([]);
   const [profile, setProfile] = useState<Record<string, any>>({ plan: "free" });
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -497,7 +466,7 @@ export default function MaterialDetailPage() {
       content: <div style={{ padding: "20px 18px" }}><div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 14 }}>Advanced の使い方</div>{renderNotionText(material.usageAdvanced)}</div>,
     }] : []),
     {
-      id: "related", label: "関連ツール",
+      id: "related", label: "関連教材",
       icon: (active: boolean) => (
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           {active && <defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#f4b9b9"/><stop offset="50%" stopColor="#e49bfd"/><stop offset="100%" stopColor="#a3c0ff"/></linearGradient></defs>}
@@ -561,15 +530,20 @@ export default function MaterialDetailPage() {
 
 
       <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
-        <aside style={{ display: "flex", position: "absolute", top: 0, left: 0, bottom: 0, zIndex: 20, overflow: "hidden" }} onMouseLeave={isMobile ? undefined : () => setActivePanel(null)}>
+        {panelOpen && (
+          <div
+            onClick={() => setActivePanel(null)}
+            style={{ position: "absolute", inset: 0, zIndex: 19 }}
+          />
+        )}
+        <aside style={{ display: "flex", position: "absolute", top: 0, left: 0, bottom: 0, zIndex: 20, overflow: "hidden" }}>
           <div style={{ width: SB_ICON_W, background: "#f0f0f0", display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 16, gap: 4, flexShrink: 0 }}>
             {sidePanels.map((panel) => {
               const active = activePanel === panel.id;
               return (
                 <button
                   key={panel.id}
-                  onMouseEnter={isMobile ? undefined : () => setActivePanel(panel.id)}
-                  onClick={isMobile ? () => setActivePanel(active ? null : panel.id) : undefined}
+                  onClick={() => setActivePanel(active ? null : panel.id)}
                   title={panel.label}
                   style={{ width: 46, height: 54, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, border: "none", borderRadius: 10, background: "transparent", cursor: "pointer", padding: 0 }}
                 >
@@ -585,7 +559,9 @@ export default function MaterialDetailPage() {
             <div style={{ width: SB_PANEL_W, height: "calc(100% - 12px)", overflowY: "scroll", background: "white", borderRadius: "16px 16px 0 0", marginTop: 12, boxShadow: "0 -4px 24px rgba(200,150,150,0.12)", scrollbarWidth: "thin" as const, position: "relative" }}>
               <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(163,192,255,0.2)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: "#9b6ed4" }}>{sidePanels.find(p => p.id === activePanel)?.label}</span>
-                {isMobile && <button onClick={() => setActivePanel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 14, color: "#aaa", padding: "0 4px" }}>✕</button>}
+                <button onClick={() => setActivePanel(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "#bbb", padding: "0 2px", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 6, width: 24, height: 24, flexShrink: 0 }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                </button>
               </div>
               {activePanel === "related" ? (
                 <RelatedPanel
@@ -595,6 +571,8 @@ export default function MaterialDetailPage() {
                   purchasedIds={purchasedIds}
                   teaserFavIds={teaserFavIds}
                   setTeaserFavIds={setTeaserFavIds}
+                  teaserMat={teaserMat}
+                  setTeaserMat={setTeaserMat}
                 />
               ) : (
                 sidePanels.find(p => p.id === activePanel)?.content
@@ -619,6 +597,35 @@ export default function MaterialDetailPage() {
           )}
         </main>
       </div>
+
+      {teaserMat && (() => {
+        const contentTabsMapped = contentTabs.map(t => ({ ...t, char: t.label[0], color: "#e8efff", imageSrc: null }));
+        const methodTabsMapped = methodTabs.map(t => ({ ...t, char: t.label[0], imageSrc: null }));
+        const tmmFn = (key: string) => ({ age: "対象年齢", content: "学習内容", method: "学習方法", download: "ダウンロード", lock_download: "ダウンロード", add_fav: "お気に入りに追加", added_fav: "お気に入りに追加済み" }[key] ?? key);
+        const { bg: tBg, char: tChar, charColor: tCharColor } = getCardStyle(teaserMat);
+        const { tag: tTag, tagBg: tTagBg, tagColor: tTagColor } = getTag(teaserMat);
+        const commonProps = {
+          mat: teaserMat as any,
+          bg: tBg, char: tChar, charColor: tCharColor, tag: tTag, tagBg: tTagBg, tagColor: tTagColor,
+          isLoggedIn, userPlan: profile.plan ?? "free",
+          purchasedIds,
+          favIds: teaserFavIds,
+          contentTabs: contentTabsMapped,
+          methodTabs: methodTabsMapped,
+          locale: "ja",
+          tmm: tmmFn,
+          onClose: () => setTeaserMat(null),
+          onFavChange: (materialId: string, isFav: boolean) => {
+            if (isFav) setTeaserFavIds(prev => [...prev, materialId]);
+            else setTeaserFavIds(prev => prev.filter(fid => fid !== materialId));
+          },
+          onOpenPlanModal: () => {},
+          onOpenPurchaseConfirm: () => {},
+        };
+        return isMobile
+          ? <MobileTeaserModal {...commonProps} />
+          : <TeaserModal {...commonProps} />;
+      })()}
 
       {authModalOpen && (
         <AuthModal
