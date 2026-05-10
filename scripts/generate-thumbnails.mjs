@@ -28,6 +28,7 @@ const MAX_PAGES = 3;
 Object.entries(env).forEach(([k, v]) => { process.env[k] = v; });
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+const FORCE = process.argv.includes('--force');
 
 async function fetchMaterials() {
   const { getMaterials } = await import('../lib/notion.ts').catch(() => null)
@@ -50,7 +51,7 @@ async function fileExists(name) {
 async function uploadPng(name, buf) {
   const { error } = await supabase.storage.from(BUCKET).upload(name, buf, {
     contentType: 'image/png',
-    upsert: false,
+    upsert: FORCE,
   });
   if (error) throw error;
 }
@@ -71,6 +72,7 @@ async function generatePages(pdfUrl) {
 }
 
 async function main() {
+  if (FORCE) console.log('⚠️  --force モード: 既存サムネイルを上書きします\n');
   console.log('教材一覧を取得中...');
   const materials = await fetchMaterials();
   const withPdf = materials.filter(m => m.pdfFile);
@@ -82,9 +84,9 @@ async function main() {
     const label = `[${mat.id.slice(0, 8)}] ${mat.title?.slice(0, 25) ?? ''}`;
     process.stdout.write(`${label}... `);
 
-    // カード用サムネイル ({id}.png) と モーダル用 ({id}-p1.png) が両方あればスキップ
-    const cardExists = await fileExists(`${mat.id}.png`);
-    const p1Exists = await fileExists(`${mat.id}-p1.png`);
+    // カード用サムネイル ({id}.png) と モーダル用 ({id}-p1.png) が両方あればスキップ（--force 時は常に上書き）
+    const cardExists = !FORCE && await fileExists(`${mat.id}.png`);
+    const p1Exists = !FORCE && await fileExists(`${mat.id}-p1.png`);
 
     if (cardExists && p1Exists) {
       console.log('スキップ（既存）');
