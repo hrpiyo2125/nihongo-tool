@@ -103,7 +103,7 @@ export async function getMaterials() {
       props.requiredPlan?.rich_text?.[0]?.plain_text ?? ''
       ] ?? 'free',
       pdfFile:      props.pdfFile?.files[0]?.file?.url ?? props.pdfFile?.files[0]?.external?.url ?? '',
-      thumbnailUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${page.id}.png?v=${new Date(page.last_edited_time).getTime()}`,
+      thumbnailUrl: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/thumbnails/${page.id}.png?v=${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`,
       isPickup:     props.isPickup?.checkbox     ?? false,
       isRecommended: props.isRecommended?.checkbox ?? false,
       ranking:      props.ranking?.number        ?? null,
