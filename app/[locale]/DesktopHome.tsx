@@ -185,7 +185,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
       setActivePage(page);
       setTopTeaserMat(null);
       setModal(null);
-      document.getElementById("main-scroll")?.scrollTo({ top: 0, behavior: "smooth" });
+      const c = document.getElementById("main-scroll"); if (c) smoothScroll(c, 0);
     };
     window.addEventListener("toolio:navigate-mypage", handler);
     return () => window.removeEventListener("toolio:navigate-mypage", handler);
@@ -211,11 +211,34 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
   };
 
+  const smoothScroll = (el: HTMLElement, to: number, duration = 900) => {
+    const start = el.scrollTop;
+    const change = to - start;
+    const startTime = performance.now();
+    const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      el.scrollTop = start + change * ease(progress);
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  };
+
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
     const container = document.getElementById("main-scroll");
-    if (el && container) container.scrollTo({ top: el.offsetTop, behavior: "smooth" });
+    if (el && container) smoothScroll(container, el.offsetTop);
   };
+
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const container = document.getElementById("main-scroll");
+    if (!container) return;
+    const onScroll = () => setShowScrollTop(container.scrollTop > 300);
+    container.addEventListener("scroll", onScroll);
+    return () => container.removeEventListener("scroll", onScroll);
+  }, []);
 
   const SB_CLOSED = 72;
   const SB_OPEN = 300;
@@ -339,7 +362,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
       <main id="main-scroll" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0, background: "white", borderRadius: "16px 16px 0 0", margin: "12px 12px 0 0", boxShadow: "0 -4px 24px rgba(200,150,150,0.15)" }}>
         {activePage === "home" && (
           <>
-            <section style={{ padding: "160px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+            <section style={{ padding: "140px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
               <p style={{ fontSize: 16, color: "#999", lineHeight: 1.9, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
@@ -471,6 +494,16 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
       {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} initSearchQuery={modal.searchQuery} onClose={closeModal} isLoggedIn={isLoggedIn} materials={materials as any} tmm={tmm} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} userPlan={profile.plan ?? "free"} purchasedIds={purchasedIds} onFavToggle={toggleFav as any} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} onFilterChange={handleFilterChange} />}
 
       {authModalOpen && <AuthModal initialMode={authModalMode} onClose={() => setAuthModalOpen(false)} onLoggedIn={() => setAuthModalOpen(false)} />}
+
+      {showScrollTop && (
+        <button
+          onClick={() => { const c = document.getElementById("main-scroll"); if (c) smoothScroll(c, 0); }}
+          style={{ position: "fixed", bottom: 88, right: 30, zIndex: 50, width: 44, height: 44, borderRadius: "50%", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 16px rgba(180,120,220,0.3)", opacity: showScrollTop ? 1 : 0, transition: "opacity 0.3s" }}
+          aria-label="トップへ戻る"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+        </button>
+      )}
     </div>
   );
 }
