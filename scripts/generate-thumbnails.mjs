@@ -52,6 +52,7 @@ async function uploadPng(name, buf) {
   const { error } = await supabase.storage.from(BUCKET).upload(name, buf, {
     contentType: 'image/png',
     upsert: FORCE,
+    cacheControl: FORCE ? '1' : '3600',
   });
   if (error) throw error;
 }
