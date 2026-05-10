@@ -943,7 +943,7 @@ export default function MyPage({
                       value={emailNew}
                       onChange={(e) => setEmailNew(e.target.value)}
                       placeholder="new@example.com"
-                      style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }}
+                      style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }}
                     />
                   </div>
                   {emailError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{emailError}</div>}
@@ -997,11 +997,11 @@ export default function MyPage({
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, marginBottom: 20 }}>
                     <div>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード</div>
-                      <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="8文字以上" style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                      <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="8文字以上" style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
                     </div>
                     <div>
                       <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード（確認）</div>
-                      <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="もう一度入力" style={{ width: "100%", fontSize: 14, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                      <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="もう一度入力" style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
                     </div>
                   </div>
                   {pwError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{pwError}</div>}

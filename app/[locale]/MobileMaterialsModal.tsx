@@ -140,7 +140,7 @@ export default function MobileMaterialsModal({
               if (!searchConfirmed.current) { searchConfirmed.current = true; return; }
               searchConfirmed.current = false;
               executeSearch(searchQuery);
-            }} style={{ flex: 1, border: "none", background: "transparent", fontSize: 16, color: "#555", outline: "none" }} />
+            }} style={{ flex: 1, border: "none", background: "transparent", fontSize: 12, color: "#555", outline: "none" }} />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(""); setSearchResults(null); }}
@@ -166,7 +166,9 @@ export default function MobileMaterialsModal({
       {/* 方法タブ */}
       <div style={{ borderBottom: "0.5px solid rgba(0,0,0,0.06)", flexShrink: 0, display: "flex" }}>
         <div style={{ width: 80, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <img src="/toolio_logo_mini.png" alt="toolio" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          <button onClick={onClose} style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
+            <img src="/toolio_logo_mini.png" alt="toolio" style={{ width: 48, height: 48, objectFit: "contain" }} />
+          </button>
         </div>
         <div className="toolio-scroll-x" onScroll={handleScroll} style={{ display: "flex", overflowX: "auto", flex: 1 }}>
           {methodTabs.map((tab) => {

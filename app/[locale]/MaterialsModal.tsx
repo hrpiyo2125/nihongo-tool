@@ -144,7 +144,7 @@ export default function MaterialsModal({
                 searchConfirmed.current = false;
                 executeSearch(searchQuery);
               }}
-              style={{ flex: 1, border: "none", background: "transparent", fontSize: 16, color: "#555", outline: "none" }}
+              style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
             />
             {searchQuery && (
               <button

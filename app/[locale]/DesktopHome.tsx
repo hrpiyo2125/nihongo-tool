@@ -358,7 +358,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
                       setModal({ content: "all", method: "all", searchQuery: heroSearch.trim() });
                     }}
                     className="hero-search-input"
-                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 16, color: "#555", outline: "none" }}
+                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
                   />
                   {heroSearch && (
                     <button onClick={() => setHeroSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb" }}>

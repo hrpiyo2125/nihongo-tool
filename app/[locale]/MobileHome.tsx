@@ -62,6 +62,20 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const smoothScroll = (el: HTMLElement, to: number, duration = 900) => {
+    const start = el.scrollTop;
+    const change = to - start;
+    const startTime = performance.now();
+    const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    const animate = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      el.scrollTop = start + change * ease(progress);
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  };
+
   // ─── State ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("home");
   const [materialsFilter, setMaterialsFilter] = useState<{ content: string; method: string; searchQuery?: string } | null>(null);
@@ -293,7 +307,9 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
       {/* ヘッダー */}
       <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, height: 56, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 16px", background: scrolled ? "white" : "transparent", borderBottom: scrolled ? "0.5px solid rgba(200,170,240,0.2)" : "none", transition: "background 0.2s" }}>
-        <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
+        <button onClick={() => { setActiveTab("home"); if (scrollRef.current) smoothScroll(scrollRef.current, 0); }} style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", display: "flex", alignItems: "center" }}>
+          <img src="/toolio_logo.png" alt="toolio" style={{ height: 32, objectFit: "contain" }} />
+        </button>
         <div style={{ position: "relative" }}>
           <button
             onClick={() => { isLoggedIn ? setMyPageOpen(true) : setGuestMenuOpen(v => !v); }}
@@ -327,7 +343,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <section style={{ padding: "140px 32px 48px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
               <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>Japanese Learning Tools For Kids</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 11, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
+              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための<br/>教材プラットホーム</p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 44, marginTop: 36 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 24px", width: "100%" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -343,7 +359,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                       setMaterialsFilter({ content: "all", method: "all", searchQuery: heroSearch.trim() });
                     }}
                     className="hero-search-input"
-                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 16, color: "#555", outline: "none" }}
+                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 12, color: "#555", outline: "none" }}
                   />
                   {heroSearch && (
                     <button onClick={() => setHeroSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb" }}>
@@ -360,8 +376,8 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 </div>
               </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 10 }}>
-                <button onClick={() => { const el = document.getElementById("mobile-anchor-content"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop - 64, behavior: "smooth" }); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
-                <button onClick={() => { const el = document.getElementById("mobile-anchor-method"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop - 64, behavior: "smooth" }); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
+                <button onClick={() => { const el = document.getElementById("mobile-anchor-content"); if (el && scrollRef.current) smoothScroll(scrollRef.current, el.offsetTop - 64); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
+                <button onClick={() => { const el = document.getElementById("mobile-anchor-method"); if (el && scrollRef.current) smoothScroll(scrollRef.current, el.offsetTop - 64); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
               </div>
               <div style={{ fontSize: 11, color: "#ccc", marginBottom: 10, letterSpacing: 2 }}>or</div>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
@@ -581,7 +597,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
       {/* リーガルページ */}
       {legalType && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "white", display: "flex", flexDirection: "column" }}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setLegalType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>

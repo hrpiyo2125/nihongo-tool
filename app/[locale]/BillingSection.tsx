@@ -243,81 +243,78 @@ export default function BillingSection({
         {/* 現在のプラン */}
         <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: mobileMode ? "16px" : "24px" }}>
           <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>現在のプラン</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0", whiteSpace: "nowrap" }}>{planLabel[profile.plan] ?? "toolio free"}</div>
-                <StatusBadge
-                  plan_status={profile.plan_status}
-                  cancel_at_period_end={profile.cancel_at_period_end}
-                  trial_end={profile.trial_end}
-                  isPendingDeletion={isPendingDeletion}
-                />
-              </div>
-              <div style={{ fontSize: 12, color: "#aaa" }}>{planPrice[profile.plan] ?? "無料"}</div>
-              {profile.plan_status === "trialing" && profile.trial_end && (
-                <div style={{ fontSize: 11, color: "#2a6a44", background: "#e8f8ee", padding: "5px 10px", borderRadius: 8 }}>
-                  トライアル終了日：{formatDate(profile.trial_end)}
-                </div>
-              )}
-              {isPendingDeletion && profile.current_period_end && (
-                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)}に退会予定
-                </div>
-              )}
-              {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
-                <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                  {formatDate(profile.current_period_end)}にfreeへ移行
-                </div>
-              )}
-              {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
-                <div style={{ fontSize: 11, color: "#3a5a9a", background: "#e8efff", padding: "5px 10px", borderRadius: 8 }}>
-                  次回更新日：{formatDate(profile.current_period_end)}
-                </div>
-              )}
-              {profile.plan_status === "past_due" && (
-                <div style={{ fontSize: 11, color: "#a02020", background: "#ffe8e8", padding: "5px 10px", borderRadius: 8 }}>
-                  お支払いが確認できていません
-                </div>
-              )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0" }}>{planLabel[profile.plan] ?? "toolio free"}</div>
+              <StatusBadge
+                plan_status={profile.plan_status}
+                cancel_at_period_end={profile.cancel_at_period_end}
+                trial_end={profile.trial_end}
+                isPendingDeletion={isPendingDeletion}
+              />
             </div>
-            {isPendingDeletion && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
+            <div style={{ fontSize: 12, color: "#aaa" }}>{planPrice[profile.plan] ?? "無料"}</div>
+            {profile.plan_status === "trialing" && profile.trial_end && (
+              <div style={{ fontSize: 11, color: "#2a6a44", background: "#e8f8ee", padding: "5px 10px", borderRadius: 8 }}>
+                トライアル終了日：{formatDate(profile.trial_end)}
+              </div>
+            )}
+            {isPendingDeletion && profile.current_period_end && (
+              <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
+                {formatDate(profile.current_period_end)}に退会予定
+              </div>
+            )}
+            {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
+              <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
+                {formatDate(profile.current_period_end)}にfreeへ移行
+              </div>
+            )}
+            {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
+              <div style={{ fontSize: 11, color: "#3a5a9a", background: "#e8efff", padding: "5px 10px", borderRadius: 8 }}>
+                次回更新日：{formatDate(profile.current_period_end)}
+              </div>
+            )}
+            {profile.plan_status === "past_due" && (
+              <div style={{ fontSize: 11, color: "#a02020", background: "#ffe8e8", padding: "5px 10px", borderRadius: 8 }}>
+                お支払いが確認できていません
+              </div>
+            )}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4, justifyContent: "center" }}>
+              {isPendingDeletion ? (
                 <button
                   onClick={() => setConfirmWithdrawalCancel(true)}
-                  style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", whiteSpace: "nowrap" }}
+                  style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
                 >
                   退会をやめる
                 </button>
-              </div>
-            )}
-            {!isPendingDeletion && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, flexShrink: 0 }}>
-                <button
-                  onClick={onChangePlan}
-                  style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700, whiteSpace: "nowrap" }}
-                >
-                  プランを変更 →
-                </button>
-                {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && (
+              ) : (
+                <>
                   <button
-                    onClick={() => setConfirmCancel(true)}
-                    style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer", whiteSpace: "nowrap" }}
+                    onClick={onChangePlan}
+                    style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                   >
-                    サブスクをキャンセル
+                    プランを変更 →
                   </button>
-                )}
-                {isPaid && profile.cancel_at_period_end && (
-                  <button
-                    onClick={handleReactivate}
-                    disabled={reactivateLoading}
-                    style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", whiteSpace: "nowrap" }}
-                  >
-                    {reactivateLoading ? "処理中..." : "キャンセルを取り消す"}
-                  </button>
-                )}
-              </div>
-            )}
+                  {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && (
+                    <button
+                      onClick={() => setConfirmCancel(true)}
+                      style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
+                    >
+                      サブスクをキャンセル
+                    </button>
+                  )}
+                  {isPaid && profile.cancel_at_period_end && (
+                    <button
+                      onClick={handleReactivate}
+                      disabled={reactivateLoading}
+                      style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
+                    >
+                      {reactivateLoading ? "処理中..." : "キャンセルを取り消す"}
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
         </div>
 
