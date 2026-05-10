@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { getMaterials } from "@/lib/notion";
 import { contentTabLabels, methodTabLabels } from "@/lib/tabs";
+import { siteConfig } from "@/lib/site.config";
 import MobileHome from "../MobileHome";
 import DesktopHome from "../DesktopHome";
 
@@ -23,7 +24,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!label) return {};
   const title = `${label}の教材 | toolio`;
   const description = `こどもに日本語を教える${label}の教材・ワークシートを無料ダウンロード。授業やレッスンですぐに使えます。`;
-  return { title, description };
+  const base = siteConfig.url;
+  return {
+    title,
+    description,
+    alternates: {
+      canonical: locale === 'ja' ? `${base}/${category}` : `${base}/en/${category}`,
+      languages: {
+        'ja': `${base}/${category}`,
+        'en': `${base}/en/${category}`,
+        'x-default': `${base}/${category}`,
+      },
+    },
+  };
 }
 
 export default async function CategoryPage({ params }: Props) {

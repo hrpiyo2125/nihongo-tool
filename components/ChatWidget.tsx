@@ -547,7 +547,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
           )}
           <div style={{ background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", padding: "12px 16px", color: "white", fontWeight: 700, fontSize: 14, flexShrink: 0, display: "flex", alignItems: "center", gap: 10, marginTop: isPage ? 12 : 0, borderRadius: isPage ? 12 : 0 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/toolio_icon.png" alt="toolio" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+            <img src="/toolio_icon_circle.png" alt="toolio" style={{ width: 36, height: 36, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 14, fontWeight: 700, lineHeight: 1.2 }}>toolio サポート</div>
               <div style={{ fontSize: 10, fontWeight: 400, opacity: 0.9, letterSpacing: 0.3 }}>お気軽にご相談ください</div>
@@ -839,7 +839,7 @@ function Bubble({ role, children }: { role: Message["role"]; children: React.Rea
         </div>
       ) : (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src="/toolio_icon.png" alt="toolio" style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0, marginBottom: 2 }} />
+        <img src="/toolio_icon_circle.png" alt="toolio" style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0, marginBottom: 2 }} />
       ))}
       <div style={{
         maxWidth: "78%", padding: "9px 13px",

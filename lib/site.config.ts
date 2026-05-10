@@ -1,7 +1,7 @@
 export const siteConfig = {
   name: "toolio",
-  tagline: "こどもに日本語を教える人のための教材・ツールダウンロードサイト",
-  description: "こどもに日本語を教える人のための教材・ツールダウンロードサイト。授業やレッスンで使えるワークシートや教材をすぐにダウンロードして活用できます。",
+  tagline: "子どもににほんごを教えるすべての人のための教材プラットホーム",
+  description: "子どもににほんごを教えるすべての人のための教材プラットホーム。ひらがな・カタカナ・漢字・語彙など、授業やご家庭でそのまま使えるワークシートをダウンロードできます。",
   url: "https://nihongo-tool.com",
   supportEmail: "support@nihongo-tool.com",
 } as const;

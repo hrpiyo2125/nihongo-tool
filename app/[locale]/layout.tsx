@@ -30,19 +30,30 @@ export const viewport = {
   maximumScale: 1,
 };
 
-export const metadata: Metadata = {
-  title: `${siteConfig.name} | ${siteConfig.tagline}`,
-  description: siteConfig.description,
-  verification: {
-    google: "hXO7ogJq61S7GRtbc04jUc6D_F8pnIuWXzFLWY9Dc_g",
-  },
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/toolio_icon_circle.png", type: "image/png" },
-    ],
-  },
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const base = siteConfig.url;
+  return {
+    title: `${siteConfig.name} | ${siteConfig.tagline}`,
+    description: siteConfig.description,
+    verification: {
+      google: "hXO7ogJq61S7GRtbc04jUc6D_F8pnIuWXzFLWY9Dc_g",
+    },
+    icons: {
+      icon: [
+        { url: "/toolio_icon_circle.png", type: "image/png" },
+      ],
+    },
+    alternates: {
+      canonical: locale === 'ja' ? base : `${base}/en`,
+      languages: {
+        'ja': base,
+        'en': `${base}/en`,
+        'x-default': base,
+      },
+    },
+  };
+}
 
 export default async function RootLayout({
   children,
