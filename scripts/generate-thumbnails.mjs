@@ -107,7 +107,7 @@ async function main() {
       // モーダル用: {id}-p1.png 〜 {id}-p3.png
       for (let i = 0; i < pages.length; i++) {
         const name = `${mat.id}-p${i + 1}.png`;
-        if (!(await fileExists(name))) {
+        if (FORCE || !(await fileExists(name))) {
           await uploadPng(name, pages[i]);
           uploadCount++;
         }
