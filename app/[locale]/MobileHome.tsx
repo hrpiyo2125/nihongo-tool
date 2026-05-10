@@ -62,9 +62,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const smoothScroll = (el: HTMLElement, to: number, duration = 900) => {
+  const smoothScroll = (el: HTMLElement, to: number) => {
     const start = el.scrollTop;
     const change = to - start;
+    const duration = 1000;
     const startTime = performance.now();
     const ease = (t: number) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     const animate = (now: number) => {
