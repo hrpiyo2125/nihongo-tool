@@ -146,7 +146,9 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
   const { sbOpen, setSbOpen, activePage, setActivePage } = useDesktopUI();
   const [activeTab, setActiveTab] = useState("pickup");
-  const [modal, setModal] = useState<{ content: string; method: string } | null>(null);
+  const [modal, setModal] = useState<{ content: string; method: string; searchQuery?: string } | null>(null);
+  const [heroSearch, setHeroSearch] = useState("");
+  const heroSearchConfirmed = useRef(false);
   const [announcements, setAnnouncements] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null }[]>([]);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<{ id: string; title: string; date: string; type: string; material_id: string | null } | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -199,7 +201,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     setModal({ content, method });
     handleFilterChange(content, method);
   };
-  const closeModal = () => { setModal(null); window.history.replaceState(null, "", window.location.pathname); };
+  const closeModal = () => { setModal(null); setHeroSearch(""); window.history.replaceState(null, "", window.location.pathname); };
 
   const handleFilterChange = (content: string, method: string) => {
     const params = new URLSearchParams();
@@ -340,7 +342,38 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
             <section style={{ padding: "160px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 16, color: "#999", marginBottom: 64, lineHeight: 1.9 }}>{th("hero_desc1")}<br />{th("hero_desc2")}</p>
+              <p style={{ fontSize: 16, color: "#999", lineHeight: 1.9, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 48, marginTop: 36 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 32px", width: "100%", maxWidth: 780 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  <input
+                    type="text"
+                    placeholder="ひらがな　ゲーム　など..."
+                    value={heroSearch}
+                    onChange={(e) => { setHeroSearch(e.target.value); heroSearchConfirmed.current = false; }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || e.nativeEvent.isComposing || !heroSearch.trim()) return;
+                      if (!heroSearchConfirmed.current) { heroSearchConfirmed.current = true; return; }
+                      heroSearchConfirmed.current = false;
+                      setModal({ content: "all", method: "all", searchQuery: heroSearch.trim() });
+                    }}
+                    className="hero-search-input"
+                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
+                  />
+                  {heroSearch && (
+                    <button onClick={() => setHeroSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb" }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { if (heroSearch.trim()) setModal({ content: "all", method: "all", searchQuery: heroSearch.trim() }); }}
+                    disabled={!heroSearch.trim()}
+                    style={{ background: "none", border: "none", cursor: heroSearch.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: heroSearch.trim() ? "#9b6ed4" : "#ddd" }}
+                  >
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  </button>
+                </div>
+              </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 12 }}>
                 <button onClick={() => scrollTo("anchor-content")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
                 <button onClick={() => scrollTo("anchor-method")} style={{ fontSize: 15, padding: "14px 32px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
@@ -435,7 +468,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
       {selectedAnnouncement && <AnnouncementModal announcement={selectedAnnouncement} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} purchasedIds={purchasedIds} locale={locale} onClose={() => setSelectedAnnouncement(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />}
 
-      {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} onClose={closeModal} isLoggedIn={isLoggedIn} materials={materials as any} tmm={tmm} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} userPlan={profile.plan ?? "free"} purchasedIds={purchasedIds} onFavToggle={toggleFav as any} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} onFilterChange={handleFilterChange} />}
+      {modal && <MaterialsModal initContent={modal.content} initMethod={modal.method} initSearchQuery={modal.searchQuery} onClose={closeModal} isLoggedIn={isLoggedIn} materials={materials as any} tmm={tmm} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} userPlan={profile.plan ?? "free"} purchasedIds={purchasedIds} onFavToggle={toggleFav as any} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} onFilterChange={handleFilterChange} />}
 
       {authModalOpen && <AuthModal initialMode={authModalMode} onClose={() => setAuthModalOpen(false)} onLoggedIn={() => setAuthModalOpen(false)} />}
     </div>

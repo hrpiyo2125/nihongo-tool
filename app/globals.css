@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+.hero-search-input::placeholder,
+.search-input::placeholder {
+  color: #bbb;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

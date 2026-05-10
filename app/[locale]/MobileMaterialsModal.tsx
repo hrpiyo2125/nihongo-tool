@@ -54,6 +54,7 @@ type Props = {
   tabs: Tab[];
   initContent?: string;
   initMethod?: string;
+  initSearchQuery?: string;
   onFavToggle: (mat: Material) => void;
   onCardClick: (mat: Material) => void;
   onClose: () => void;
@@ -66,15 +67,16 @@ type Props = {
 export default function MobileMaterialsModal({
   materials, locale, isLoggedIn, userPlan, favIds, purchasedIds,
   contentTabs, methodTabs, avatarUrl, userInitial, tabs,
-  initContent = "all", initMethod = "all",
+  initContent = "all", initMethod = "all", initSearchQuery,
   onFavToggle, onCardClick, onClose, onTabChange, onOpenMyPage, onFilterChange, onOpenFavHistory,
 }: Props) {
   const [activeContentFilter, setActiveContentFilter] = useState(initContent);
   const [activeMethodFilter, setActiveMethodFilter] = useState(initMethod);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initSearchQuery ?? "");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const searchConfirmed = useRef(false);
   const isScrollingRef = useRef(false);
   const scrollTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -88,6 +90,10 @@ export default function MobileMaterialsModal({
     if (isScrollingRef.current) return;
     onCardClick(mat);
   };
+
+  useEffect(() => {
+    if (initSearchQuery?.trim()) executeSearch(initSearchQuery);
+  }, []);
 
   useEffect(() => {
     contentTabRefs.current.get(activeContentFilter)?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -127,7 +133,14 @@ export default function MobileMaterialsModal({
       <div style={{ padding: "12px 16px", display: "flex", justifyContent: "center", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "10px 18px", width: "100%", maxWidth: 480 }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <input type="search" placeholder="教材を検索..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); executeSearch(searchQuery); } }} style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }} />
+          <input type="search" className="search-input" placeholder="教材を検索..." value={searchQuery} onChange={(e) => { setSearchQuery(e.target.value); searchConfirmed.current = false; }}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter" || e.nativeEvent.isComposing || !searchQuery.trim()) return;
+              e.preventDefault();
+              if (!searchConfirmed.current) { searchConfirmed.current = true; return; }
+              searchConfirmed.current = false;
+              executeSearch(searchQuery);
+            }} style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }} />
           {searchQuery && (
             <button
               onClick={() => { setSearchQuery(""); setSearchResults(null); }}

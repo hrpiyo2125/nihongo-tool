@@ -45,6 +45,7 @@ type MethodTab = { id: string; label: string; char: string; imageSrc: string | n
 type Props = {
   initContent: string;
   initMethod: string;
+  initSearchQuery?: string;
   onClose: () => void;
   isLoggedIn: boolean;
   materials: Material[];
@@ -62,16 +63,21 @@ type Props = {
 };
 
 export default function MaterialsModal({
-  initContent, initMethod, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan, purchasedIds, onFavToggle, onOpenAuth, onFilterChange,
+  initContent, initMethod, initSearchQuery, onClose, isLoggedIn, materials, tmm, contentTabs, methodTabs, locale, userPlan, purchasedIds, onFavToggle, onOpenAuth, onFilterChange,
 }: Props) {
   const [activeContent, setActiveContent] = useState(initContent);
   const [activeMethod, setActiveMethod] = useState(initMethod);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initSearchQuery ?? "");
   const [searchResults, setSearchResults] = useState<string[] | null>(null);
   const contentTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const methodTabRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
+  const searchConfirmed = useRef(false);
+
+  useEffect(() => {
+    if (initSearchQuery?.trim()) executeSearch(initSearchQuery);
+  }, []);
 
   useEffect(() => {
     contentTabRefs.current.get(activeContent)?.scrollIntoView({ block: "nearest", inline: "nearest" });
@@ -128,10 +134,16 @@ export default function MaterialsModal({
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input
               type="text"
+              className="search-input"
               placeholder={tmm("search_placeholder")}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") executeSearch(searchQuery); }}
+              onChange={(e) => { setSearchQuery(e.target.value); searchConfirmed.current = false; }}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter" || e.nativeEvent.isComposing || !searchQuery.trim()) return;
+                if (!searchConfirmed.current) { searchConfirmed.current = true; return; }
+                searchConfirmed.current = false;
+                executeSearch(searchQuery);
+              }}
               style={{ flex: 1, border: "none", background: "transparent", fontSize: 15, color: "#555", outline: "none" }}
             />
             {searchQuery && (

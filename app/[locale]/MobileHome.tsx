@@ -64,7 +64,9 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
   // ─── State ───────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("home");
-  const [materialsFilter, setMaterialsFilter] = useState<{ content: string; method: string } | null>(null);
+  const [materialsFilter, setMaterialsFilter] = useState<{ content: string; method: string; searchQuery?: string } | null>(null);
+  const [heroSearch, setHeroSearch] = useState("");
+  const heroSearchConfirmed = useRef(false);
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [authMode, setAuthMode] = useState<AuthModalMode | null>(null);
   const [guestMenuOpen, setGuestMenuOpen] = useState(false);
@@ -325,7 +327,38 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <section style={{ padding: "140px 32px 48px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
               <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>Japanese Learning Tools For Kids</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 11, color: "#999", lineHeight: 1.8, marginBottom: 48 }}>{th("hero_desc1")}<br />{th("hero_desc2")}</p>
+              <p style={{ fontSize: 11, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 44, marginTop: 36 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 24px", width: "100%" }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  <input
+                    type="text"
+                    placeholder="ひらがな　ゲーム　など..."
+                    value={heroSearch}
+                    onChange={(e) => { setHeroSearch(e.target.value); heroSearchConfirmed.current = false; }}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || e.nativeEvent.isComposing || !heroSearch.trim()) return;
+                      if (!heroSearchConfirmed.current) { heroSearchConfirmed.current = true; return; }
+                      heroSearchConfirmed.current = false;
+                      setMaterialsFilter({ content: "all", method: "all", searchQuery: heroSearch.trim() });
+                    }}
+                    className="hero-search-input"
+                    style={{ flex: 1, border: "none", background: "transparent", fontSize: 14, color: "#555", outline: "none" }}
+                  />
+                  {heroSearch && (
+                    <button onClick={() => setHeroSearch("")} style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  )}
+                  <button
+                    onClick={() => { if (heroSearch.trim()) setMaterialsFilter({ content: "all", method: "all", searchQuery: heroSearch.trim() }); }}
+                    disabled={!heroSearch.trim()}
+                    style={{ background: "none", border: "none", cursor: heroSearch.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: heroSearch.trim() ? "#9b6ed4" : "#ddd" }}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                  </button>
+                </div>
+              </div>
               <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 10 }}>
                 <button onClick={() => { const el = document.getElementById("mobile-anchor-content"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop - 64, behavior: "smooth" }); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white" }}>{th("browse_content")}</button>
                 <button onClick={() => { const el = document.getElementById("mobile-anchor-method"); if (el && scrollRef.current) scrollRef.current.scrollTo({ top: el.offsetTop - 64, behavior: "smooth" }); }} style={{ fontSize: 12, padding: "14px 18px", borderRadius: 28, border: "none", cursor: "pointer", fontWeight: 700, background: "linear-gradient(135deg,#e49bfd,#a3c0ff)", color: "white" }}>{th("browse_method")}</button>
@@ -595,10 +628,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
           tabs={tabs}
           initContent={materialsFilter.content}
           initMethod={materialsFilter.method}
+          initSearchQuery={materialsFilter.searchQuery}
           onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)}
           onCardClick={(mat) => openTeaser(mat)}
-          onClose={() => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); }}
-          onTabChange={(tabId) => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab(tabId); }}
+          onClose={() => { setMaterialsFilter(null); setHeroSearch(""); window.history.replaceState(null, "", window.location.pathname); }}
+          onTabChange={(tabId) => { setMaterialsFilter(null); setHeroSearch(""); window.history.replaceState(null, "", window.location.pathname); setActiveTab(tabId); }}
           onOpenMyPage={() => setMyPageOpen(true)}
           onFilterChange={(content, method) => { setMaterialsFilter({ content, method }); updateFilterUrl(content, method); }}
           onOpenFavHistory={() => { setMaterialsFilter(null); window.history.replaceState(null, "", window.location.pathname); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }}
