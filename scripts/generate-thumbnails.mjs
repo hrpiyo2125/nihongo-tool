@@ -29,6 +29,7 @@ Object.entries(env).forEach(([k, v]) => { process.env[k] = v; });
 
 const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 const FORCE = process.argv.includes('--force');
+const ID_ARG = process.argv.find(a => a.startsWith('--id='))?.slice(5);
 
 async function fetchMaterials() {
   const { getMaterials } = await import('../lib/notion.ts').catch(() => null)
@@ -76,7 +77,11 @@ async function main() {
   if (FORCE) console.log('⚠️  --force モード: 既存サムネイルを上書きします\n');
   console.log('教材一覧を取得中...');
   const materials = await fetchMaterials();
-  const withPdf = materials.filter(m => m.pdfFile);
+  let withPdf = materials.filter(m => m.pdfFile);
+  if (ID_ARG) {
+    withPdf = withPdf.filter(m => m.id.startsWith(ID_ARG));
+    if (!withPdf.length) { console.log(`❌ ID "${ID_ARG}" に一致する教材が見つかりません`); process.exit(1); }
+  }
   console.log(`PDF付き教材: ${withPdf.length}件\n`);
 
   let generated = 0, skipped = 0, failed = 0;
