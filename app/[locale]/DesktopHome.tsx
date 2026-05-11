@@ -363,7 +363,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
       <main id="main-scroll" style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", minWidth: 0, background: "white", borderRadius: "16px 16px 0 0", margin: "12px 12px 0 0", boxShadow: "0 -4px 24px rgba(200,150,150,0.15)" }}>
         {activePage === "home" && (
           <>
-            <section style={{ padding: "140px 48px 60px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+            <section style={{ padding: "140px 48px 16px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
               <p style={{ fontSize: 16, color: "#999", lineHeight: 1.9, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
@@ -419,6 +419,19 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
               )}
             </section>
 
+            <section style={{ padding: "80px 36px 0", background: "white" }}>
+              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12 }}>{th("notice")}</div>
+                {announcements.length === 0 ? <div style={{ fontSize: 13, color: "#bbb" }}>お知らせはありません</div> : announcements.slice(0, 5).map((n) => (
+                  <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 16, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px", transition: "background 0.15s" }} onMouseEnter={e => (e.currentTarget.style.background = "#f5f0ff")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
+                    <span style={{ fontSize: 13, color: "#444", flex: 1 }}>{n.title}</span>
+                    <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             <section id="anchor-content" suppressHydrationWarning style={{ padding: "80px 0 72px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", background: "white", textAlign: "center" }}>
               <div style={{ textAlign: "center", marginBottom: 32 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", fontFamily: "var(--font-libre)" }}>Browse by Content</div>
@@ -440,16 +453,6 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
             </section>
 
             <section style={{ padding: "80px 36px 152px", flex: 1, background: "white" }}>
-              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 152 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12 }}>{th("notice")}</div>
-                {announcements.length === 0 ? <div style={{ fontSize: 13, color: "#bbb" }}>お知らせはありません</div> : announcements.map((n) => (
-                  <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 16, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px", transition: "background 0.15s" }} onMouseEnter={e => (e.currentTarget.style.background = "#f5f0ff")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                    <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
-                    <span style={{ fontSize: 13, color: "#444", flex: 1 }}>{n.title}</span>
-                    <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
-                  </div>
-                ))}
-              </div>
               <PersonalizedSection materials={materials as any} favIds={effectiveFavIds} dlIds={topDlIds} favIdsLoaded={topFavIdsLoaded} userId={userId} userPlan={profile.plan ?? "free"} isLoggedIn={isLoggedIn} purchasedIds={purchasedIds} locale={locale} onCardClick={(mat) => setTopTeaserMat(mat as any)} onFavToggle={toggleFav as any} onPlanChanged={loadProfile} />
               <div style={{ display: "flex", borderBottom: "0.5px solid #eee", marginBottom: 24, marginTop: 152 }}>
                 {[{ key: "pickup", label: th("pickup") }, { key: "recommended", label: th("recommended") }, { key: "ranking", label: th("ranking") }, { key: "new", label: th("new") }].map(({ key, label }) => (

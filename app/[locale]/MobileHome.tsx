@@ -341,7 +341,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         {/* ホームタブ */}
         {activeTab === "home" && (
           <div>
-            <section style={{ padding: "120px 32px 48px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
+            <section style={{ padding: "120px 32px 24px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
               <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>Japanese Learning Tools For Kids</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
               <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための<br/>教材プラットホーム</p>
@@ -399,8 +399,24 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               )}
             </section>
 
+            {/* お知らせ */}
+            <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "16px 18px" }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 10 }}>お知らせ</div>
+                {announcements.length === 0 ? (
+                  <div style={{ fontSize: 12, color: "#bbb" }}>お知らせはありません</div>
+                ) : announcements.slice(0, 5).map((n) => (
+                  <div key={n.id} onClick={() => setAnnouncementModal(n)} style={{ display: "flex", gap: 12, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px" }}>
+                    <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
+                    <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
+                    <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+
             {/* 学習内容から探す */}
-            <section id="mobile-anchor-content" style={{ padding: "32px 0 24px" }}>
+            <section id="mobile-anchor-content" style={{ padding: "32px 0 24px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Content</div>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習内容から探す</div>
@@ -434,20 +450,6 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 ))}
               </div>
             </section>
-
-            {/* お知らせ */}
-            {announcements.length > 0 && (
-              <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 12 }}>お知らせ</div>
-                {announcements.slice(0, 3).map((n) => (
-                  <div key={n.id} onClick={() => setAnnouncementModal(n)} style={{ display: "flex", gap: 12, marginBottom: 10, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 8px" }}>
-                    <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
-                    <span style={{ fontSize: 12, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
-                    <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
-                  </div>
-                ))}
-              </section>
-            )}
 
             {/* あなたへのおすすめ */}
             <section style={{ padding: "24px 20px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
