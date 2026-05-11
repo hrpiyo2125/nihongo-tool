@@ -668,7 +668,6 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             userPlan={profile.plan ?? "free"}
             favIds={effectiveFavIds}
             contentTabs={contentTabsForModal}
-            methodTabs={methodTabsForModal}
             locale={locale}
             onClose={() => setTeaserMat(null)}
             tmm={tmm}
