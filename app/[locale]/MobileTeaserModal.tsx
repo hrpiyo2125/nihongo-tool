@@ -278,7 +278,7 @@ export default function TeaserModal({
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "95vw", display: "block", overflow: "hidden", position: "relative", maxHeight: "88vh", fontSize: "80%" }} >
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "95vw", display: "block", overflow: "hidden", position: "relative", maxHeight: "80vh", fontSize: "80%" }} >
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
 
