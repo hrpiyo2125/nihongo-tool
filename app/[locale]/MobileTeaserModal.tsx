@@ -43,12 +43,23 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
       if (e.touches.length === 2) { const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (lastPinch.current !== null) applyZoom((dist - lastPinch.current) * 0.015); lastPinch.current = dist; }
       else if (e.touches.length === 1 && stateRef.current.scale > 1 && dragStart.current) { const ox = dragStart.current.ox + (e.touches[0].clientX - dragStart.current.mx); const oy = dragStart.current.oy + (e.touches[0].clientY - dragStart.current.my); const clamped = clampOffset(stateRef.current.scale, ox, oy); stateRef.current.offset = clamped; setOffset(clamped); }
     };
-    const onEnd = () => { lastPinch.current = null; setActive(false); };
+    const onEnd = (e: TouchEvent) => {
+      lastPinch.current = null; setActive(false);
+      if (stateRef.current.scale === 1 && dragStart.current) {
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - dragStart.current.mx;
+        const dy = touch.clientY - dragStart.current.my;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+          if (dx > 0 && hasPrev) onPrev?.();
+          else if (dx < 0 && hasNext) onNext?.();
+        }
+      }
+    };
     el.addEventListener("touchstart", onStart, { passive: false });
     el.addEventListener("touchmove", onMove, { passive: false });
     el.addEventListener("touchend", onEnd);
     return () => { el.removeEventListener("touchstart", onStart); el.removeEventListener("touchmove", onMove); el.removeEventListener("touchend", onEnd); };
-  }, []);
+  }, [hasPrev, hasNext, onPrev, onNext]);
 
   const arrowBtn = (disabled: boolean): React.CSSProperties => ({ position: "absolute", top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.25 : 1, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" });
 
@@ -76,6 +87,8 @@ function PdfPreview({ matId }: { matId: string }) {
   const [mainReady, setMainReady] = useState(false);
   const [visibleCount, setVisibleCount] = useState(1);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const swipeTouchStart = useRef<{ x: number; y: number } | null>(null);
+  const swipeHappened = useRef(false);
 
   const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
   const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
@@ -95,7 +108,21 @@ function PdfPreview({ matId }: { matId: string }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
-      <div onClick={() => mainReady && setLightboxSrc(urls[selected])} style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, minHeight: 160, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
+      <div
+        onTouchStart={(e) => { swipeTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; swipeHappened.current = false; }}
+        onTouchEnd={(e) => {
+          if (!swipeTouchStart.current) return;
+          const dx = e.changedTouches[0].clientX - swipeTouchStart.current.x;
+          const dy = e.changedTouches[0].clientY - swipeTouchStart.current.y;
+          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+            swipeHappened.current = true;
+            if (dx > 0 && selected > 0) { setSelected(i => i - 1); setMainReady(false); }
+            else if (dx < 0 && selected < visibleCount - 1) { setSelected(i => i + 1); setMainReady(false); }
+          }
+          swipeTouchStart.current = null;
+        }}
+        onClick={() => { if (swipeHappened.current) { swipeHappened.current = false; return; } if (mainReady) setLightboxSrc(urls[selected]); }}
+        style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, minHeight: 160, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
         <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
         <img src={urls[selected]} alt="" onLoad={() => setMainReady(true)} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
         {mainReady && <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "2px 6px", fontSize: 10, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 3 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>拡大</div>}

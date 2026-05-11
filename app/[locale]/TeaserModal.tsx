@@ -42,6 +42,10 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef<{ mx: number; my: number; ox: number; oy: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const scaleRef = useRef(1);
+  const offsetRef = useRef({ x: 0, y: 0 });
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastPinchRef = useRef<number | null>(null);
 
   const clampOffset = (s: number, ox: number, oy: number) => {
     const maxX = Math.max(0, (s - 1) * 200);
@@ -52,10 +56,50 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
   const zoom = (delta: number) => {
     setScale(prev => {
       const next = Math.max(1, Math.min(5, prev + delta));
-      if (next === 1) setOffset({ x: 0, y: 0 });
+      scaleRef.current = next;
+      if (next === 1) { setOffset({ x: 0, y: 0 }); offsetRef.current = { x: 0, y: 0 }; }
       return next;
     });
   };
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 1) touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      if (e.touches.length === 2) lastPinchRef.current = null;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      if (e.touches.length === 2) {
+        const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+        if (lastPinchRef.current !== null) zoom((dist - lastPinchRef.current) * 0.015);
+        lastPinchRef.current = dist;
+      } else if (e.touches.length === 1 && scaleRef.current > 1 && touchStartRef.current) {
+        const ox = offsetRef.current.x + (e.touches[0].clientX - touchStartRef.current.x);
+        const oy = offsetRef.current.y + (e.touches[0].clientY - touchStartRef.current.y);
+        const clamped = clampOffset(scaleRef.current, ox, oy);
+        offsetRef.current = clamped;
+        setOffset(clamped);
+      }
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      lastPinchRef.current = null;
+      if (!touchStartRef.current) return;
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - touchStartRef.current.x;
+      const dy = touch.clientY - touchStartRef.current.y;
+      if (scaleRef.current === 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+        if (dx > 0 && hasPrev) onPrev?.();
+        else if (dx < 0 && hasNext) onNext?.();
+      }
+      touchStartRef.current = null;
+    };
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    return () => { el.removeEventListener("touchstart", onTouchStart); el.removeEventListener("touchmove", onTouchMove); el.removeEventListener("touchend", onTouchEnd); };
+  }, [hasPrev, hasNext, onPrev, onNext]);
 
   const onWheel = (e: React.WheelEvent) => { e.preventDefault(); zoom(-e.deltaY * 0.002); };
   const onMouseDown = (e: React.MouseEvent) => { if (scale === 1) return; setDragging(true); dragStart.current = { mx: e.clientX, my: e.clientY, ox: offset.x, oy: offset.y }; };
@@ -89,6 +133,8 @@ function PdfPreview({ matId }: { matId: string }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const [thumbChecked, setThumbChecked] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const swipeTouchStart = useRef<{ x: number; y: number } | null>(null);
+  const swipeHappened = useRef(false);
 
   const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
   const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
@@ -110,7 +156,21 @@ function PdfPreview({ matId }: { matId: string }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, minHeight: 0, position: "relative" }}>
-        <div onClick={() => mainReady && setLightboxSrc(urls[selected])} style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
+        <div
+          onTouchStart={(e) => { swipeTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; swipeHappened.current = false; }}
+          onTouchEnd={(e) => {
+            if (!swipeTouchStart.current) return;
+            const dx = e.changedTouches[0].clientX - swipeTouchStart.current.x;
+            const dy = e.changedTouches[0].clientY - swipeTouchStart.current.y;
+            if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+              swipeHappened.current = true;
+              if (dx > 0 && selected > 0) setSelected(i => i - 1);
+              else if (dx < 0 && selected < visibleCount - 1) setSelected(i => i + 1);
+            }
+            swipeTouchStart.current = null;
+          }}
+          onClick={() => { if (swipeHappened.current) { swipeHappened.current = false; return; } if (mainReady) setLightboxSrc(urls[selected]); }}
+          style={{ flex: 1, background: "#e8e4f0", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, minHeight: 0, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
           <div style={{ position: "absolute", width: "80%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 8, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
           <img src={urls[selected]} alt="" onLoad={() => setLoadedSet(s => new Set([...s, selected]))} style={{ width: "80%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
           {mainReady && <div style={{ position: "absolute", bottom: 10, right: 10, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "3px 7px", fontSize: 11, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 4 }}><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>拡大</div>}
