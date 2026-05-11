@@ -487,7 +487,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
 
       {topTeaserMat && (() => {
         const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(topTeaserMat as any, locale);
-        return <TeaserModal mat={topTeaserMat as any} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} onClose={() => setTopTeaserMat(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />;
+        return <TeaserModal mat={topTeaserMat as any} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} contentTabs={contentTabs} locale={locale} tmm={tmm} onClose={() => setTopTeaserMat(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />;
       })()}
 
       {selectedAnnouncement && <AnnouncementModal announcement={selectedAnnouncement} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} favIds={topFavIds} purchasedIds={purchasedIds} locale={locale} onClose={() => setSelectedAnnouncement(null)} onFavChange={(id, isFav) => { if (isFav) setTopFavIds(p => [...p, id]); else setTopFavIds(p => p.filter(x => x !== id)); }} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />}
