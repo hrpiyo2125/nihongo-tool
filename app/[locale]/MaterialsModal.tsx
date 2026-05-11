@@ -260,7 +260,6 @@ export default function MaterialsModal({
             userPlan={userPlan}
             favIds={favIds}
             contentTabs={contentTabs}
-            methodTabs={methodTabs}
             locale={locale}
             tmm={tmm}
             onClose={() => setTeaserMat(null)}

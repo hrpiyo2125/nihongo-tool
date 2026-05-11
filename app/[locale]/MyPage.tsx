@@ -151,7 +151,6 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
             userPlan={userPlan}
             favIds={favIds}
             contentTabs={contentTabs}
-            methodTabs={methodTabs}
             locale={locale}
             tmm={tmm}
             onClose={() => setTeaserMat(null)}
@@ -237,7 +236,6 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             userPlan={userPlan}
             favIds={favIds}
             contentTabs={contentTabs}
-            methodTabs={methodTabs}
             locale={locale}
             tmm={tmm}
             onClose={() => setTeaserMat(null)}
@@ -354,7 +352,6 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
             userPlan={userPlan}
             favIds={favIds}
             contentTabs={contentTabs}
-            methodTabs={methodTabs}
             locale={locale}
             tmm={tmm}
             onClose={() => setTeaserMat(null)}

@@ -18,6 +18,7 @@ type Material = {
   method: string[];
   ageGroup: string;
   studyTime?: string;
+  pageCount?: number | null;
   requiredPlan: string;
   pdfFile?: string;
   isPickup: boolean;
@@ -148,7 +149,6 @@ function PdfPreview({ matId }: { matId: string }) {
 }
 
 type ContentTab = { id: string; label: string; char: string; color: string; imageSrc?: string | null };
-type MethodTab = { id: string; label: string; char: string; imageSrc?: string | null };
 
 type Props = {
   mat: Material;
@@ -162,7 +162,6 @@ type Props = {
   userPlan: string;
   favIds: string[];
   contentTabs: ContentTab[];
-  methodTabs: MethodTab[];
   locale: string;
   tmm: (key: string) => string;
   onClose: () => void;
@@ -173,7 +172,7 @@ type Props = {
 export default function TeaserModal({
   mat, tag, tagBg, tagColor,
   isLoggedIn, userPlan, favIds: initialFavIds,
-  contentTabs, methodTabs, locale: _locale, tmm,
+  contentTabs, locale: _locale, tmm,
   onClose, onFavChange, onOpenAuth,
 }: Props) {
   // AuthContextから直接取得（プロップチェーンに依存しない）
@@ -306,8 +305,7 @@ export default function TeaserModal({
             {[
               { label: tmm("age"), value: mat.ageGroup || "－" },
               { label: tmm("duration"), value: mat.studyTime || "－" },
-              { label: tmm("method"), value: (mat.method ?? []).map(m => methodTabs.find(t => t.id === m)?.label).filter(Boolean).join("・") || "－" },
-              { label: tmm("content"), value: (mat.content ?? []).map(c => contentTabs.find(t => t.id === c)?.label).filter(Boolean).join("・") || "－" },
+              { label: "枚数", value: mat.pageCount != null ? `${mat.pageCount}枚` : "－" },
             ].map(({ label, value }) => (
               <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                 <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>

@@ -99,7 +99,6 @@ export default function AnnouncementModal({
         userPlan={userPlan}
         favIds={favIds}
         contentTabs={contentTabs}
-        methodTabs={methodTabs}
         locale={locale}
         tmm={(key) => tmm(key)}
         onClose={() => setShowTeaser(false)}

@@ -65,12 +65,21 @@ async function generatePages(pdfUrl) {
   const buf = Buffer.from(await res.arrayBuffer());
 
   const pages = [];
+  let totalPageCount = 0;
   const doc = await pdf(buf, { scale: 1.5 });
   for await (const page of doc) {
-    pages.push(page);
-    if (pages.length >= MAX_PAGES) break;
+    totalPageCount++;
+    if (pages.length < MAX_PAGES) pages.push(page);
   }
-  return pages;
+  return { pages, totalPageCount };
+}
+
+async function savePageCount(matId, pageCount) {
+  const { error } = await supabase.from('material_page_counts').upsert(
+    { material_id: matId, page_count: pageCount },
+    { onConflict: 'material_id' }
+  );
+  if (error) throw error;
 }
 
 async function main() {
@@ -95,13 +104,20 @@ async function main() {
     const p1Exists = !FORCE && await fileExists(`${mat.id}-p1.png`);
 
     if (cardExists && p1Exists) {
-      console.log('スキップ（既存）');
+      // サムネイルは既存でもpage_countは保存する
+      try {
+        const { totalPageCount } = await generatePages(mat.pdfFile);
+        await savePageCount(mat.id, totalPageCount);
+        console.log(`スキップ（既存）— ${totalPageCount}ページ保存`);
+      } catch (e) {
+        console.log(`スキップ（既存）— page_count保存失敗: ${e.message}`);
+      }
       skipped++;
       continue;
     }
 
     try {
-      const pages = await generatePages(mat.pdfFile);
+      const { pages, totalPageCount } = await generatePages(mat.pdfFile);
       let uploadCount = 0;
 
       // カード用: {id}.png
@@ -119,7 +135,9 @@ async function main() {
         }
       }
 
-      console.log(`✅ ${uploadCount}枚アップロード（${pages.length}ページ）`);
+      await savePageCount(mat.id, totalPageCount);
+
+      console.log(`✅ ${uploadCount}枚アップロード（全${totalPageCount}ページ）`);
       generated++;
     } catch (e) {
       console.log(`❌ 失敗: ${e.message}`);

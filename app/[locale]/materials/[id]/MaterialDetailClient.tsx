@@ -611,7 +611,6 @@ export default function MaterialDetailPage() {
           purchasedIds,
           favIds: teaserFavIds,
           contentTabs: contentTabsMapped,
-          methodTabs: methodTabsMapped,
           locale: "ja",
           tmm: tmmFn,
           onClose: () => setTeaserMat(null),
