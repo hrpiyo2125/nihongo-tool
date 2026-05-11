@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import TeaserModal from "./TeaserModal";
+import MobileTeaserModal from "./MobileTeaserModal";
 import { getCardStyle } from "../../lib/materialUtils";
 import { contentTabsJa, methodTabsJa } from "../../lib/tabs";
 import { useTranslations } from "next-intl";
@@ -45,6 +46,7 @@ type Props = {
   onFavChange?: (materialId: string, isFav: boolean) => void;
   onOpenAuth?: (mode: "signup" | "login") => void;
   onMaterialClick?: (mat: Material) => void;
+  isMobile?: boolean;
 };
 
 export default function AnnouncementModal({
@@ -58,6 +60,7 @@ export default function AnnouncementModal({
   onFavChange,
   onOpenAuth,
   onMaterialClick,
+  isMobile,
 }: Props) {
   const tmm = useTranslations("materials_modal");
   const [detail, setDetail] = useState<Announcement>(announcement);
@@ -86,26 +89,20 @@ export default function AnnouncementModal({
 
   if (showTeaser && material) {
     const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(material as any, locale);
-    return (
-      <TeaserModal
-        mat={material as any}
-        bg={bg}
-        char={char}
-        charColor={charColor}
-        tag={tag}
-        tagBg={tagBg}
-        tagColor={tagColor}
-        isLoggedIn={isLoggedIn}
-        userPlan={userPlan}
-        favIds={favIds}
-        contentTabs={contentTabs}
-        locale={locale}
-        tmm={(key) => tmm(key)}
-        onClose={() => setShowTeaser(false)}
-        onFavChange={onFavChange}
-        onOpenAuth={onOpenAuth}
-      />
-    );
+    const sharedProps = {
+      mat: material as any,
+      bg, char, charColor, tag, tagBg, tagColor,
+      isLoggedIn,
+      userPlan,
+      favIds,
+      contentTabs,
+      locale,
+      tmm: (key: string) => tmm(key),
+      onClose: () => setShowTeaser(false),
+      onFavChange,
+      onOpenAuth,
+    };
+    return isMobile ? <MobileTeaserModal {...sharedProps} /> : <TeaserModal {...sharedProps} />;
   }
 
   return (
@@ -144,7 +141,6 @@ export default function AnnouncementModal({
                 <button
                   onClick={() => {
                     if (onMaterialClick) {
-                      onClose();
                       onMaterialClick(material);
                     } else {
                       setShowTeaser(true);

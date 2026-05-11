@@ -54,7 +54,7 @@ async function toggleFav(
 
 type Announcement = { id: string; title: string; date: string; type: string; material_id: string | null };
 type LegalType = "privacy" | "terms" | "tokushoho" | "about" | null;
-type MorePageType = "dl" | "guide" | "purchases" | "howto" | null;
+type MorePageType = "dl" | "guide" | "purchases" | "howto" | "announcements" | null;
 
 function MobileHomeInner({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
   const router = useRouter();
@@ -401,8 +401,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
             {/* お知らせ */}
             <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
-              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "16px 18px" }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#333", marginBottom: 10 }}>お知らせ</div>
+              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "20px 18px" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>お知らせ</div>
+                  <button onClick={() => setMorePageType("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>すべて見る</button>
+                </div>
                 {announcements.length === 0 ? (
                   <div style={{ fontSize: 12, color: "#bbb" }}>お知らせはありません</div>
                 ) : announcements.slice(0, 5).map((n) => (
@@ -524,9 +527,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
           <div style={{ padding: "80px 20px 20px" }}>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", type: "dl"        as MorePageType },
-              { icon: "guide"    as const, label: "よくある質問",     type: "guide"     as MorePageType },
-              { icon: "document" as const, label: "教材購入履歴",     type: "purchases" as MorePageType },
+              { icon: "download" as const, label: "ダウンロード履歴", type: "dl"            as MorePageType },
+              { icon: "guide"    as const, label: "よくある質問",     type: "guide"         as MorePageType },
+              { icon: "document" as const, label: "教材購入履歴",     type: "purchases"     as MorePageType },
+              { icon: "megaphone" as const, label: "お知らせ",         type: "announcements" as MorePageType },
             ].map((item) => (
               <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -597,6 +601,27 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         </div>
       )}
 
+
+      {/* お知らせ一覧 */}
+      {morePageType === "announcements" && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
+          <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
+            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>お知らせ</span>
+          </header>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
+            {announcements.length === 0 ? (
+              <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>お知らせはありません</div>
+            ) : announcements.map((n) => (
+              <div key={n.id} onClick={() => { setAnnouncementModal(n); }} style={{ display: "flex", gap: 12, cursor: "pointer", padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)" }}>
+                <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
+                <span style={{ fontSize: 13, color: "#444", lineHeight: 1.6, flex: 1 }}>{n.title}</span>
+                <span style={{ fontSize: 11, color: "#b48be8", flexShrink: 0 }}>›</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* リーガルページ */}
       {legalType && (
@@ -698,7 +723,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             else setFavIds(prev => prev.filter(id => id !== materialId));
           }}
           onOpenAuth={openAuth}
-          onMaterialClick={(mat) => { setAnnouncementModal(null); openTeaser(mat as any); }}
+          isMobile={true}
         />
       )}
 

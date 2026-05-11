@@ -57,6 +57,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><polyline points="14,2 14,8 20,8" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="13" x2="8" y2="13" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="17" x2="8" y2="17" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
+    { id: "announcements", label: "お知らせ", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12L3 14v-3z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M11.6 16.8a3 3 0 11-5.8-1.6" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   ];
 
   const contentTabs = [
@@ -420,8 +421,11 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
             </section>
 
             <section style={{ padding: "80px 36px 0", background: "white" }}>
-              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "18px 22px", marginBottom: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", marginBottom: 12 }}>{th("notice")}</div>
+              <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "20px 22px", marginBottom: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{th("notice")}</div>
+                  <button onClick={() => setActivePage("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>すべて見る</button>
+                </div>
                 {announcements.length === 0 ? <div style={{ fontSize: 13, color: "#bbb" }}>お知らせはありません</div> : announcements.slice(0, 5).map((n) => (
                   <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 16, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px", transition: "background 0.15s" }} onMouseEnter={e => (e.currentTarget.style.background = "#f5f0ff")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                     <span style={{ fontSize: 13, color: "#bbb", minWidth: 88, flexShrink: 0 }}>{n.date}</span>
@@ -484,6 +488,24 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
           activePage === "tokushoho" ? <TokushohoContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :
           activePage === "faq" ? <FaqContent onBack={() => setActivePage("home")} notionFaqs={legalContent?.faqs} /> :
           activePage === "about" ? <AboutContent onBack={() => setActivePage("home")} notionBody={legalContent?.textContents?.['toolioとは']} /> :
+          activePage === "announcements" ? (
+            <div>
+              <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
+                <h2 style={{ fontSize: 24, fontWeight: 800, marginBottom: 0, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>お知らせ</h2>
+              </div>
+              <div style={{ padding: "32px 48px 56px" }}>
+                {announcements.length === 0 ? (
+                  <div style={{ fontSize: 14, color: "#bbb" }}>お知らせはありません</div>
+                ) : announcements.map((n) => (
+                  <div key={n.id} onClick={() => setSelectedAnnouncement(n)} style={{ display: "flex", gap: 16, cursor: "pointer", borderRadius: 8, padding: "14px 10px", margin: "0 -10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", transition: "background 0.15s" }} onMouseEnter={e => (e.currentTarget.style.background = "#f5f0ff")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                    <span style={{ fontSize: 13, color: "#bbb", minWidth: 100, flexShrink: 0 }}>{n.date}</span>
+                    <span style={{ fontSize: 14, color: "#444", flex: 1 }}>{n.title}</span>
+                    <span style={{ fontSize: 13, color: "#b48be8", flexShrink: 0 }}>›</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) :
           <MyPage activePage={activePage} setActivePage={setActivePage} isLoggedIn={isLoggedIn} userInitial={userInitial} setUserInitial={setUserInitial} avatarUrl={avatarUrl} setAvatarUrl={setAvatarUrl} userName={userName} setUserName={setUserName} userEmail={userEmail} authProviders={authProviders} profile={profile} updateProfile={updateProfile} editingField={editingField} setEditingField={setEditingField} editingValue={editingValue} setEditingValue={setEditingValue} materials={materials as any} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} tm={tm} navItems={navItems} onPlanChanged={loadProfile} onOpenAuth={(mode) => { setAuthModalMode(mode); setAuthModalOpen(true); }} />
         )}
       </main>
