@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { createClient } from "../../../../lib/supabase";
 import PdfViewer from "./PdfViewer";
 import MaterialCard from "../../MaterialCard";
@@ -173,6 +173,7 @@ function RelatedPanel({
 
 export default function MaterialDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const rawId = params.id;
   const id = Array.isArray(rawId) ? rawId[0] : rawId ?? "";
 
@@ -275,6 +276,8 @@ export default function MaterialDetailPage() {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       await supabase.from("download_history").insert({ user_id: session.user.id, material_id: id });
+      router.refresh();
+      window.dispatchEvent(new CustomEvent("download-history-updated"));
     }
   } catch (e) {
     console.error("履歴の記録に失敗しました", e);

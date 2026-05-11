@@ -257,18 +257,27 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
 
-  useEffect(() => {
+  const fetchHistory = useCallback(async () => {
     const supabase = createClient();
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) { setLoading(false); return; }
-      const { data } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id).order("created_at", { ascending: false });
-      if (data) {
-        const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
-        setHistoryMaterials(allMaterials.filter((m) => ids.includes(m.id)));
-      }
-      setLoading(false);
-    });
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(false); return; }
+    const { data } = await supabase.from("download_history").select("material_id").eq("user_id", session.user.id).order("created_at", { ascending: false });
+    if (data) {
+      const ids = [...new Set(data.map((d: { material_id: string }) => d.material_id))];
+      setHistoryMaterials(allMaterials.filter((m) => ids.includes(m.id)));
+    }
+    setLoading(false);
   }, [allMaterials]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  useEffect(() => {
+    const handler = () => fetchHistory();
+    window.addEventListener("download-history-updated", handler);
+    return () => window.removeEventListener("download-history-updated", handler);
+  }, [fetchHistory]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
