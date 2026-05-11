@@ -129,7 +129,7 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
 
 function PdfPreview({ matId }: { matId: string }) {
   const [selected, setSelected] = useState(0);
-  const [loadedSet, setLoadedSet] = useState<Set<number>>(new Set());
+  const [loadedSet, setLoadedSet] = useState<Set<number>>(new Set([0]));
   const [visibleCount, setVisibleCount] = useState(1);
   const [thumbChecked, setThumbChecked] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);

@@ -84,23 +84,26 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
 
 function PdfPreview({ matId }: { matId: string }) {
   const [selected, setSelected] = useState(0);
-  const [mainReady, setMainReady] = useState(false);
+  const [loadedSet, setLoadedSet] = useState<Set<number>>(new Set([0]));
   const [visibleCount, setVisibleCount] = useState(1);
+  const [thumbChecked, setThumbChecked] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   const swipeTouchStart = useRef<{ x: number; y: number } | null>(null);
   const swipeHappened = useRef(false);
 
   const urls = Array.from({ length: 3 }, (_, i) => `${THUMB_BASE}/${matId}-p${i + 1}.png`);
   const shimmer = "linear-gradient(90deg,#ece8f5 25%,#ddd8ee 50%,#ece8f5 75%)";
+  const mainReady = loadedSet.has(selected);
 
   useEffect(() => {
-    setMainReady(false);
+    setLoadedSet(new Set([0]));
     setVisibleCount(1);
+    setThumbChecked(false);
     const check = (i: number) => {
-      if (i >= 3) return;
+      if (i >= 3) { setThumbChecked(true); return; }
       const img = new Image();
       img.onload = () => { setVisibleCount(i + 1); check(i + 1); };
-      img.onerror = () => {};
+      img.onerror = () => { setThumbChecked(true); };
       img.src = urls[i];
     };
     check(1);
@@ -116,35 +119,35 @@ function PdfPreview({ matId }: { matId: string }) {
           const dy = e.changedTouches[0].clientY - swipeTouchStart.current.y;
           if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
             swipeHappened.current = true;
-            if (dx > 0 && selected > 0) { setSelected(i => i - 1); setMainReady(false); }
-            else if (dx < 0 && selected < visibleCount - 1) { setSelected(i => i + 1); setMainReady(false); }
+            if (dx > 0 && selected > 0) { setSelected(i => i - 1); }
+            else if (dx < 0 && selected < visibleCount - 1) { setSelected(i => i + 1); }
           }
           swipeTouchStart.current = null;
         }}
         onClick={() => { if (swipeHappened.current) { swipeHappened.current = false; return; } if (mainReady) setLightboxSrc(urls[selected]); }}
         style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, minHeight: 160, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
         <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
-        <img src={urls[selected]} alt="" onLoad={() => setMainReady(true)} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
+        <img src={urls[selected]} alt="" onLoad={() => setLoadedSet(s => new Set([...s, selected]))} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
         {mainReady && <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "2px 6px", fontSize: 10, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 3 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>拡大</div>}
         {selected > 0 && (
-          <button onClick={(e) => { e.stopPropagation(); setSelected(i => i - 1); setMainReady(false); }} style={{ position: "absolute", left: 6, top: "50%", transform: "translateY(-50%)", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+          <button onClick={(e) => { e.stopPropagation(); setSelected(i => i - 1); }} style={{ position: "absolute", left: 6, top: "50%", transform: "translateY(-50%)", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
         )}
         {selected < visibleCount - 1 && (
-          <button onClick={(e) => { e.stopPropagation(); setSelected(i => i + 1); setMainReady(false); }} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
+          <button onClick={(e) => { e.stopPropagation(); setSelected(i => i + 1); }} style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         )}
       </div>
       <div style={{ display: "flex", gap: 6, justifyContent: "center", height: 56, position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 6, justifyContent: "center", opacity: visibleCount > 1 ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
+        <div style={{ position: "absolute", inset: 0, display: "flex", gap: 6, justifyContent: "center", opacity: (visibleCount > 1 || thumbChecked) ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }}>
           {[0, 1, 2].map(i => (
             <div key={i} style={{ width: 40, height: 56, borderRadius: 5, background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", flexShrink: 0 }} />
           ))}
         </div>
         {urls.slice(0, visibleCount).map((url, i) => (
-          <div key={i} onClick={() => { setSelected(i); setMainReady(false); }} style={{ width: 40, cursor: "pointer", borderRadius: 5, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", background: "#fff", flexShrink: 0 }}>
+          <div key={i} onClick={() => { setSelected(i); }} style={{ width: 40, cursor: "pointer", borderRadius: 5, overflow: "hidden", border: selected === i ? "2px solid #9b6ed4" : "2px solid rgba(155,110,212,0.2)", background: "#fff", flexShrink: 0 }}>
             <img src={url} alt="" style={{ width: "100%", height: "auto", display: "block", }} />
           </div>
         ))}
@@ -278,13 +281,13 @@ export default function TeaserModal({
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "95vw", display: "block", overflow: "hidden", position: "relative", maxHeight: "80vh", fontSize: "80%" }} >
+      <div onClick={e => e.stopPropagation()} style={{ background: "white", borderRadius: 20, width: "95vw", display: "flex", flexDirection: "column", overflow: "hidden", position: "relative", maxHeight: "80vh", fontSize: "80%" }} >
         <button onClick={onClose} style={{ position: "absolute", top: 14, right: 14, zIndex: 10, width: 30, height: 30, borderRadius: "50%", background: "rgba(0,0,0,0.08)", border: "none", cursor: "pointer", fontSize: 14, color: "#666" }}>✕</button>
 
 
 
         {/* 右：情報 */}
-        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", maxHeight: "88vh" }}>
+        <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", flex: 1 }}>
           {/* タグ・レベル */}
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             {tag && (
