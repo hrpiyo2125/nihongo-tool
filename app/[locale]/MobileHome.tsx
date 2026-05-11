@@ -120,6 +120,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
     fetch("/api/legal-content").then(r => r.json()).then(data => setLegalContent(data));
   }, []);
 
+
   // ─── スクロール検知 ──────────────────────────────────────
   const handleMainScroll = () => {
     isScrollingRef.current = true;
@@ -384,7 +385,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
                 <button onClick={() => openMaterialsModal("all", "all")} style={{ fontSize: 12, padding: "14px 32px", borderRadius: 28, border: "1px solid rgba(163,192,255,0.5)", cursor: "pointer", fontWeight: 700, background: "white", color: "#7a50b0" }}>{th("view_all")}</button>
               </div>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 48 }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 28 }}>
               </div>
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
@@ -419,7 +420,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             </section>
 
             {/* 学習内容から探す */}
-            <section id="mobile-anchor-content" style={{ padding: "32px 0 24px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+            <section id="mobile-anchor-content" style={{ padding: "24px 0 24px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Content</div>
                 <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習内容から探す</div>
@@ -474,7 +475,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             </section>
 
             {/* 教材カードタブ */}
-            <section style={{ padding: "24px 0 32px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
+            <section style={{ padding: "24px 0 48px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ display: "flex", overflowX: "auto", padding: "0 20px", marginBottom: 16, gap: 0, borderBottom: "0.5px solid #eee", scrollbarWidth: "none" }}>
                 {[{ key: "pickup", label: "ピックアップ" }, { key: "recommended", label: "おすすめ" }, { key: "ranking", label: "ランキング" }, { key: "new", label: "新着" }].map(({ key, label }) => (
                   <button key={key} onClick={() => setActiveCardTab(key)} style={{ fontSize: 13, padding: "8px 14px", background: "transparent", border: "none", borderBottom: activeCardTab === key ? "2px solid #9b6ed4" : "2px solid transparent", color: activeCardTab === key ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: activeCardTab === key ? 700 : 500, whiteSpace: "nowrap", flexShrink: 0 }}>

@@ -180,6 +180,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     fetch("/api/legal-content").then(r => r.json()).then(d => setLegalContent(d));
   }, []);
 
+
   useEffect(() => {
     const handler = (e: Event) => {
       const { page } = (e as CustomEvent).detail;
@@ -420,7 +421,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
               )}
             </section>
 
-            <section style={{ padding: "80px 36px 0", background: "white" }}>
+            <section style={{ padding: "80px 36px 72px", background: "white" }}>
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "20px 22px", marginBottom: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{th("notice")}</div>
