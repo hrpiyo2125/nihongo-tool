@@ -187,8 +187,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       setMaterialsFilter({ content: initialContent ?? "all", method: initialMethod ?? "all" });
       return;
     }
-    const content = searchParams.get("content");
-    const method = searchParams.get("method");
+    let content = searchParams.get("content");
+    let method = searchParams.get("method");
+    const methodIds = new Set(getMethodTabs(methodTabLabels.ja).map(t => t.id).filter(id => id !== "all"));
+    if (content && content !== "all" && methodIds.has(content)) { method = content; content = "all"; }
     if (content || method) setMaterialsFilter({ content: content ?? "all", method: method ?? "all" });
   }, [searchParams]);
 
@@ -243,8 +245,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
 
   const updateFilterUrl = (content: string, method: string) => {
     const params = new URLSearchParams();
-    if (content !== "all") params.set("content", content);
-    if (method !== "all") params.set("method", method);
+    if (content !== "all" || method !== "all") {
+      params.set("content", content);
+      params.set("method", method);
+    }
     const q = params.toString();
     window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
   };

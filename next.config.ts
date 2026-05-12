@@ -29,7 +29,8 @@ const securityHeaders = [
   },
 ]
 
-const CATEGORY_IDS = ['hiragana','katakana','kanji','joshi','kaiwa','season','food','animal','body','color','number','adjective','verb','conjunction','grammar','familiar','kotoba','vegefruit','myself','drill','test','card','nurie','roleplay','bingo','interview','presentation','sentence','essay','check','sugoroku','poster'];
+const CONTENT_IDS = ['hiragana','katakana','kanji','joshi','kaiwa','season','food','animal','body','color','number','adjective','verb','conjunction','grammar','familiar','kotoba','vegefruit','myself'];
+const METHOD_IDS = ['drill','test','card','nurie','roleplay','bingo','interview','presentation','sentence','essay','check','sugoroku','poster'];
 
 const nextConfig: NextConfig = {
   reactStrictMode: false,
@@ -37,10 +38,16 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   async redirects() {
-    return CATEGORY_IDS.flatMap((cat) => [
-      { source: `/${cat}`, destination: `/?content=${cat}`, permanent: true },
-      { source: `/en/${cat}`, destination: `/en?content=${cat}`, permanent: true },
-    ]);
+    return [
+      ...CONTENT_IDS.flatMap((cat) => [
+        { source: `/${cat}`, destination: `/?content=${cat}&method=all`, permanent: true },
+        { source: `/en/${cat}`, destination: `/en?content=${cat}&method=all`, permanent: true },
+      ]),
+      ...METHOD_IDS.flatMap((cat) => [
+        { source: `/${cat}`, destination: `/?content=all&method=${cat}`, permanent: true },
+        { source: `/en/${cat}`, destination: `/en?content=all&method=${cat}`, permanent: true },
+      ]),
+    ];
   },
   async headers() {
     return [

@@ -13,7 +13,7 @@ import MaterialsModal from "./MaterialsModal";
 import UserMenuPopup from "./UserMenuPopup";
 import GuestLoginPopup from "./GuestLoginPopup";
 import AuthModal, { AuthModalMode } from "../../components/AuthModal";
-import { contentTabLabels, methodTabLabels } from "../../lib/tabs";
+import { contentTabLabels, methodTabLabels, getMethodTabs } from "../../lib/tabs";
 import { getCardStyle } from "../../lib/materialUtils";
 import { FaqSection } from "./TroubleGuide";
 import MyPage from "./MyPage";
@@ -170,8 +170,14 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
       return;
     }
     const params = new URLSearchParams(window.location.search);
-    const content = params.get("content");
-    const method = params.get("method");
+    let content = params.get("content");
+    let method = params.get("method");
+    // ?content=card のように methodID が content に誤って入った場合を補正
+    const methodIds = getMethodTabs(methodTabLabels.ja).map(t => t.id).filter(id => id !== "all");
+    if (content && content !== "all" && methodIds.includes(content)) {
+      method = content;
+      content = "all";
+    }
     if (content || method) setModal({ content: content ?? "all", method: method ?? "all" });
   }, []);
 
@@ -222,8 +228,10 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
 
   const handleFilterChange = (content: string, method: string) => {
     const params = new URLSearchParams();
-    if (content !== "all") params.set("content", content);
-    if (method !== "all") params.set("method", method);
+    if (content !== "all" || method !== "all") {
+      params.set("content", content);
+      params.set("method", method);
+    }
     const q = params.toString();
     window.history.replaceState(null, "", q ? `${window.location.pathname}?${q}` : window.location.pathname);
   };
