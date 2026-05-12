@@ -388,7 +388,7 @@ export default function MaterialDetailPage() {
       content: (
         <div style={{ padding: "20px 18px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>この教材について</div>
-          <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 16 }}>{material.description || `楽しく学べる${contentTabs.find(t => t.id === material.content?.[0])?.label ?? ""}の教材です。`}</p>
+          <p style={{ fontSize: 13, color: "#777", lineHeight: 1.9, marginBottom: 16 }}>{material.description || `たのしく学べる${contentTabs.find(t => t.id === material.content?.[0])?.label ?? ""}の教材です。`}</p>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {[
               { label: "対象年齢", value: material.ageGroup || "－" },
