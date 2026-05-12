@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useState } from "react";
+import { usePathname } from "next/navigation";
 
 type DesktopUIContextType = {
   sbOpen: boolean;
@@ -15,9 +16,16 @@ const DesktopUIContext = createContext<DesktopUIContextType>({
   setActivePage: () => {},
 });
 
+const PAGE_MAP: Record<string, string> = {
+  '/about': 'about', '/faq': 'faq', '/plan': 'plan',
+  '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho',
+};
+
 export function DesktopUIProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const path = pathname.replace(/^\/(en|ja)/, '') || '/';
   const [sbOpen, setSbOpen] = useState(false);
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState(PAGE_MAP[path] ?? "home");
 
   return (
     <DesktopUIContext.Provider value={{ sbOpen, setSbOpen, activePage, setActivePage }}>

@@ -163,7 +163,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       if (legalType) { closeLegal(); return; }
       if (mySubPage) { setMySubPage(null); history.pushState({ modal: true }, ""); return; }
 
-      if (morePageType) { setMorePageType(null); history.pushState({ modal: true }, ""); return; }
+      if (morePageType) { setMorePageType(null); mobileNavigateBack(); return; }
       if (announcementModal) { setAnnouncementModal(null); history.pushState({ modal: true }, ""); return; }
       if (teaserMat) { setTeaserMat(null); history.pushState({ modal: true }, ""); return; }
       if (authMode) { setAuthMode(null); history.pushState({ modal: true }, ""); return; }
@@ -617,7 +617,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       {morePageType === "guide" && (
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={() => { setMorePageType(null); mobileNavigateBack(); }} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("guide")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
