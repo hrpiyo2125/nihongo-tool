@@ -150,7 +150,7 @@ export default function MaterialsModal({
               <button
                 onClick={() => { setSearchQuery(""); setSearchResults(null); }}
                 style={{ background: "none", border: "none", cursor: "pointer", padding: "0 2px", display: "flex", alignItems: "center", color: "#bbb", flexShrink: 0 }}
-                aria-label="検索をクリア"
+                aria-label={tmm("clear_search")}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
@@ -159,7 +159,7 @@ export default function MaterialsModal({
               onClick={() => executeSearch(searchQuery)}
               disabled={!searchQuery.trim()}
               style={{ background: "none", border: "none", cursor: searchQuery.trim() ? "pointer" : "default", padding: "0 2px", display: "flex", alignItems: "center", color: searchQuery.trim() ? "#9b6ed4" : "#ddd", flexShrink: 0 }}
-              aria-label="検索"
+              aria-label={tmm("search")}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             </button>
@@ -210,13 +210,13 @@ export default function MaterialsModal({
             <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
               <div style={{ padding: "16px 0 20px 20px", fontSize: 12, color: "#bbb", flexShrink: 0 }}>
                 {searchResults !== null
-                  ? `検索結果 — ${filtered.length}件`
-                  : `${contentTabs.find(t => t.id === activeContent)?.label}${activeMethod !== "all" ? ` × ${methodTabs.find(t => t.id === activeMethod)?.label}` : ""} — ${filtered.length}件`
+                  ? `${tmm("search_results")} — ${filtered.length}${tmm("result_count")}`
+                  : `${contentTabs.find(t => t.id === activeContent)?.label}${activeMethod !== "all" ? ` × ${methodTabs.find(t => t.id === activeMethod)?.label}` : ""} — ${filtered.length}${tmm("result_count")}`
                 }
               </div>
               <div className="toolio-scroll-y" style={{ flex: 1, overflowY: "auto", padding: "0 20px 40px" }}>
               {filtered.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>該当する教材がありません</div>
+                <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 15 }}>{tmm("no_results")}</div>
               ) : (
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 14 }}>
                   {filtered.map((mat) => {

@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "../../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "../../components/ProcessingOverlay";
 import { BrandIcon } from "../../components/BrandIcon";
@@ -43,20 +44,21 @@ function formatDate(isoString: string | null) {
 }
 
 function StatusBadge({ plan_status, cancel_at_period_end, isPendingDeletion }: { plan_status: string; cancel_at_period_end: boolean; trial_end?: string | null; isPendingDeletion?: boolean }) {
+  const tb = useTranslations("billing");
   if (isPendingDeletion) {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>退会予約済み</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>{tb("status_pending_deletion")}</span>;
   }
   if (plan_status === "trialing") {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f8ee", color: "#2a6a44" }}>トライアル中</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f8ee", color: "#2a6a44" }}>{tb("status_trialing")}</span>;
   }
   if (cancel_at_period_end) {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>キャンセル予約済み</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#fff0e8", color: "#a04020" }}>{tb("status_cancel_scheduled")}</span>;
   }
   if (plan_status === "past_due") {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#ffe8e8", color: "#a02020" }}>お支払い確認中</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#ffe8e8", color: "#a02020" }}>{tb("status_past_due")}</span>;
   }
   if (plan_status === "active") {
-    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8efff", color: "#3a5a9a" }}>有効</span>;
+    return <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8efff", color: "#3a5a9a" }}>{tb("status_active")}</span>;
   }
   return null;
 }
@@ -74,6 +76,8 @@ export default function BillingSection({
   mobileMode?: boolean;
   allMaterials?: { id: string; title: string }[];
 }) {
+  const tb = useTranslations("billing");
+  const tmm = useTranslations("materials_modal");
   const [planLabel, setPlanLabel] = useState<Record<string, string>>(FALLBACK_PLAN_LABEL);
   const [planPrice, setPlanPrice] = useState<Record<string, string>>(FALLBACK_PLAN_PRICE);
   const [invoices, setInvoices] = useState<BillingItem[]>([]);
@@ -155,17 +159,17 @@ export default function BillingSection({
         setConfirmCancel(false);
         setSubscriptionResetModal(true);
       } else if (data.error === 'No active subscription') {
-        setCancelError('有効なサブスクリプションが見つかりません。既にキャンセル済みの可能性があります。');
+        setCancelError(tb("cancel_no_sub_error"));
         setCancelLoading(false);
       } else if (data.error === 'Profile not found') {
-        setCancelError('アカウント情報が見つかりません。再ログインしてからお試しください。');
+        setCancelError(tb("cancel_profile_error"));
         setCancelLoading(false);
       } else {
-        setCancelError(`キャンセルに失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
+        setCancelError(tb("cancel_generic_error"));
         setCancelLoading(false);
       }
     } catch {
-      setCancelError('通信エラーが発生しました。接続を確認してから再度お試しください。');
+      setCancelError(tb("cancel_network_error"));
       setCancelLoading(false);
     }
   };
@@ -217,11 +221,11 @@ export default function BillingSection({
         setWithdrawalLoading(false);
         setTimeout(() => { setWithdrawalSuccess(false); setConfirmWithdrawalCancel(false); }, 2000);
       } else {
-        setWithdrawalError(`解約取り消しに失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
+        setWithdrawalError(tb("withdrawal_cancel_error"));
         setWithdrawalLoading(false);
       }
     } catch {
-      setWithdrawalError('通信エラーが発生しました。接続を確認してから再度お試しください。');
+      setWithdrawalError(tb("withdrawal_network_error"));
       setWithdrawalLoading(false);
     }
   };
@@ -234,7 +238,7 @@ export default function BillingSection({
       {/* ヘッダー */}
       {!mobileMode && (
         <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
-          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>支払い履歴</h2>
+          <h2 style={{ fontSize: 24, fontWeight: 800, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", display: "inline-block" }}>{tb("title")}</h2>
         </div>
       )}
 
@@ -242,7 +246,7 @@ export default function BillingSection({
 
         {/* 現在のプラン */}
         <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.08),rgba(163,192,255,0.08))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: mobileMode ? "16px" : "24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>現在のプラン</div>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10, fontWeight: 700, letterSpacing: 1 }}>{tb("current_plan")}</div>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <div style={{ fontSize: mobileMode ? 15 : 20, fontWeight: 800, color: "#7a50b0" }}>{planLabel[profile.plan] ?? "toolio free"}</div>
@@ -253,30 +257,30 @@ export default function BillingSection({
                 isPendingDeletion={isPendingDeletion}
               />
             </div>
-            <div style={{ fontSize: 12, color: "#aaa" }}>{planPrice[profile.plan] ?? "無料"}</div>
+            <div style={{ fontSize: 12, color: "#aaa" }}>{planPrice[profile.plan] ?? tb("free_price")}</div>
             {profile.plan_status === "trialing" && profile.trial_end && (
               <div style={{ fontSize: 11, color: "#2a6a44", background: "#e8f8ee", padding: "5px 10px", borderRadius: 8 }}>
-                トライアル終了日：{formatDate(profile.trial_end)}
+                {tb("trial_end_label")}{formatDate(profile.trial_end)}
               </div>
             )}
             {isPendingDeletion && profile.current_period_end && (
               <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                {formatDate(profile.current_period_end)}に退会予定
+                {formatDate(profile.current_period_end)}{tb("withdrawal_scheduled")}
               </div>
             )}
             {!isPendingDeletion && isPaid && profile.cancel_at_period_end && profile.current_period_end && (
               <div style={{ fontSize: 11, color: "#a04020", background: "#fff0e8", padding: "5px 10px", borderRadius: 8 }}>
-                {formatDate(profile.current_period_end)}にfreeへ移行
+                {formatDate(profile.current_period_end)}{tb("free_migration")}
               </div>
             )}
             {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && profile.current_period_end && (
               <div style={{ fontSize: 11, color: "#3a5a9a", background: "#e8efff", padding: "5px 10px", borderRadius: 8 }}>
-                次回更新日：{formatDate(profile.current_period_end)}
+                {tb("next_renewal")}{formatDate(profile.current_period_end)}
               </div>
             )}
             {profile.plan_status === "past_due" && (
               <div style={{ fontSize: 11, color: "#a02020", background: "#ffe8e8", padding: "5px 10px", borderRadius: 8 }}>
-                お支払いが確認できていません
+                {tb("payment_issue")}
               </div>
             )}
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 4, justifyContent: "center" }}>
@@ -285,7 +289,7 @@ export default function BillingSection({
                   onClick={() => setConfirmWithdrawalCancel(true)}
                   style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
                 >
-                  退会をやめる
+                  {tb("cancel_withdrawal")}
                 </button>
               ) : (
                 <>
@@ -293,14 +297,14 @@ export default function BillingSection({
                     onClick={onChangePlan}
                     style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                   >
-                    プランを変更 →
+                    {tb("change_plan")}
                   </button>
                   {isPaid && !profile.cancel_at_period_end && profile.plan_status !== "trialing" && (
                     <button
                       onClick={() => setConfirmCancel(true)}
                       style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                     >
-                      サブスクをキャンセル
+                      {tb("cancel_subscribe")}
                     </button>
                   )}
                   {isPaid && profile.cancel_at_period_end && (
@@ -309,7 +313,7 @@ export default function BillingSection({
                       disabled={reactivateLoading}
                       style={{ fontSize: 12, padding: "9px 18px", borderRadius: 20, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer" }}
                     >
-                      {reactivateLoading ? "処理中..." : "キャンセルを取り消す"}
+                      {reactivateLoading ? tb("processing") : tb("undo_cancel")}
                     </button>
                   )}
                 </>
@@ -323,10 +327,10 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {withdrawalLoading ? (
-                <ProcessingOverlay messages={["退会取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={[tb("withdrawal_processing_1"), tb("withdrawal_processing_2"), tb("withdrawal_processing_3")]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="退会予約を取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label={tb("withdrawal_cancelled")} />
                 </div>
               )}
             </div>
@@ -338,17 +342,17 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {withdrawalLoading ? (
-                <ProcessingOverlay messages={["退会取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={[tb("withdrawal_processing_1"), tb("withdrawal_processing_2"), tb("withdrawal_processing_3")]} />
               ) : withdrawalSuccess ? (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="退会予約を取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label={tb("withdrawal_cancelled")} />
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>退会をやめますか？</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{tb("cancel_withdrawal_title")}</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                    退会予約を取り消すと、<strong>{formatDate(profile.current_period_end)}</strong> 以降も引き続きご利用いただけます。<br />
-                    現在のプランはそのまま継続されます。
+                    {tb("cancel_withdrawal_desc_1")}<strong>{formatDate(profile.current_period_end)}</strong>{tb("cancel_withdrawal_desc_2")}<br />
+                    {tb("cancel_withdrawal_desc_3")}
                   </div>
                   {withdrawalError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
@@ -360,13 +364,13 @@ export default function BillingSection({
                       onClick={() => { setConfirmWithdrawalCancel(false); setWithdrawalError(null); }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                     >
-                      キャンセル
+                      {tb("cancel_btn")}
                     </button>
                     <button
                       onClick={handleWithdrawalCancel}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                     >
-                      退会をやめる
+                      {tb("cancel_withdrawal")}
                     </button>
                   </div>
                 </div>
@@ -380,10 +384,10 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 380, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {reactivateLoading ? (
-                <ProcessingOverlay messages={["キャンセル取り消し処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={[tb("reactivate_processing_1"), tb("withdrawal_processing_2"), tb("withdrawal_processing_3")]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="キャンセルを取り消しました。引き続きご利用いただけます。" />
+                  <SuccessOverlay label={tb("reactivate_cancelled")} />
                 </div>
               )}
             </div>
@@ -395,17 +399,17 @@ export default function BillingSection({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {cancelLoading ? (
-                <ProcessingOverlay messages={["キャンセル処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={[tb("cancel_confirm_processing_1"), tb("withdrawal_processing_2"), tb("withdrawal_processing_3")]} />
               ) : cancelSuccess ? (
                 <div style={{ padding: "36px 40px" }}>
-                  <SuccessOverlay label="サブスクのキャンセルを受け付けました。期間終了までご利用いただけます。" />
+                  <SuccessOverlay label={tb("cancel_confirmed")} />
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>サブスクのキャンセルを確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{tb("cancel_confirm_title")}</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                    キャンセルすると、<strong>{formatDate(profile.current_period_end)}</strong> までご利用いただけます。<br />
-                    期間終了後は toolio freeへ移行します。
+                    {tb("cancel_confirm_desc_1")}<strong>{formatDate(profile.current_period_end)}</strong>{tb("cancel_confirm_desc_2")}<br />
+                    {tb("cancel_confirm_desc_3")}
                   </div>
                   {cancelError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>
@@ -417,13 +421,13 @@ export default function BillingSection({
                       onClick={() => { setConfirmCancel(false); setCancelError(null); }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
                     >
-                      キャンセル
+                      {tb("cancel_btn")}
                     </button>
                     <button
                       onClick={handleCancel}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
                     >
-                      サブスクをキャンセルする
+                      {tb("cancel_subscribe_btn")}
                     </button>
                   </div>
                 </div>
@@ -435,15 +439,15 @@ export default function BillingSection({
         {subscriptionResetModal && (
   <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
     <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>プランについてご確認ください</div>
+      <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 16 }}>{tb("plan_issue_title")}</div>
       <div style={{ fontSize: 13, color: "#666", lineHeight: 2, marginBottom: 28 }}>
-        お支払い情報に問題が発生したため、現在のプランが toolio free に戻っています。これまでのご請求に変更はありません。プランの再登録は新たなご契約となりますが、二重請求にはなりませんのでご安心ください。引き続きご利用いただくには、プランページから希望のプランを選択して再度ご登録をお願いします。差額が発生する場合は、個別にご連絡の上、適切に対応いたします。
+        {tb("plan_issue_desc")}
       </div>
       <button
         onClick={() => { setSubscriptionResetModal(false); window.location.reload(); }}
         style={{ width: "100%", padding: "12px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 13, fontWeight: 700, cursor: "pointer" }}
       >
-        プランを確認する →
+        {tb("check_plan")}
       </button>
     </div>
   </div>
@@ -451,7 +455,7 @@ export default function BillingSection({
 
         {/* 支払い履歴 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, overflow: "hidden" }}>
-          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", fontSize: 13, fontWeight: 700, color: "#555" }}>支払い履歴</div>
+          <div style={{ padding: "16px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", fontSize: 13, fontWeight: 700, color: "#555" }}>{tb("billing_history")}</div>
           {invoicesLoading ? (
             <div>
               {Array.from({ length: 3 }).map((_, i) => (
@@ -466,7 +470,7 @@ export default function BillingSection({
           ) : invoices.length === 0 ? (
             <div style={{ padding: "56px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>
               <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><BrandIcon name="billing" size={38} color="#dbb0f5" /></div>
-              支払い履歴はまだありません
+              {tb("no_billing")}
             </div>
           ) : (() => {
             // 月別グループ化
@@ -483,7 +487,7 @@ export default function BillingSection({
               <div style={{ overflowX: "auto" }}>
                 <div style={{ minWidth: 380 }}>
                   <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "110px 1fr 72px 72px 72px", fontSize: 11, color: "#bbb", fontWeight: 700, gap: 8 }}>
-                    <span>日付</span><span>内容</span><span>金額</span><span>種別</span><span></span>
+                    <span>{useTranslations("mypage")("date")}</span><span>{useTranslations("mypage")("item")}</span><span>{useTranslations("mypage")("amount")}</span><span>{useTranslations("mypage")("status")}</span><span></span>
                   </div>
                   {groups.map(({ monthLabel, items }) => (
                     <div key={monthLabel}>
@@ -501,10 +505,10 @@ export default function BillingSection({
                             <span style={{ fontSize: 12, color: "#555", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                             <span style={{ fontSize: 13, color: "#555" }}>¥{item.amount_paid.toLocaleString()}</span>
                             <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 10, background: item.type === "purchase" ? "#f0e8ff" : "#e8efff", color: item.type === "purchase" ? "#8040c0" : "#3a5a9a", whiteSpace: "nowrap", textAlign: "center", display: "inline-block" }}>
-                              {item.type === "purchase" ? "単品" : "サブスク"}
+                              {item.type === "purchase" ? tb("single") : tmm("subscribe")}
                             </span>
                             {item.invoice_pdf ? (
-                              <a href={item.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>領収書↓</a>
+                              <a href={item.invoice_pdf} target="_blank" rel="noopener noreferrer" style={{ fontSize: 11, color: "#9b6ed4", textDecoration: "none", fontWeight: 600 }}>{tb("receipt")}</a>
                             ) : <span />}
                           </div>
                         );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { useTranslations } from "next-intl";
 import { useRouter } from 'next/navigation';
 import { createClient } from "../../lib/supabase";
 import { getCardStyle } from "../../lib/materialUtils";
@@ -38,6 +39,8 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   locale: string;
   tmm: (key: string) => string;
   userPlan: string;}) {
+  const tme = useTranslations("mypage_ext");
+  const th = useTranslations("home");
   const { purchasedIds } = useAuth();
   const [favMaterials, setFavMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
@@ -97,8 +100,8 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
   if (favMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
-      <div style={{ fontSize: 14 }}>お気に入りはまだありません</div>
-      <div style={{ fontSize: 12, marginTop: 6 }}>教材のハートボタンで保存できます</div>
+      <div style={{ fontSize: 14 }}>{th("no_fav")}</div>
+      <div style={{ fontSize: 12, marginTop: 6 }}>{tme("fav_empty_desc")}</div>
     </div>
   );
 
@@ -136,8 +139,8 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
       </div>
       {hiddenFavCount > 0 && (
         <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
-          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenFavCount}件のお気に入りがあります</div>
-          <div style={{ fontSize: 12, color: "#a07ad4" }}>サブスクプランに登録いただくと復活します</div>
+          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>{tme("remaining")}{hiddenFavCount}{tme("fav_hidden_count")}</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>{tme("fav_hidden_upgrade")}</div>
         </div>
       )}
      {teaserMat && (() => {
@@ -169,6 +172,7 @@ function FavoritesSection({ allMaterials, isLoggedIn, contentTabs, methodTabs, l
 }
 
 function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
+  const tme = useTranslations("mypage_ext");
   const { purchasedIds } = useAuth();
   const [teaserMat, setTeaserMat] = useState<Material | null>(null);
   const [favIds, setFavIds] = useState<string[]>([]);
@@ -189,8 +193,8 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
   if (purchasedMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>🛒</div>
-      <div style={{ fontSize: 14 }}>購入済みの教材はまだありません</div>
-      <div style={{ fontSize: 12, marginTop: 6 }}>単品購入した教材はここから再ダウンロードできます</div>
+      <div style={{ fontSize: 14 }}>{tme("purchase_history_empty")}</div>
+      <div style={{ fontSize: 12, marginTop: 6 }}>{tme("purchase_history_desc")}</div>
     </div>
   );
 
@@ -251,6 +255,7 @@ function PurchaseHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
 }
 
 function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, contentTabs, methodTabs, tmm }: { allMaterials: Material[]; locale: string; isLoggedIn: boolean; userPlan: string; contentTabs: {id: string; label: string; char: string; color: string; imageSrc?: string | null}[]; methodTabs: {id: string; label: string; char: string; imageSrc?: string | null}[]; tmm: (key: string) => string }) {
+  const tme = useTranslations("mypage_ext");
   const { purchasedIds } = useAuth();
   const [historyMaterials, setHistoryMaterials] = useState<Material[]>([]);
   const [loading, setLoading] = useState(true);
@@ -309,7 +314,7 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
   if (historyMaterials.length === 0) return (
     <div style={{ padding: "40px 0", textAlign: "center", color: "#bbb" }}>
       <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
-      <div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div>
+      <div style={{ fontSize: 14 }}>{tme("dl_history_empty")}</div>
     </div>
   );
 
@@ -346,8 +351,8 @@ function DownloadHistorySection({ allMaterials, locale, isLoggedIn, userPlan, co
       </div>
       {hiddenHistoryCount > 0 && (
         <div style={{ marginTop: 16, padding: "14px 20px", borderRadius: 12, background: "linear-gradient(135deg,#f4f0ff,#fce8ff)", border: "1px solid #e0ccff", textAlign: "center" }}>
-          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>残り{hiddenHistoryCount}件のダウンロード履歴があります</div>
-          <div style={{ fontSize: 12, color: "#a07ad4" }}>サブスクプランに登録いただくと復活します</div>
+          <div style={{ fontSize: 13, color: "#8a5cf6", fontWeight: 600, marginBottom: 4 }}>{tme("remaining")}{hiddenHistoryCount}{tme("dl_hidden_count")}</div>
+          <div style={{ fontSize: 12, color: "#a07ad4" }}>{tme("fav_hidden_upgrade")}</div>
         </div>
       )}
       {teaserMat && (() => {
@@ -435,6 +440,8 @@ export default function MyPage({
   mobileMode,
 }: MyPageProps) {
   const router = useRouter();
+  const tme = useTranslations("mypage_ext");
+  const tb = useTranslations("billing");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
@@ -490,11 +497,11 @@ export default function MyPage({
     if (error) {
       const msg = error.message?.toLowerCase() ?? "";
       if (msg.includes("row-level") || msg.includes("permission") || msg.includes("policy")) {
-        setAvatarError("保存権限がありません。再ログインしてからお試しください。");
+        setAvatarError(tme("save_error_permission"));
       } else if (msg.includes("network") || msg.includes("fetch")) {
-        setAvatarError("通信エラーが発生しました。接続を確認してもう一度お試しください。");
+        setAvatarError(tme("save_error_generic"));
       } else {
-        setAvatarError(`保存に失敗しました（${error.message}）。もう一度お試しください。`);
+        setAvatarError(tme("save_error_generic"));
       }
       return;
     }
@@ -512,11 +519,11 @@ export default function MyPage({
     if (uploadError) {
       const msg = uploadError.message?.toLowerCase() ?? "";
       if (msg.includes("too large") || msg.includes("size")) {
-        setAvatarError("画像サイズが大きすぎます。5MB以下の画像をお使いください。");
+        setAvatarError(tme("avatar_too_large"));
       } else if (msg.includes("type") || msg.includes("format")) {
-        setAvatarError("対応していない画像形式です。JPG・PNG・WEBPをお使いください。");
+        setAvatarError(tme("avatar_wrong_format"));
       } else {
-        setAvatarError(`アップロードに失敗しました（${uploadError.message}）。もう一度お試しください。`);
+        setAvatarError(tme("avatar_upload_error"));
       }
       setUploadingAvatar(false);
       return;
@@ -526,8 +533,8 @@ export default function MyPage({
     if (dbError) {
       const msg = dbError.message?.toLowerCase() ?? "";
       setAvatarError(msg.includes("permission") || msg.includes("policy")
-        ? "保存権限がありません。再ログインしてからお試しください。"
-        : `保存に失敗しました（${dbError.message}）。もう一度お試しください。`);
+        ? tme("save_error_permission")
+        : tme("save_error_generic"));
       setUploadingAvatar(false);
       return;
     }
@@ -554,17 +561,17 @@ export default function MyPage({
         setFreePlanLoading(false);
         setTimeout(() => { setFreePlanSuccess(false); setConfirmFreePlan(false); }, 2500);
       } else if (data.error === 'subscription_reset') {
-        setFreePlanError("サブスクリプション情報に問題があります。ページを再読み込みしてからお試しください。");
+        setFreePlanError(tme("free_plan_error_reset"));
         setFreePlanLoading(false);
       } else if (data.error === 'No active subscription') {
-        setFreePlanError("有効なサブスクリプションが見つかりません。既にフリープランの可能性があります。");
+        setFreePlanError(tme("free_plan_error_no_sub"));
         setFreePlanLoading(false);
       } else {
-        setFreePlanError(`変更に失敗しました（${data.error ?? 'Unknown error'}）。しばらく経ってから再度お試しください。`);
+        setFreePlanError(tme("free_plan_error_generic"));
         setFreePlanLoading(false);
       }
     } catch {
-      setFreePlanError("通信エラーが発生しました。接続を確認してから再度お試しください。");
+      setFreePlanError(tme("free_plan_error_generic"));
       setFreePlanLoading(false);
     }
   };
@@ -598,7 +605,7 @@ export default function MyPage({
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#333" }}>{userName}</div>
                 {profile.status === "pending_deletion" && (
-                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#fff0e8", color: "#a04020", whiteSpace: "nowrap" }}>退会予約済み</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: "#fff0e8", color: "#a04020", whiteSpace: "nowrap" }}>{tme("withdrawal_reserved")}</span>
                 )}
               </div>
               <div style={{ fontSize: 12, color: "#aaa", marginBottom: 6 }}>
@@ -611,25 +618,25 @@ export default function MyPage({
                     : { background: "#e8efff", color: "#3a5a9a" })
                 }}>
                   {profile.cancel_at_period_end
-                    ? `${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}にfreeへ移行`
-                    : `次回更新日：${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
+                    ? `${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}${tb("free_migration")}`
+                    : `${tb("next_renewal")}${new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}`
                   }
                 </div>
               )}
               {profile.status === "pending_deletion" && profile.current_period_end && (
                 <div style={{ fontSize: 11, padding: "5px 10px", borderRadius: 8, background: "#fff0e8", color: "#a04020" }}>
-                  {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}に退会予定
+                  {new Date(profile.current_period_end).toLocaleDateString("ja-JP", { month: "long", day: "numeric" })}{tb("withdrawal_scheduled")}
                 </div>
               )}
               {avatarError && <div style={{ fontSize: 11, color: "#e05050", marginTop: 6 }}>{avatarError}</div>}
             </div>
-            <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>{uploadingAvatar ? "アップロード中..." : tm("change_photo")}</button>
+            <button onClick={() => setShowPresetPicker(true)} disabled={uploadingAvatar} style={{ fontSize: 11, padding: "7px 14px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: uploadingAvatar ? "#ccc" : "#9b6ed4", cursor: uploadingAvatar ? "not-allowed" : "pointer", fontWeight: 600, flexShrink: 0, whiteSpace: "nowrap" }}>{uploadingAvatar ? tme("uploading") : tm("change_photo")}</button>
           </div>
         </div>
         {showPresetPicker && typeof document !== "undefined" && createPortal(
           <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={() => setShowPresetPicker(false)}>
             <div style={{ background: "white", borderRadius: 18, padding: 24, maxWidth: 340, width: "90%", boxShadow: "0 8px 32px rgba(0,0,0,0.18)" }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>アイコンを選択</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#333", marginBottom: 16 }}>{tme("select_icon")}</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
                 {PRESET_AVATARS.map((url) => (
                   <img
@@ -641,7 +648,7 @@ export default function MyPage({
                   />
                 ))}
               </div>
-              <button onClick={() => fileInputRef.current?.click()} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>自分の写真をアップロード</button>
+              <button onClick={() => fileInputRef.current?.click()} style={{ width: "100%", padding: "10px", borderRadius: 10, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>{tme("upload_photo")}</button>
             </div>
           </div>,
           document.body
@@ -662,7 +669,7 @@ export default function MyPage({
                   style={{ fontSize: 14, fontWeight: 600, color: "#333", border: "0.5px solid rgba(200,170,240,0.5)", borderRadius: 8, padding: "6px 10px", width: "100%", outline: "none" }}
                 />
               ) : (
-                <div style={{ fontSize: 14, fontWeight: 600, color: field.value === "未設定" ? "#ccc" : "#333" }}>{field.value}</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: (field.value === "未設定" || field.value === tme("not_set")) ? "#ccc" : "#333" }}>{field.value}</div>
               )}
             </div>
             {editingField === field.label ? (
@@ -678,19 +685,19 @@ export default function MyPage({
                     const col = field.col;
                     const value = editingValue;
                     const { error } = await supabase.from("profiles").upsert({ id: session.user.id, [col]: value });
-                    if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingProfile(false); return; }
+                    if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? tme("save_error_permission") : tme("save_error_generic")); setSavingProfile(false); return; }
                     updateProfile({ [col]: value });
                     if (col === "full_name") { setUserName(editingValue); if (editingValue) setUserInitial(editingValue.charAt(0).toUpperCase()); }
                     setSavingProfile(false);
                     setEditingField(null);
                   }}
                   style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingProfile ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingProfile ? "not-allowed" : "pointer", fontWeight: 700 }}
-                >{savingProfile ? "保存中..." : tm("save")}</button>
+                >{savingProfile ? tme("saving") : tm("save")}</button>
                 <button onClick={() => { setEditingField(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
                 {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
               </div>
             ) : (
-              <button onClick={() => { setEditingField(field.label); setEditingValue(field.value === "未設定" ? "" : field.value); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+              <button onClick={() => { setEditingField(field.label); setEditingValue((field.value === "未設定" || field.value === tme("not_set")) ? "" : field.value); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>{tme("edit_btn")}</button>
             )}
           </div>
         ))}
@@ -698,20 +705,20 @@ export default function MyPage({
         {/* メールアドレス */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>メールアドレス</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tme("email_label")}</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>{userEmail || "—"}</div>
           </div>
-          <button onClick={() => { setEmailModal(true); setEmailNew(""); setEmailError(null); setEmailSent(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>変更</button>
+          <button onClick={() => { setEmailModal(true); setEmailNew(""); setEmailError(null); setEmailSent(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>{tme("change_btn")}</button>
         </div>
 
         {/* ログイン方法 */}
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
-          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10 }}>ログイン方法</div>
+          <div style={{ fontSize: 11, color: "#aaa", marginBottom: 10 }}>{tme("login_method")}</div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" as const }}>
             {(authProviders.includes("email") || profile.has_password) && (
               <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 20, background: "rgba(228,155,253,0.08)", border: "0.5px solid rgba(200,170,240,0.4)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="2" y="4" width="20" height="16" rx="3" stroke="#9b6ed4" strokeWidth="1.8"/><path d="M2 8l10 6 10-6" stroke="#9b6ed4" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                <span style={{ fontSize: 12, color: "#7a50b0", fontWeight: 600 }}>メールアドレス</span>
+                <span style={{ fontSize: 12, color: "#7a50b0", fontWeight: 600 }}>{tme("email_label")}</span>
               </div>
             )}
             {authProviders.includes("google") && (
@@ -730,26 +737,26 @@ export default function MyPage({
         {(authProviders.includes("email") || profile.has_password) && (
         <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>パスワード</div>
+            <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tme("password_label")}</div>
             <div style={{ fontSize: 14, fontWeight: 600, color: "#333" }}>••••••••</div>
           </div>
-          <button onClick={() => { setPwModal(true); setPwNew(""); setPwConfirm(""); setPwError(null); setPwSuccess(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>変更</button>
+          <button onClick={() => { setPwModal(true); setPwNew(""); setPwConfirm(""); setPwError(null); setPwSuccess(false); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>{tme("change_btn")}</button>
         </div>
         )}
 
         {/* 居住地 */}
         {(() => {
           const isEditing = editingSection === "residence";
-          const summary = profile.country ? (profile.city ? `${profile.country}・${profile.city}` : profile.country) : "未設定";
+          const summary = profile.country ? (profile.city ? `${profile.country}・${profile.city}` : profile.country) : tme("not_set");
           return (
             <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("residence")}</div>
-                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === tme("not_set") ? "#ccc" : "#333" }}>{summary}</div>}
                 </div>
                 {!isEditing ? (
-                  <button onClick={() => { setDraftResidence({ country: profile.country || "", city: profile.city || "" }); setEditingSection("residence"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                  <button onClick={() => { setDraftResidence({ country: profile.country || "", city: profile.city || "" }); setEditingSection("residence"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>{tme("edit_btn")}</button>
                 ) : (
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
@@ -759,12 +766,12 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, country: draftResidence.country, city: draftResidence.city });
-                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? tme("save_error_permission") : tme("save_error_generic")); setSavingSection(false); return; }
                       }
                       updateProfile({ country: draftResidence.country, city: draftResidence.city });
                       setSavingSection(false);
                       setEditingSection(null);
-                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? tme("saving") : tm("save")}</button>
                     <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
                     {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
@@ -795,16 +802,16 @@ export default function MyPage({
         {(() => {
           const isEditing = editingSection === "occupation";
           const occOpts = [tm("occ_teacher"), tm("occ_parent"), tm("occ_school"), tm("occ_school_owner"), tm("occ_other")];
-          const summary = profile.occupation || "未設定";
+          const summary = profile.occupation || tme("not_set");
           return (
             <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("occupation")}</div>
-                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === tme("not_set") ? "#ccc" : "#333" }}>{summary}</div>}
                 </div>
                 {!isEditing ? (
-                  <button onClick={() => { setDraftOccupation(profile.occupation || ""); setDraftOccupationOther(profile.occupation_other || ""); setEditingSection("occupation"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                  <button onClick={() => { setDraftOccupation(profile.occupation || ""); setDraftOccupationOther(profile.occupation_other || ""); setEditingSection("occupation"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>{tme("edit_btn")}</button>
                 ) : (
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
@@ -814,12 +821,12 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, occupation: draftOccupation, occupation_other: draftOccupationOther });
-                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? tme("save_error_permission") : tme("save_error_generic")); setSavingSection(false); return; }
                       }
                       updateProfile({ occupation: draftOccupation, occupation_other: draftOccupationOther });
                       setSavingSection(false);
                       setEditingSection(null);
-                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? tme("saving") : tm("save")}</button>
                     <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
                     {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
@@ -836,7 +843,7 @@ export default function MyPage({
                     </div>
                   ))}
                   {draftOccupation === tm("occ_other") && (
-                    <input placeholder="職業を入力してください" value={draftOccupationOther} onChange={(e) => setDraftOccupationOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
+                    <input placeholder={tme("occupation_other_placeholder")} value={draftOccupationOther} onChange={(e) => setDraftOccupationOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
                   )}
                 </div>
               )}
@@ -848,16 +855,16 @@ export default function MyPage({
         {(() => {
           const isEditing = editingSection === "purpose";
           const purposeOpts = [tm("purpose_lesson"), tm("purpose_home"), tm("purpose_research"), tm("purpose_other")];
-          const summary = (profile.purpose as string[] | undefined)?.length ? (profile.purpose as string[]).join("・") : "未設定";
+          const summary = (profile.purpose as string[] | undefined)?.length ? (profile.purpose as string[]).join("・") : tme("not_set");
           return (
             <div style={{ background: "white", border: "0.5px solid rgba(200,170,240,0.2)", borderRadius: 14, padding: "20px 24px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isEditing ? 16 : 0 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 11, color: "#aaa", marginBottom: 4 }}>{tm("purpose")}</div>
-                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === "未設定" ? "#ccc" : "#333" }}>{summary}</div>}
+                  {!isEditing && <div style={{ fontSize: 14, fontWeight: 600, color: summary === tme("not_set") ? "#ccc" : "#333" }}>{summary}</div>}
                 </div>
                 {!isEditing ? (
-                  <button onClick={() => { setDraftPurpose(profile.purpose ? [...profile.purpose] : []); setDraftPurposeOther(profile.purpose_other || ""); setEditingSection("purpose"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>編集</button>
+                  <button onClick={() => { setDraftPurpose(profile.purpose ? [...profile.purpose] : []); setDraftPurposeOther(profile.purpose_other || ""); setEditingSection("purpose"); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600, flexShrink: 0 }}>{tme("edit_btn")}</button>
                 ) : (
                   <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
                     <button disabled={savingSection} onClick={async () => {
@@ -867,12 +874,12 @@ export default function MyPage({
                       const { data: { session } } = await supabase.auth.getSession();
                       if (session) {
                         const { error } = await supabase.from("profiles").upsert({ id: session.user.id, purpose: draftPurpose, purpose_other: draftPurposeOther });
-                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? "保存権限がありません。再ログインしてからお試しください。" : `保存に失敗しました（${error.message}）。もう一度お試しください。`); setSavingSection(false); return; }
+                        if (error) { const _msg = error.message?.toLowerCase() ?? ""; setSaveError(_msg.includes("permission") || _msg.includes("policy") ? tme("save_error_permission") : tme("save_error_generic")); setSavingSection(false); return; }
                       }
                       updateProfile({ purpose: draftPurpose, purpose_other: draftPurposeOther });
                       setSavingSection(false);
                       setEditingSection(null);
-                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? "保存中..." : tm("save")}</button>
+                    }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "none", background: savingSection ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: savingSection ? "not-allowed" : "pointer", fontWeight: 700 }}>{savingSection ? tme("saving") : tm("save")}</button>
                     <button onClick={() => { setEditingSection(null); setSaveError(null); }} style={{ fontSize: 12, padding: "7px 18px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tm("cancel")}</button>
                     {saveError && <div style={{ fontSize: 11, color: "#e05050" }}>{saveError}</div>}
                   </div>
@@ -892,7 +899,7 @@ export default function MyPage({
                     );
                   })}
                   {draftPurpose.includes(tm("purpose_other")) && (
-                    <input placeholder="利用目的を入力してください" value={draftPurposeOther} onChange={(e) => setDraftPurposeOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
+                    <input placeholder={tme("purpose_other_placeholder")} value={draftPurposeOther} onChange={(e) => setDraftPurposeOther(e.target.value)} style={{ marginTop: 4, fontSize: 13, padding: "8px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", width: "100%" }} />
                   )}
                 </div>
               )}
@@ -904,16 +911,16 @@ export default function MyPage({
             <button
               onClick={() => { setConfirmFreePlan(true); setFreePlanError(null); }}
               style={{ fontSize: 13, padding: "11px 0", borderRadius: 12, border: "0.5px solid rgba(163,192,255,0.6)", background: "white", color: "#3a5a9a", cursor: "pointer", fontWeight: 600, width: "100%" }}
-            >サブスクをキャンセル</button>
+            >{tme("cancel_subscribe_btn")}</button>
           )}
           {profile?.status !== "pending_deletion" && (
             <button
               onClick={() => { setDeleteStep("checklist"); setDeleteChecks({ data: false, subscription: false, return: false }); setDeleteError(null); }}
               style={{ fontSize: 13, padding: "11px 0", borderRadius: 12, border: "0.5px solid rgba(220,100,100,0.4)", background: "white", color: "#c44", cursor: "pointer", fontWeight: 600, width: "100%" }}
-            >退会する</button>
+            >{tme("withdraw_btn")}</button>
           )}
           {profile?.status === "pending_deletion" && (
-            <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "10px 16px", borderRadius: 10, textAlign: "center" }}>退会予約済みです</div>
+            <div style={{ fontSize: 12, color: "#a04020", background: "#fff0e8", padding: "10px 16px", borderRadius: 10, textAlign: "center" }}>{tme("withdrawal_reserved")}</div>
           )}
         </div>
 
@@ -924,26 +931,26 @@ export default function MyPage({
               {emailSent ? (
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 36, marginBottom: 16 }}>📧</div>
-                  <div style={{ fontSize: 17, fontWeight: 800, color: "#333", marginBottom: 12 }}>確認メールを送信しました</div>
+                  <div style={{ fontSize: 17, fontWeight: 800, color: "#333", marginBottom: 12 }}>{tme("email_change_sent_title")}</div>
                   <div style={{ fontSize: 13, color: "#555", lineHeight: 1.85, marginBottom: 8, textAlign: "left", background: "#f8f6ff", borderRadius: 10, padding: "16px 18px", border: "0.5px solid rgba(200,170,240,0.3)" }}>
-                    <div style={{ fontWeight: 700, color: "#7a50b0", marginBottom: 8 }}>📌 変更を完了するには</div>
-                    <div>新しいメールアドレス（<strong style={{ color: "#333" }}>{emailNew}</strong>）に確認メールが届きます。</div>
-                    <div style={{ marginTop: 8 }}>メール内の「<strong>メールアドレスを変更する</strong>」リンクをクリックすると、変更が反映されます。</div>
+                    <div style={{ fontWeight: 700, color: "#7a50b0", marginBottom: 8 }}>{tme("email_change_sent_how")}</div>
+                    <div><strong style={{ color: "#333" }}>{emailNew}</strong>{tme("email_change_sent_desc1")}</div>
+                    <div style={{ marginTop: 8 }}>「<strong>{tme("email_change_link_text")}</strong>」{tme("email_change_sent_desc2")}</div>
                   </div>
                   <div style={{ fontSize: 12, color: "#aaa", marginBottom: 20, lineHeight: 1.7 }}>
-                    リンクをクリックするまでは、現在のメールアドレスのままです。<br />メールが届かない場合は迷惑メールフォルダをご確認ください。
+                    {tme("email_change_note")}
                   </div>
-                  <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>確認しました</button>
+                  <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{tme("email_change_confirmed")}</button>
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>メールアドレスの変更</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>{tme("email_change_title")}</div>
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>現在のメールアドレス</div>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>{tme("email_current_label")}</div>
                     <div style={{ fontSize: 14, fontWeight: 600, color: "#888", padding: "10px 12px", borderRadius: 8, background: "#f5f5f5" }}>{userEmail}</div>
                   </div>
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいメールアドレス</div>
+                    <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>{tme("email_new_label")}</div>
                     <input
                       type="email"
                       value={emailNew}
@@ -954,32 +961,32 @@ export default function MyPage({
                   </div>
                   {emailError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{emailError}</div>}
                   <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                    <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>キャンセル</button>
+                    <button onClick={() => setEmailModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tme("email_cancel_btn")}</button>
                     <button
                       disabled={emailLoading}
                       onClick={async () => {
-                        if (!emailNew || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNew)) { setEmailError("正しいメールアドレスを入力してください"); return; }
-                        if (emailNew === userEmail) { setEmailError("現在と同じメールアドレスです"); return; }
+                        if (!emailNew || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNew)) { setEmailError(tme("email_error_invalid")); return; }
+                        if (emailNew === userEmail) { setEmailError(tme("email_error_same")); return; }
                         setEmailLoading(true); setEmailError(null);
                         const supabase = createClient();
                         const { error } = await supabase.auth.updateUser({ email: emailNew });
                         if (error) {
                           const msg = error.message?.toLowerCase() ?? "";
                           if (msg.includes("rate") || msg.includes("too many")) {
-                            setEmailError("変更リクエストが多すぎます。しばらく時間をおいてから再度お試しください。");
+                            setEmailError(tme("email_error_rate"));
                           } else if (msg.includes("already") || msg.includes("registered")) {
-                            setEmailError("このメールアドレスはすでに別のアカウントで使用されています。");
+                            setEmailError(tme("email_error_exists"));
                           } else if (msg.includes("invalid") || msg.includes("format")) {
-                            setEmailError("メールアドレスの形式が正しくありません。");
+                            setEmailError(tme("email_error_invalid_format"));
                           } else {
-                            setEmailError(`変更に失敗しました（${error.message}）。しばらく経ってから再度お試しください。`);
+                            setEmailError(tme("email_error_generic"));
                           }
                           setEmailLoading(false); return;
                         }
                         setEmailLoading(false); setEmailSent(true);
                       }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: emailLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: emailLoading ? "not-allowed" : "pointer", fontWeight: 700 }}
-                    >{emailLoading ? "送信中..." : "確認メールを送信"}</button>
+                    >{emailLoading ? tme("email_sending") : tme("email_send_btn")}</button>
                   </div>
                 </>
               )}
@@ -994,41 +1001,41 @@ export default function MyPage({
               {pwSuccess ? (
                 <div style={{ textAlign: "center" }}>
                   <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>パスワードを変更しました</div>
-                  <button onClick={() => setPwModal(false)} style={{ marginTop: 16, fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>閉じる</button>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>{tme("pw_change_success_title")}</div>
+                  <button onClick={() => setPwModal(false)} style={{ marginTop: 16, fontSize: 13, padding: "10px 32px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{tme("pw_close_btn")}</button>
                 </div>
               ) : (
                 <>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>パスワードの変更</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 20 }}>{tme("pw_change_title")}</div>
                   <div style={{ display: "flex", flexDirection: "column" as const, gap: 14, marginBottom: 20 }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード</div>
-                      <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder="8文字以上" style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>{tme("pw_new_label")}</div>
+                      <input type="password" value={pwNew} onChange={(e) => setPwNew(e.target.value)} placeholder={tme("pw_new_placeholder")} style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>新しいパスワード（確認）</div>
-                      <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder="もう一度入力" style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
+                      <div style={{ fontSize: 11, color: "#aaa", marginBottom: 6 }}>{tme("pw_confirm_label")}</div>
+                      <input type="password" value={pwConfirm} onChange={(e) => setPwConfirm(e.target.value)} placeholder={tme("pw_confirm_placeholder")} style={{ width: "100%", fontSize: 13, padding: "10px 12px", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", outline: "none", boxSizing: "border-box" as const }} />
                     </div>
                   </div>
                   {pwError && <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 14 }}>{pwError}</div>}
                   <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-                    <button onClick={() => setPwModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>キャンセル</button>
+                    <button onClick={() => setPwModal(false)} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}>{tme("pw_cancel_btn")}</button>
                     <button disabled={pwLoading} onClick={async () => {
-                      if (pwNew.length < 8) { setPwError("パスワードは8文字以上で入力してください"); return; }
-                      if (pwNew !== pwConfirm) { setPwError("パスワードが一致しません"); return; }
+                      if (pwNew.length < 8) { setPwError(tme("pw_error_short")); return; }
+                      if (pwNew !== pwConfirm) { setPwError(tme("pw_error_mismatch")); return; }
                       setPwLoading(true); setPwError(null);
                       const supabase = createClient();
                       const { error } = await supabase.auth.updateUser({ password: pwNew });
                       if (error) {
                         const msg = error.message?.toLowerCase() ?? "";
                         if (msg.includes("same password") || msg.includes("different")) {
-                          setPwError("現在と同じパスワードは使用できません。別のパスワードを入力してください。");
+                          setPwError(tme("pw_error_same"));
                         } else if (msg.includes("session") || msg.includes("not authenticated") || msg.includes("jwt")) {
-                          setPwError("セッションが切れています。再ログインしてからお試しください。");
+                          setPwError(tme("pw_error_session"));
                         } else if (msg.includes("weak") || msg.includes("password")) {
-                          setPwError("パスワードが基準を満たしていません。8文字以上で入力してください。");
+                          setPwError(tme("pw_error_weak"));
                         } else {
-                          setPwError(`変更に失敗しました（${error.message}）。もう一度お試しください。`);
+                          setPwError(tme("pw_error_generic"));
                         }
                         setPwLoading(false); return;
                       }
@@ -1038,7 +1045,7 @@ export default function MyPage({
                         updateProfile({ has_password: true });
                       }
                       setPwLoading(false); setPwSuccess(true);
-                    }} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: pwLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: pwLoading ? "not-allowed" : "pointer", fontWeight: 700 }}>{pwLoading ? "変更中..." : "変更する"}</button>
+                    }} style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: pwLoading ? "#ccc" : "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: pwLoading ? "not-allowed" : "pointer", fontWeight: 700 }}>{pwLoading ? tme("pw_changing") : tme("pw_change_btn")}</button>
                   </div>
                 </>
               )}
@@ -1051,19 +1058,19 @@ export default function MyPage({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {freePlanLoading ? (
-                <ProcessingOverlay messages={["キャンセル処理中...", "もう少しで完了します", "データを更新しています"]} />
+                <ProcessingOverlay messages={[tb("cancel_confirm_processing_1"), tb("withdrawal_processing_2"), tb("withdrawal_processing_3")]} />
               ) : freePlanSuccess ? (
                 <div style={{ padding: "36px 40px", textAlign: "center" }}>
                   <div style={{ fontSize: 32, marginBottom: 12 }}>✅</div>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>キャンセル予約が完了しました</div>
-                  <div style={{ fontSize: 13, color: "#888" }}>現在のプランの期間終了後、toolio freeへ移行します。</div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: "#333", marginBottom: 8 }}>{tme("free_plan_success_title")}</div>
+                  <div style={{ fontSize: 13, color: "#888" }}>{tme("free_plan_success_desc")}</div>
                 </div>
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>サブスクのキャンセルを確認</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 12 }}>{tme("free_plan_confirm_title")}</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 24 }}>
-                    キャンセルすると、<strong>{profile?.current_period_end ? new Date(profile.current_period_end).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "現在の期間終了日"}</strong> までご利用いただけます。<br />
-                    期間終了後は toolio freeへ移行します。
+                    {tb("cancel_confirm_desc_1")}<strong>{profile?.current_period_end ? new Date(profile.current_period_end).toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" }) : "—"}</strong>{tme("free_plan_confirm_desc2")}<br />
+                    {tme("free_plan_confirm_desc3")}
                   </div>
                   {freePlanError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 12 }}>{freePlanError}</div>
@@ -1072,11 +1079,11 @@ export default function MyPage({
                     <button
                       onClick={() => { setConfirmFreePlan(false); setFreePlanError(null); }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                    >閉じる</button>
+                    >{tme("free_plan_cancel_btn")}</button>
                     <button
                       onClick={handleFreePlan}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#a3c0ff,#7aa0f0)", color: "white", cursor: "pointer", fontWeight: 700 }}
-                    >サブスクをキャンセルする</button>
+                    >{tme("free_plan_cancel_subscribe_btn")}</button>
                   </div>
                 </div>
               )}
@@ -1088,13 +1095,13 @@ export default function MyPage({
         {deleteStep === "checklist" && (
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, padding: "36px 40px", maxWidth: 460, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)" }}>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 8 }}>アカウント削除の前に確認してください</div>
-              <div style={{ fontSize: 13, color: "#999", marginBottom: 24, lineHeight: 1.6 }}>以下の内容をすべて確認してチェックを入れてください。</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#333", marginBottom: 8 }}>{tme("delete_checklist_title")}</div>
+              <div style={{ fontSize: 13, color: "#999", marginBottom: 24, lineHeight: 1.6 }}>{tme("delete_checklist_desc")}</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
                 {([
-                  { key: "data" as const, label: "お気に入り・ダウンロード履歴・購入履歴などのデータはすべて保存されます。いつでも再開できます。" },
-                  { key: "subscription" as const, label: "サブスクプランに加入中の場合は、退会時に自動的にtoolio free に変更されます（返金なし）。期間終了まではご利用いただけます。" },
-                  { key: "return" as const, label: "同じメールアドレスでいつでも再開できます。再ログイン後にアカウントの復元が案内されます。" },
+                  { key: "data" as const, label: tme("delete_check_data") },
+                  { key: "subscription" as const, label: tme("delete_check_subscription") },
+                  { key: "return" as const, label: tme("delete_check_return") },
                 ]).map(({ key, label }) => (
                   <div
                     key={key}
@@ -1112,12 +1119,12 @@ export default function MyPage({
                 <button
                   onClick={() => setDeleteStep("closed")}
                   style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                >キャンセル</button>
+                >{tme("delete_checklist_cancel")}</button>
                 <button
                   disabled={!allChecked}
                   onClick={() => setDeleteStep("confirm")}
                   style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: allChecked ? "#e55" : "#eee", color: allChecked ? "white" : "#bbb", cursor: allChecked ? "pointer" : "not-allowed", fontWeight: 700, transition: "all 0.15s" }}
-                >次へ →</button>
+                >{tme("delete_checklist_next")}</button>
               </div>
             </div>
           </div>
@@ -1128,12 +1135,12 @@ export default function MyPage({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", overflow: "hidden" }}>
               {deletingAccount ? (
-                <ProcessingOverlay messages={["アカウントを削除しています...", "データを削除しています...", "もう少しで完了します"]} />
+                <ProcessingOverlay messages={[tme("delete_processing_1"), tme("delete_processing_2"), tme("delete_processing_3")]} />
               ) : (
                 <div style={{ padding: "36px 40px" }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "#c33", marginBottom: 12 }}>退会しますか？</div>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: "#c33", marginBottom: 12 }}>{tme("delete_confirm_title")}</div>
                   <div style={{ fontSize: 13, color: "#666", lineHeight: 1.8, marginBottom: 20 }}>
-                    退会後も、同じメールアドレスで再ログインするといつでもアカウントを再開できます。データはすべて保持されます。
+                    {tme("delete_confirm_desc")}
                   </div>
                   {deleteError && (
                     <div style={{ fontSize: 12, color: "#a02020", background: "#ffe8e8", padding: "8px 12px", borderRadius: 8, marginBottom: 16 }}>
@@ -1144,7 +1151,7 @@ export default function MyPage({
                     <button
                       onClick={() => setDeleteStep("checklist")}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#aaa", cursor: "pointer" }}
-                    >戻る</button>
+                    >{tme("delete_back_btn")}</button>
                     <button
                       onClick={async () => {
                         setDeletingAccount(true);
@@ -1173,21 +1180,21 @@ export default function MyPage({
                               window.location.href = `/${locale}`;
                             }
                           } else {
-                            setDeleteError(data.error ?? "削除に失敗しました。しばらく経ってから再度お試しください。");
+                            setDeleteError(data.error ?? tme("delete_error_generic"));
                             setDeletingAccount(false);
                           }
                         } catch (e: any) {
                           clearTimeout(timeout);
                           if (e?.name === "AbortError") {
-                            setDeleteError("処理がタイムアウトしました。しばらく経ってから再度お試しください。");
+                            setDeleteError(tme("delete_error_timeout"));
                           } else {
-                            setDeleteError("通信エラーが発生しました。しばらく経ってから再度お試しください。");
+                            setDeleteError(tme("delete_error_network"));
                           }
                           setDeletingAccount(false);
                         }
                       }}
                       style={{ fontSize: 13, padding: "10px 24px", borderRadius: 20, border: "none", background: "#e55", color: "white", cursor: "pointer", fontWeight: 700 }}
-                    >退会する</button>
+                    >{tme("delete_btn")}</button>
                   </div>
                 </div>
               )}
@@ -1200,27 +1207,26 @@ export default function MyPage({
           <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <div style={{ background: "white", borderRadius: 16, maxWidth: 420, width: "90%", boxShadow: "0 8px 48px rgba(0,0,0,0.18)", padding: "40px 40px 36px", textAlign: "center" }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>✅</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 20 }}>退会予約が完了しました！</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 20 }}>{tme("delete_done_title")}</div>
               {deletePeriodEnd ? (() => {
                 const d = new Date(deletePeriodEnd);
                 const dateStr = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
                 return (
                   <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: 28 }}>
-                    <span style={{ fontWeight: 700, color: "#7a50b0" }}>{dateStr}</span>まで現在のプランでお使いいただけます。<br />
-                    {dateStr}になったら、自動的にtoolioから退会されます。<br /><br />
-                    <span style={{ color: "#aaa", fontSize: 13 }}>いつでも戻ってきてください。お待ちしています。</span>
+                    <span style={{ fontWeight: 700, color: "#7a50b0" }}>{dateStr}</span>{tme("delete_done_desc2")}<br />
+                    <span style={{ color: "#aaa", fontSize: 13 }}>{tme("delete_done_desc3")}</span>
                   </div>
                 );
               })() : (
                 <div style={{ fontSize: 14, color: "#555", lineHeight: 1.8, marginBottom: 28 }}>
-                  現在のプランの期間が終了したら、自動的にtoolioから退会されます。<br /><br />
-                  <span style={{ color: "#aaa", fontSize: 13 }}>いつでも戻ってきてください。お待ちしています。</span>
+                  {tme("delete_done_desc_no_end")}<br /><br />
+                  <span style={{ color: "#aaa", fontSize: 13 }}>{tme("delete_done_desc3")}</span>
                 </div>
               )}
               <button
                 onClick={() => { setDeleteStep("closed"); window.location.reload(); }}
                 style={{ fontSize: 14, padding: "12px 32px", borderRadius: 24, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}
-              >閉じる</button>
+              >{tme("delete_done_close")}</button>
             </div>
           </div>
         )}
@@ -1248,8 +1254,8 @@ export default function MyPage({
           {(activePage === "fav" || activePage === "dl") && (
             <span style={{ fontSize: 11, color: "#bbb", fontWeight: 500 }}>
               {(profile?.plan === "free" || !profile?.plan)
-                ? "toolio free の方は最大5件まで保存可能です"
-                : "サブスクプラン：無制限で保存できます"}
+                ? tme("fav_limit_free_desc")
+                : tme("plan_unlimited")}
             </span>
           )}
         </div>
@@ -1279,12 +1285,12 @@ export default function MyPage({
             )}
             <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>
               {activePage === "fav"
-                ? "ログインするとお気に入りを保存できます"
+                ? tme("not_logged_in_fav")
                 : activePage === "dl"
-                ? "ログインするとダウンロード履歴を確認できます"
-                : "ログインすると購入履歴を確認できます"}
+                ? tme("not_logged_in_dl")
+                : tme("not_logged_in_purchases")}
             </div>
-            <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+            <button onClick={() => onOpenAuth ? onOpenAuth("signup") : router.push("/")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{tme("login_signup_btn")}</button>
           </div>
         ) : activePage === "fav" ? (
           <FavoritesSection allMaterials={materials} isLoggedIn={isLoggedIn} contentTabs={contentTabs} methodTabs={methodTabs} locale={locale} tmm={tmm} userPlan={profile.plan ?? "free"} />
@@ -1293,7 +1299,7 @@ export default function MyPage({
         ) : activePage === "purchases" ? (
           <PurchaseHistorySection allMaterials={materials} locale={locale} isLoggedIn={isLoggedIn} userPlan={profile.plan ?? "free"} contentTabs={contentTabs} methodTabs={methodTabs} tmm={tmm} />
         ) : (
-          <p style={{ fontSize: 15, color: "#bbb" }}>このページは準備中です。</p>
+          <p style={{ fontSize: 15, color: "#bbb" }}>{tme("page_in_progress")}</p>
         )}
       </div>
     </div>

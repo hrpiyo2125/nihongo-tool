@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { useTranslations } from "next-intl";
 import { createClient } from "../../lib/supabase";
 import { canDownload } from "../../lib/materialUtils";
 import { BrandIcon } from "../../components/BrandIcon";
@@ -83,6 +84,7 @@ function ImageLightbox({ src, onClose, onPrev, onNext, hasPrev, hasNext }: { src
 }
 
 function PdfPreview({ matId }: { matId: string }) {
+  const tmm = useTranslations("materials_modal");
   const [selected, setSelected] = useState(0);
   const [loadedSet, setLoadedSet] = useState<Set<number>>(new Set([0]));
   const [visibleCount, setVisibleCount] = useState(1);
@@ -128,7 +130,7 @@ function PdfPreview({ matId }: { matId: string }) {
         style={{ background: "#f5f0ff", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", padding: 12, minHeight: 160, position: "relative", cursor: mainReady ? "zoom-in" : "default" }}>
         <div style={{ position: "absolute", width: "75%", aspectRatio: "210/297", background: shimmer, backgroundSize: "200% 100%", animation: "toolio-shimmer 3s infinite", borderRadius: 6, opacity: mainReady ? 0 : 1, transition: "opacity 0.4s ease", pointerEvents: "none" }} />
         <img src={urls[selected]} alt="" onLoad={() => setLoadedSet(s => new Set([...s, selected]))} style={{ width: "75%", height: "auto", display: "block", borderRadius: 4, boxShadow: "0 4px 16px rgba(0,0,0,0.18)", opacity: mainReady ? 1 : 0, transition: "opacity 0.4s ease" }} />
-        {mainReady && <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "2px 6px", fontSize: 10, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 3 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>拡大</div>}
+        {mainReady && <div style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(0,0,0,0.28)", borderRadius: 6, padding: "2px 6px", fontSize: 10, color: "white", pointerEvents: "none", display: "flex", alignItems: "center", gap: 3 }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/><path d="M11 8v6M8 11h6"/></svg>{tmm("zoom")}</div>}
         {selected > 0 && (
           <button onClick={(e) => { e.stopPropagation(); setSelected(i => i - 1); }} style={{ position: "absolute", left: 6, top: "50%", transform: "translateY(-50%)", width: 26, height: 26, borderRadius: "50%", background: "rgba(255,255,255,0.85)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.15)" }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
@@ -215,7 +217,7 @@ type Props = {
 export default function TeaserModal({
   mat, bg, char, charColor, tag, tagBg, tagColor,
   isLoggedIn, userPlan, favIds: initialFavIds,
-  contentTabs, locale: _locale, tmm,
+  contentTabs: _contentTabs, locale: _locale, tmm,
   onClose, onFavChange, onOpenAuth, onOpenFavHistory,
 }: Props) {
   const { purchasedIds: authPurchasedIds, setPurchasedIds: setAuthPurchasedIds, profile, updateProfile } = useAuth();
@@ -300,11 +302,11 @@ export default function TeaserModal({
                 {mat.requiredPlan === "subscribe" && (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "rgba(201,160,240,0.15)", color: "#9b6ed4" }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M2 8l5 4 5-7 5 7 5-4-2 9H4L2 8z" fill="#c9a0f0" stroke="#c9a0f0" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="17" width="16" height="2.5" rx="1" fill="#c9a0f0"/></svg>
-                    サブスク
+                    {tmm("subscribe")}
                   </span>
                 )}
                 {localPurchasedIds.includes(mat.id) && (
-                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>購入済み</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 20, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>{tmm("purchased")}</span>
                 )}
               </div>
             )}
@@ -317,7 +319,7 @@ export default function TeaserModal({
 
           <div style={{ fontSize: 20, fontWeight: 700, color: "#333", lineHeight: 1.4 }}>{mat.title}</div>
           <div style={{ fontSize: 14, color: "#777", lineHeight: 1.7, marginTop: 8 }}>
-            {mat.description || `楽しく学べる${contentTabs.find(t => t.id === (mat.content?.[0] ?? ""))?.label}の教材です。`}
+            {mat.description}
           </div>
 
           {/* プレビュー */}
@@ -340,7 +342,7 @@ export default function TeaserModal({
             {[
               { label: tmm("age"), value: mat.ageGroup || "－" },
               { label: tmm("duration"), value: mat.studyTime || "－" },
-              { label: "枚数", value: mat.pageCount != null ? `${mat.pageCount}枚` : "－" },
+              { label: tmm("page_count"), value: mat.pageCount != null ? `${mat.pageCount}${tmm("page_count_unit")}` : "－" },
             ].map(({ label, value }) => (
               <div key={label} style={{ background: "#f7f7f7", borderRadius: 8, padding: "8px 12px" }}>
                 <div style={{ fontSize: 11, color: "#aaa", marginBottom: 3 }}>{label}</div>
@@ -363,11 +365,11 @@ export default function TeaserModal({
               <>
                 <div onClick={() => setFavTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 12, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", padding: "14px 16px", width: 220, border: "0.5px solid rgba(200,170,240,0.25)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="lock" size={13} color="#bbb" />お気に入り機能</div>
-                  <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>ログインするとお気に入りに保存できます。</div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#333", marginBottom: 5, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="lock" size={13} color="#bbb" />{tmm("fav_feature")}</div>
+                  <div style={{ fontSize: 11, color: "#888", lineHeight: 1.7, marginBottom: 12 }}>{tmm("fav_login_desc")}</div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/"); }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>新規登録</button>
-                    <button onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/"); }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>ログイン</button>
+                    <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/"); }} style={{ flex: 1, fontSize: 10, fontWeight: 700, padding: "6px 0", borderRadius: 7, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>{tmm("signup")}</button>
+                    <button onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/"); }} style={{ flex: 1, fontSize: 10, fontWeight: 600, padding: "6px 0", borderRadius: 7, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}>{tmm("login")}</button>
                   </div>
                 </div>
               </>
@@ -376,11 +378,11 @@ export default function TeaserModal({
               <>
                 <div onClick={() => setFavLimitTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "absolute", bottom: "calc(100% + 8px)", left: "50%", transform: "translateX(-50%)", zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "16px 18px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました</div>
-                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。</div>
-                  <button onClick={() => { setFavLimitTooltip(false); onClose(); onOpenFavHistory?.(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}>お気に入り履歴を開く →</button>
-                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>無制限でお気に入り登録したい方はプランのアップグレードをしてください。</div>
-                  <button onClick={() => { setFavLimitTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}><BrandIcon name="star" size={13} color="#7a50b0" />{tmm("fav_limit_title")}</div>
+                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>{tmm("fav_limit_desc")}</div>
+                  <button onClick={() => { setFavLimitTooltip(false); onClose(); onOpenFavHistory?.(); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 10 }}>{tmm("fav_open_history")}</button>
+                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>{tmm("fav_limit_upgrade_desc")}</div>
+                  <button onClick={() => { setFavLimitTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>{tmm("upgrade_plan")}</button>
                 </div>
               </>
             )}
@@ -403,22 +405,22 @@ export default function TeaserModal({
                 <div onClick={() => setDownTooltip(false)} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
                 <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 300, background: "white", borderRadius: 16, boxShadow: "0 8px 32px rgba(0,0,0,0.18)", padding: "28px 32px", width: 320, border: "0.5px solid rgba(200,170,240,0.35)" }}>
                   <div style={{ fontSize: 13, color: "#7a50b0", fontWeight: 700, marginBottom: 10, lineHeight: 1.6 }}>
-                    サブスクプランにアップグレードすると、この教材を今すぐ使えます。
+                    {tmm("subscribe_upgrade_desc")}
                   </div>
                   {!isLoggedIn ? (
                     <>
-                      <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>無料で登録する</button>
-                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>すでにアカウントをお持ちの方は<span onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/"); }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>ログイン</span></div>
+                      <button onClick={() => { onOpenAuth ? onOpenAuth("signup") : (window.location.href = "/"); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", marginBottom: 8 }}>{tmm("register_free")}</button>
+                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb" }}>{tmm("already_account_login")}<span onClick={() => { onOpenAuth ? onOpenAuth("login") : (window.location.href = "/"); }} style={{ color: "#9b6ed4", cursor: "pointer", marginLeft: 2 }}>{tmm("login")}</span></div>
                     </>
                   ) : (
                     <>
-                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>プランをアップグレードする →</button>
-                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>または</div>
+                      <button onClick={(e) => { e.stopPropagation(); setDownTooltip(false); setShowPlanModal(true); }} style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}>{tmm("upgrade_plan")}</button>
+                      <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", margin: "6px 0" }}>{tmm("or")}</div>
                       <button
                         onClick={() => { setDownTooltip(false); setShowPurchaseStart(true); }}
                         style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "8px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer" }}
                       >
-                        ¥300 この教材を単品購入する
+                        {tmm("single_purchase")}
                       </button>
                     </>
                   )}

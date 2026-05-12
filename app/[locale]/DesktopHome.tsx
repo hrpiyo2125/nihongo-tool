@@ -57,7 +57,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
     { id: "purchases", label: t("purchases"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><polyline points="14,2 14,8 20,8" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="13" x2="8" y2="13" stroke={active ? ACTIVE_COLOR : "#bbb"} /><line x1="16" y1="17" x2="8" y2="17" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "fav", label: t("fav"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
     { id: "guide", label: t("guide"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke={active ? ACTIVE_COLOR : "#bbb"} /><circle cx="12" cy="17" r="0.8" fill={active ? ACTIVE_COLOR : "#bbb"} strokeWidth="0" /></svg>) },
-    { id: "announcements", label: "お知らせ", icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12L3 14v-3z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M11.6 16.8a3 3 0 11-5.8-1.6" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
+    { id: "announcements", label: t("notice"), icon: (_id, active) => (<svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 11l18-5v12L3 14v-3z" stroke={active ? ACTIVE_COLOR : "#bbb"} /><path d="M11.6 16.8a3 3 0 11-5.8-1.6" stroke={active ? ACTIVE_COLOR : "#bbb"} /></svg>) },
   ];
 
   const contentTabs = [
@@ -368,13 +368,13 @@ function DesktopHomeInner({ materials, initialContent, initialMethod }: { materi
             <section style={{ padding: "140px 48px 16px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
               <p style={{ fontSize: 11, letterSpacing: 3, color: "rgba(180,120,210,0.55)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 38, fontWeight: 800, lineHeight: 1.55, marginBottom: 16, background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 16, color: "#999", lineHeight: 1.9, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための教材プラットホーム</p>
+              <p style={{ fontSize: 16, color: "#999", lineHeight: 1.9, marginBottom: 12, marginTop: 0 }}>{th("hero_desc1")}</p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 48, marginTop: 36 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 32px", width: "100%", maxWidth: 780 }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                   <input
                     type="text"
-                    placeholder="ひらがな、カードなど教材のキーワードを検索"
+                    placeholder={tmm("search_placeholder")}
                     value={heroSearch}
                     onChange={(e) => { setHeroSearch(e.target.value); heroSearchConfirmed.current = false; }}
                     onKeyDown={(e) => {

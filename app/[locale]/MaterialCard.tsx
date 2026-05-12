@@ -121,7 +121,7 @@ type Props = {
 };
 
 export default function MaterialCard({
-  mat, onClick, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle, onOpenFavHistory,
+  mat, onClick, locale, isLoggedIn, userPlan, favIds, purchasedIds = [], onFavToggle, onOpenFavHistory,
   bg, char, charColor, tag, tagBg, tagColor,
 }: Props) {
   const isPurchased = purchasedIds.includes(mat.id);
@@ -168,7 +168,7 @@ export default function MaterialCard({
           )}
           {isPurchased && (
             <div style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 6, background: "#e8f4ff", color: "#3a7abf", border: "0.5px solid rgba(58,122,191,0.3)" }}>
-              購入済み
+              {locale === "ja" ? "購入済み" : "Purchased"}
             </div>
           )}
         </div>
@@ -217,25 +217,25 @@ export default function MaterialCard({
           <div onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); }} style={{ position: "fixed", inset: 0, zIndex: 249 }} />
           <div onClick={(e) => e.stopPropagation()} style={{ position: "fixed", top: tooltipPos.top, bottom: tooltipPos.bottom, left: tooltipPos.left, zIndex: 250, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.16)", padding: "14px 16px", width: 260, border: "0.5px solid rgba(200,170,240,0.3)" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: "#7a50b0", marginBottom: 6, display: "flex", alignItems: "center", gap: 5 }}>
-              <BrandIcon name="star" size={13} color="#7a50b0" />お気に入りの上限に達しました
+              <BrandIcon name="star" size={13} color="#7a50b0" />{locale === "ja" ? "お気に入りの上限に達しました" : "Favorites limit reached"}
             </div>
             <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 10 }}>
-              toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。
+              {locale === "ja" ? "toolio free の方は最大5件まで登録可能です。この教材をお気に入り登録したい方は、お気に入り履歴で数の調整をしてください。" : "toolio free users can save up to 5 favorites. To add this material, adjust your favorites in history."}
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); onOpenFavHistory ? onOpenFavHistory() : window.dispatchEvent(new CustomEvent("toolio:navigate-mypage", { detail: { page: "fav" } })); }}
               style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "0.5px solid rgba(200,170,240,0.5)", background: "white", color: "#9b6ed4", cursor: "pointer", marginBottom: 8 }}
             >
-              お気に入り履歴を開く →
+              {locale === "ja" ? "お気に入り履歴を開く →" : "Open favorites history →"}
             </button>
             <div style={{ fontSize: 11, color: "#666", lineHeight: 1.8, marginBottom: 8 }}>
-              無制限でお気に入り登録したい方はプランのアップグレードをしてください。
+              {locale === "ja" ? "無制限でお気に入り登録したい方はプランのアップグレードをしてください。" : "Upgrade your plan for unlimited favorites."}
             </div>
             <button
               onClick={(e) => { e.stopPropagation(); setLimitTooltip(false); setShowPlanModal(true); }}
               style={{ width: "100%", fontSize: 11, fontWeight: 700, padding: "7px 0", borderRadius: 8, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer" }}
             >
-              プランをアップグレードする →
+              {locale === "ja" ? "プランをアップグレードする →" : "Upgrade plan →"}
             </button>
           </div>
         </>

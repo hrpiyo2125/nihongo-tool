@@ -231,7 +231,7 @@ export default function PersonalizedSection({
 
             <div style={{ textAlign: isMobile ? "left" : "center" }}>
               <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: isMobile ? 4 : 0, fontFamily: "var(--font-libre)" }}>Recommended for you</div>
-              <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>あなたへのおすすめ</div>
+              <div style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>{locale === "ja" ? "あなたへのおすすめ" : "Recommended for you"}</div>
             </div>
           </div>
           {isPaidUser && personalizedMats.length > 0 && (
@@ -257,7 +257,7 @@ export default function PersonalizedSection({
                 fontWeight: 600,
               }}
             >
-              更新する
+              {locale === "ja" ? "更新する" : "Refresh"}
             </button>
           )}
         </div>
@@ -276,10 +276,10 @@ export default function PersonalizedSection({
           }}>
             <div style={{ fontSize: 32, marginBottom: 4 }}>✨</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#555" }}>
-              この機能はサブスクプランの方がご利用いただけます
+              {locale === "ja" ? "この機能はサブスクプランの方がご利用いただけます" : "This feature is available for subscribers"}
             </div>
             <div style={{ fontSize: 13, color: "#999", maxWidth: 400, lineHeight: 1.7 }}>
-              お気に入りやダウンロード履歴をもとに、あなたにぴったりの教材を自動でご提案します。
+              {locale === "ja" ? "お気に入りやダウンロード履歴をもとに、あなたにぴったりの教材を自動でご提案します。" : "We automatically suggest materials tailored to you based on your favorites and download history."}
             </div>
             <button
               onClick={() => setPlanModalOpen(true)}
@@ -296,12 +296,12 @@ export default function PersonalizedSection({
                 boxShadow: "0 2px 8px rgba(140,80,220,0.18)",
               }}
             >
-              プランをアップグレード
+              {locale === "ja" ? "プランをアップグレード" : "Upgrade your plan"}
             </button>
           </div>
         ) : personalizedMats.length === 0 ? (
           <div style={{ color: "#bbb", fontSize: 13, padding: "24px 0" }}>
-            おすすめ教材を読み込み中です。しばらくお待ちください。
+            {locale === "ja" ? "おすすめ教材を読み込み中です。しばらくお待ちください。" : "Loading recommended materials. Please wait a moment."}
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${columns},1fr)`, gap: columns <= 2 ? 12 : 18 }}>

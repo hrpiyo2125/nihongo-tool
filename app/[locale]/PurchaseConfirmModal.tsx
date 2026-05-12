@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createClient } from "../../lib/supabase";
 import { ProcessingOverlay, SuccessOverlay } from "../../components/ProcessingOverlay";
 import { BrandIcon } from "../../components/BrandIcon";
@@ -13,11 +14,13 @@ type Props = {
   onClose: () => void;
 };
 
-const PROCESSING_MESSAGES = ["支払い処理中...", "もう少しで完了します", "セキュアに処理中です"];
+// Processing messages are set inside component after translation hook
 
 export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSuccess, onClose }: Props) {
   const router = useRouter();
   const { loadProfile } = useAuth();
+  const tp = useTranslations("purchase");
+  const PROCESSING_MESSAGES = [tp("processing_1"), tp("processing_2"), tp("processing_3")];
   const [cardInfo, setCardInfo] = useState<{ brand: string; last4: string } | null>(cardInfoProp ?? null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -60,14 +63,14 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
       if (data.success || data.error === "ALREADY_PURCHASED") {
         setSuccess(true);
       } else if (data.error === "決済に失敗しました") {
-        setError("決済に失敗しました。カード情報をご確認のうえ再度お試しください。");
+        setError(tp("error_payment"));
       } else if (data.error === "Internal Server Error") {
-        setError("サーバーエラーが発生しました。しばらく経ってから再度お試しください。");
+        setError(tp("error_server"));
       } else {
-        setError(`購入に失敗しました（${data.error ?? 'Unknown error'}${data.detail ? ': ' + data.detail : ''}）。もう一度お試しください。`);
+        setError(tp("error_generic"));
       }
     } catch {
-      setError("通信エラーが発生しました。接続を確認してから再度お試しください。");
+      setError(tp("error_network"));
     } finally {
       setLoading(false);
     }
@@ -81,12 +84,12 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
     if (success) {
       return (
         <>
-          <SuccessOverlay label={`「${mat.title}」を購入しました。\n今すぐダウンロードできます。`} />
+          <SuccessOverlay label={`「${mat.title}」${tp("success_label")}`} />
           <button
             onClick={async () => { await onSuccess(); loadProfile(); router.refresh(); }}
             style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer", marginTop: 8 }}
           >
-            教材を見る →
+            {tp("view_material")}
           </button>
         </>
       );
@@ -99,27 +102,27 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
         <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
           <BrandIcon name="sparkle" size={40} color="#e49bfd" />
         </div>
-        <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 6 }}>教材を購入する</div>
-        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>購入後すぐにダウンロードできます。</div>
+        <div style={{ fontSize: 20, fontWeight: 800, color: "#333", marginBottom: 6 }}>{tp("title")}</div>
+        <div style={{ fontSize: 13, color: "#999", marginBottom: 28 }}>{tp("subtitle")}</div>
 
         <div style={{ background: "#f8f6ff", borderRadius: 12, padding: "16px 20px", marginBottom: 20 }}>
-          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 4 }}>購入する教材</div>
+          <div style={{ fontSize: 12, color: "#aaa", marginBottom: 4 }}>{tp("material_label")}</div>
           <div style={{ fontSize: 15, fontWeight: 700, color: "#333" }}>{mat.title}</div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderTop: "0.5px solid #eee", borderBottom: "0.5px solid #eee", marginBottom: 20 }}>
           <div>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 2 }}>お支払い総額</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 2 }}>{tp("total")}</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: "#333" }}>¥300</div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 2 }}>支払い方法</div>
+            <div style={{ fontSize: 12, color: "#aaa", marginBottom: 2 }}>{tp("payment_method")}</div>
             {cardInfo ? (
               <div style={{ fontSize: 13, fontWeight: 600, color: "#555" }}>
                 {cardInfo.brand.toUpperCase()} •••• {cardInfo.last4}
               </div>
             ) : (
-              <div style={{ fontSize: 12, color: "#bbb" }}>読み込み中...</div>
+              <div style={{ fontSize: 12, color: "#bbb" }}>{tp("loading_card")}</div>
             )}
           </div>
         </div>
@@ -130,10 +133,10 @@ export default function PurchaseConfirmModal({ mat, cardInfo: cardInfoProp, onSu
           onClick={handlePay}
           style={{ width: "100%", padding: "16px", borderRadius: 12, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 15, fontWeight: 800, cursor: "pointer" }}
         >
-          今すぐ¥300を支払う
+          {tp("pay_now")}
         </button>
         <div style={{ fontSize: 11, color: "#bbb", textAlign: "center", marginTop: 12 }}>
-          「今すぐ支払う」を押すと、上記の金額がカードに請求されます。
+          {tp("pay_disclaimer")}
         </div>
       </>
     );

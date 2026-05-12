@@ -1,7 +1,7 @@
 "use client"
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '../../lib/supabase'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 
 type Profile = {
   full_name?: string
@@ -79,6 +79,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const locale = useLocale()
+  const tm = useTranslations("mypage")
 
   const buildProfile = (data: any): Profile => ({
     full_name: data?.full_name || '', country: data?.country || '',
@@ -101,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
   const [authProviders, setAuthProviders] = useState<string[]>([])
-  const [userName, setUserName] = useState('ゲスト')
+  const [userName, setUserName] = useState(tm("guest"))
   const [userInitial, setUserInitial] = useState('？')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [profile, setProfile] = useState<Profile>(defaultProfile)
@@ -121,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUserId(user.id)
       setUserEmail(user.email)
       setAuthProviders(user.identities?.map(i => i.provider) ?? [])
-      const name = profileData?.full_name || user.user_metadata?.full_name || user.email.split('@')[0] || 'ゲスト'
+      const name = profileData?.full_name || user.user_metadata?.full_name || user.email.split('@')[0] || tm("guest")
       setUserName(name)
       setUserInitial(name.charAt(0).toUpperCase() || '？')
       setAvatarUrl(profileData?.avatar_url ?? null)
@@ -265,7 +266,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setDlIds([])
         setPurchasedIds([])
         setProfile(defaultProfile)
-        setUserName('ゲスト')
+        setUserName(tm("guest"))
         setUserInitial('？')
         setUserId('')
         setUserEmail('')

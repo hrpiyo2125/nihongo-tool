@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { BrandIcon } from "../../components/BrandIcon";
 import { AuthModalMode } from "../../components/AuthModal";
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function GuestLoginPopup({ userIconRef, onClose, onOpenAuth, sbOpen }: Props) {
+  const th = useTranslations("home");
   const el = userIconRef.current; if (!el) return null;
   const rect = el.getBoundingClientRect(); if (!rect) return null;
 
@@ -27,13 +29,13 @@ export default function GuestLoginPopup({ userIconRef, onClose, onOpenAuth, sbOp
       overflow: "hidden",
     }}>
       <div style={{ padding: "14px 18px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>{th("login_prompt")}</div>
       </div>
       <button onClick={() => { onClose(); onOpenAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-        <BrandIcon name="key" size={17} color="#c9a0f0" />ログイン
+        <BrandIcon name="key" size={17} color="#c9a0f0" />{th("login")}
       </button>
       <button onClick={() => { onClose(); onOpenAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#7040b0" }}>
-        <BrandIcon name="sparkle" size={17} color="#9b6ed4" />会員でない方はこちらから新規登録
+        <BrandIcon name="sparkle" size={17} color="#9b6ed4" />{th("login_prompt_signup")}
       </button>
     </div>
   );

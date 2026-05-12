@@ -104,6 +104,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   // ─── i18n ────────────────────────────────────────────────
   const cl = contentTabLabels[locale] ?? contentTabLabels.ja;
   const ml = methodTabLabels[locale] ?? methodTabLabels.ja;
+  const t   = useTranslations("nav");
   const tm  = useTranslations("mypage");
   const tmm = useTranslations("materials_modal");
   const th  = useTranslations("home");
@@ -224,13 +225,13 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
   // ─── タブ定義 ────────────────────────────────────────────
   const tabs = [
-    { id: "home", label: "ホーム", icon: (active: boolean) => (
+    { id: "home", label: t("home"), icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z" stroke={active ? "#7a50b0" : "#bbb"} />
         <path d="M9 22V12h6v10" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
-    { id: "materials", label: "教材", icon: (active: boolean) => (
+    { id: "materials", label: t("materials"), icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
         <rect x="14" y="3" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
@@ -238,12 +239,12 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <rect x="14" y="14" width="7" height="7" rx="1" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
-    { id: "fav", label: "お気に入り", icon: (active: boolean) => (
+    { id: "fav", label: t("fav"), icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 000-7.78z" stroke={active ? "#7a50b0" : "#bbb"} />
       </svg>
     )},
-    { id: "more", label: "もっと見る", icon: (active: boolean) => (
+    { id: "more", label: t("more"), icon: (active: boolean) => (
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="5" cy="12" r="1.5" fill={active ? "#7a50b0" : "#bbb"} />
         <circle cx="12" cy="12" r="1.5" fill={active ? "#7a50b0" : "#bbb"} />
@@ -323,12 +324,12 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <>
               <div onClick={() => setGuestMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 59 }} />
               <div style={{ position: "absolute", top: 44, right: 0, zIndex: 60, width: 220, background: "white", borderRadius: 14, boxShadow: "0 8px 32px rgba(0,0,0,0.14)", border: "0.5px solid rgba(200,170,240,0.25)", overflow: "hidden" }}>
-                <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>ログインしますか？</div>
+                <div style={{ padding: "12px 16px 10px", borderBottom: "0.5px solid rgba(200,170,240,0.15)", fontSize: 13, fontWeight: 700, color: "#555" }}>{th("login_prompt")}</div>
                 <button onClick={() => { setGuestMenuOpen(false); openAuth("login"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
-                  <BrandIcon name="key" size={14} color="#c9a0f0" />ログイン
+                  <BrandIcon name="key" size={14} color="#c9a0f0" />{th("login")}
                 </button>
                 <button onClick={() => { setGuestMenuOpen(false); openAuth("signup"); }} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", border: "none", background: "transparent", cursor: "pointer", fontSize: 13, color: "#7040b0" }}>
-                  <BrandIcon name="sparkle" size={14} color="#9b6ed4" />会員でない方はこちらから新規登録
+                  <BrandIcon name="sparkle" size={14} color="#9b6ed4" />{th("login_prompt_signup")}
                 </button>
               </div>
             </>
@@ -343,15 +344,15 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         {activeTab === "home" && (
           <div>
             <section style={{ padding: "120px 32px 24px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
-              <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>Japanese Learning Tools For Kids</p>
+              <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>子どもににほんごを教えるすべての人のための<br/>教材プラットホーム</p>
+              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>{th("hero_desc1")}</p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 44, marginTop: 36 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 24px", width: "100%" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
                   <input
                     type="text"
-                    placeholder="教材のキーワードを検索"
+                    placeholder={tmm("search_placeholder")}
                     value={heroSearch}
                     onChange={(e) => { setHeroSearch(e.target.value); heroSearchConfirmed.current = false; }}
                     onKeyDown={(e) => {
@@ -390,11 +391,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               {!isLoggedIn && (
                 <div style={{ background: "linear-gradient(135deg,rgba(244,185,185,0.12),rgba(228,155,253,0.12))", border: "0.5px solid rgba(200,170,240,0.3)", borderRadius: 14, padding: "16px 20px" }}>
                   <div style={{ marginBottom: 12, textAlign: "center" }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>無料でアカウント作成</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "#7a50b0" }}>{th("register_free_short")}</div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={() => openAuth("login")}  style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>ログイン</button>
-                    <button onClick={() => openAuth("signup")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>新規登録</button>
+                    <button onClick={() => openAuth("login")}  style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "0.5px solid #c9a0f0", background: "white", color: "#9b6ed4", cursor: "pointer", fontWeight: 600 }}>{th("login")}</button>
+                    <button onClick={() => openAuth("signup")} style={{ flex: 1, fontSize: 12, padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{th("signup")}</button>
                   </div>
                 </div>
               )}
@@ -404,11 +405,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <section style={{ padding: "24px 20px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "20px 18px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>お知らせ</div>
-                  <button onClick={() => setMorePageType("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>すべて見る</button>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{th("notice")}</div>
+                  <button onClick={() => setMorePageType("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>{th("see_all")}</button>
                 </div>
                 {announcements.length === 0 ? (
-                  <div style={{ fontSize: 12, color: "#bbb" }}>お知らせはありません</div>
+                  <div style={{ fontSize: 12, color: "#bbb" }}>{th("no_notices")}</div>
                 ) : announcements.slice(0, 5).map((n) => (
                   <div key={n.id} onClick={() => setAnnouncementModal(n)} style={{ display: "flex", gap: 12, cursor: "pointer", borderRadius: 8, padding: "4px 6px", margin: "0 -6px 6px" }}>
                     <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
@@ -423,7 +424,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <section id="mobile-anchor-content" style={{ padding: "24px 0 24px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Content</div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習内容から探す</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>{th("browse_content_label")}</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {contentItems.map((item) => (
@@ -441,7 +442,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <section id="mobile-anchor-method" style={{ padding: "24px 0", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ padding: "0 28px", marginBottom: 16 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: "uppercase", color: "#bbb", marginBottom: 4, fontFamily: "var(--font-libre)" }}>Browse by Method</div>
-                <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>学習方法から探す</div>
+                <div style={{ fontSize: 17, fontWeight: 700, color: "#333", fontFamily: "var(--font-libre)" }}>{th("browse_method_label")}</div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: "4px 28px 8px" }}>
                 {methodItems.map((item) => (
@@ -477,7 +478,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             {/* 教材カードタブ */}
             <section style={{ padding: "24px 0 48px", borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               <div style={{ display: "flex", overflowX: "auto", padding: "0 20px", marginBottom: 16, gap: 0, borderBottom: "0.5px solid #eee", scrollbarWidth: "none" }}>
-                {[{ key: "pickup", label: "ピックアップ" }, { key: "recommended", label: "おすすめ" }, { key: "ranking", label: "ランキング" }, { key: "new", label: "新着" }].map(({ key, label }) => (
+                {([{ key: "pickup", label: th("pickup") }, { key: "recommended", label: th("recommended") }, { key: "ranking", label: th("ranking") }, { key: "new", label: th("new") }] as { key: string; label: string }[]).map(({ key, label }) => (
                   <button key={key} onClick={() => setActiveCardTab(key)} style={{ fontSize: 13, padding: "8px 14px", background: "transparent", border: "none", borderBottom: activeCardTab === key ? "2px solid #9b6ed4" : "2px solid transparent", color: activeCardTab === key ? "#9b6ed4" : "#bbb", cursor: "pointer", fontWeight: activeCardTab === key ? 700 : 500, whiteSpace: "nowrap", flexShrink: 0 }}>
                     {label}
                   </button>
@@ -485,7 +486,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, padding: "0 20px" }}>
                 {filteredMaterials.length === 0 ? (
-                  <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px 0", color: "#bbb", fontSize: 13 }}>該当する教材がありません</div>
+                  <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px 0", color: "#bbb", fontSize: 13 }}>{th("no_results")}</div>
                 ) : filteredMaterials.map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
                   return (
@@ -500,19 +501,19 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         {/* お気に入りタブ */}
         {activeTab === "fav" && (
           <div style={{ padding: "80px 20px 20px" }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 20 }}>お気に入り</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 20 }}>{t("fav")}</div>
             {!isLoggedIn ? (
               <div style={{ textAlign: "center", padding: "40px 0" }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
-                <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとお気に入りを保存できます</div>
-                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>{th("login_to_fav")}</div>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{th("login_signup")}</button>
               </div>
             ) : (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 {materials.filter(m => favIds.includes(m.id)).length === 0 ? (
                   <div style={{ gridColumn: "1/-1", textAlign: "center", padding: "40px 0", color: "#bbb" }}>
                     <div style={{ fontSize: 32, marginBottom: 12 }}>♡</div>
-                    <div style={{ fontSize: 14 }}>お気に入りはまだありません</div>
+                    <div style={{ fontSize: 14 }}>{th("no_fav")}</div>
                   </div>
                 ) : materials.filter(mat => favIds.includes(mat.id)).map((mat) => {
                   const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale);
@@ -526,12 +527,12 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         {/* もっと見るタブ */}
         {activeTab === "more" && (
           <div style={{ padding: "80px 20px 20px" }}>
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>もっと見る</div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "#333", marginBottom: 24 }}>{t("more")}</div>
             {[
-              { icon: "download" as const, label: "ダウンロード履歴", type: "dl"            as MorePageType },
-              { icon: "guide"    as const, label: "よくある質問",     type: "guide"         as MorePageType },
-              { icon: "document" as const, label: "教材購入履歴",     type: "purchases"     as MorePageType },
-              { icon: "megaphone" as const, label: "お知らせ",         type: "announcements" as MorePageType },
+              { icon: "download"  as const, label: t("dl"),          type: "dl"            as MorePageType },
+              { icon: "guide"     as const, label: t("guide"),        type: "guide"         as MorePageType },
+              { icon: "document"  as const, label: t("purchases"),    type: "purchases"     as MorePageType },
+              { icon: "megaphone" as const, label: th("notice"),      type: "announcements" as MorePageType },
             ].map((item) => (
               <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -550,18 +551,18 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>ダウンロード履歴</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("dl")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
             {!isLoggedIn ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <div style={{ fontSize: 32, marginBottom: 12 }}>↓</div>
-                <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>ログインするとダウンロード履歴を確認できます</div>
-                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                <div style={{ fontSize: 14, color: "#bbb", marginBottom: 20 }}>{th("login_to_dl")}</div>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{th("login_signup")}</button>
               </div>
             ) : (() => {
               const dlMaterials = materials.filter(mat => dlIds.includes(mat.id));
-              if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>ダウンロード履歴はまだありません</div></div>;
+              if (dlMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><div style={{ fontSize: 32, marginBottom: 12 }}>↓</div><div style={{ fontSize: 14 }}>{th("no_dl")}</div></div>;
               return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{dlMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} purchasedIds={purchasedIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
@@ -573,18 +574,18 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>教材購入履歴</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("purchases")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
             {!isLoggedIn ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
                 <BrandIcon name="document" size={32} color="#e0d0f0" />
-                <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>ログインすると購入履歴を確認できます</div>
-                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>ログイン / 新規登録</button>
+                <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>{th("login_to_purchases")}</div>
+                <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{th("login_signup")}</button>
               </div>
             ) : (() => {
               const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
-              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="document" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>購入した教材はまだありません</div></div>;
+              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="document" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>{th("no_purchases")}</div></div>;
               return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} purchasedIds={purchasedIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
@@ -596,7 +597,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>よくある質問</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("guide")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}><FaqSection /></div>
         </div>
@@ -608,11 +609,11 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
-            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>お知らせ</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{th("notice")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
             {announcements.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>お知らせはありません</div>
+              <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb", fontSize: 14 }}>{th("no_notices")}</div>
             ) : announcements.map((n) => (
               <div key={n.id} onClick={() => { setAnnouncementModal(n); }} style={{ display: "flex", gap: 12, cursor: "pointer", padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)" }}>
                 <span style={{ fontSize: 11, color: "#bbb", minWidth: 80, flexShrink: 0 }}>{n.date}</span>
@@ -630,7 +631,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setLegalType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-              {legalType === "privacy" ? "プライバシーポリシー" : legalType === "terms" ? "利用規約" : legalType === "tokushoho" ? "特定商取引法に基づく表記" : "toolioとは"}
+              {legalType === "privacy" ? th("privacy_full") : legalType === "terms" ? th("terms_full") : legalType === "tokushoho" ? th("tokushoho_full") : th("about_full")}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
@@ -747,7 +748,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 {isLoggedIn && avatarUrl ? <img src={avatarUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : isLoggedIn ? userInitial : "?"}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isLoggedIn ? userName : "ゲスト"}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#333", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{isLoggedIn ? userName : tm("guest")}</div>
                 <div style={{ fontSize: 11, color: "#999" }}>
                   {isLoggedIn ? (
                     <>
@@ -768,15 +769,15 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                         </span>
                       )}
                     </>
-                  ) : "未登録"}
+                  ) : tm("not_registered")}
                 </div>
               </div>
             </div>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#555", marginBottom: 8, marginTop: 4 }}>マイページ</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#555", marginBottom: 8, marginTop: 4 }}>{t("mypage")}</div>
             {[
-              { icon: "user"    as const, label: "プロフィール",     sub: "profile"  as const },
-              { icon: "plan"    as const, label: "プラン確認・変更", sub: "plan"     as const },
-              { icon: "billing" as const, label: "支払い履歴",       sub: "billing"  as const },
+              { icon: "user"    as const, label: th("profile_short"),  sub: "profile"  as const },
+              { icon: "plan"    as const, label: tm("plan"),                                  sub: "plan"     as const },
+              { icon: "billing" as const, label: tm("billing"),                               sub: "billing"  as const },
             ].map((item) => (
               <div key={item.label} onClick={() => setMySubPage(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -793,10 +794,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 0", marginTop: 16, paddingTop: 16, borderTop: "0.5px solid rgba(200,170,240,0.15)" }}>
               {[
-                { label: "toolioとは",  type: "about"      as LegalType },
-                { label: "利用規約",    type: "terms"      as LegalType },
-                { label: "プライバシー",type: "privacy"    as LegalType },
-                { label: "特商法",      type: "tokushoho"  as LegalType },
+                { label: th("about"),    type: "about"      as LegalType },
+                { label: th("terms"),    type: "terms"      as LegalType },
+                { label: th("privacy"),  type: "privacy"    as LegalType },
+                { label: th("tokushoho"),type: "tokushoho"  as LegalType },
               ].map((l, i, arr) => (
                 <span key={l.label}>
                   <button onClick={() => setLegalType(l.type)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
@@ -807,9 +808,9 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
             <div style={{ fontSize: 11, color: "#ccc", marginTop: 6, marginBottom: 16, textAlign: "center" }}>© 2026 toolio</div>
             <div style={{ marginTop: "auto" }}>
               {!isLoggedIn ? (
-                <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>ログイン / 新規登録</button>
+                <button onClick={() => openAuth("signup")} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>{th("login_signup")}</button>
               ) : (
-                <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); window.location.reload(); }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>ログアウト</button>
+                <button onClick={async () => { const supabase = createClient(); await supabase.auth.signOut(); window.location.reload(); }} style={{ width: "100%", padding: "14px", borderRadius: 20, border: "0.5px solid #eee", background: "white", color: "#aaa", fontSize: 14, cursor: "pointer" }}>{tm("logout")}</button>
               )}
             </div>
           </div>
@@ -822,7 +823,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
             <button onClick={() => setMySubPage(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
-              {mySubPage === "profile" ? "プロフィール" : mySubPage === "billing" ? "支払い履歴" : "プラン確認・変更"}
+              {mySubPage === "profile" ? th("profile_short") : mySubPage === "billing" ? tm("billing") : tm("plan")}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>

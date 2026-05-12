@@ -63,6 +63,7 @@ export default function AnnouncementModal({
   isMobile,
 }: Props) {
   const tmm = useTranslations("materials_modal");
+  const ta = useTranslations("announcement");
   const [detail, setDetail] = useState<Announcement>(announcement);
   const [loading, setLoading] = useState(true);
   const [material, setMaterial] = useState<Material | null>(null);
@@ -128,7 +129,7 @@ export default function AnnouncementModal({
           </h2>
 
           {loading ? (
-            <div style={{ color: "#bbb", fontSize: 13 }}>読み込み中...</div>
+            <div style={{ color: "#bbb", fontSize: 13 }}>{ta("loading")}</div>
           ) : (
             <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, whiteSpace: "pre-wrap" }}>
               {detail.body || ""}
@@ -148,10 +149,10 @@ export default function AnnouncementModal({
                   }}
                   style={{ width: "100%", padding: "14px 0", borderRadius: 12, background: "linear-gradient(135deg, #b48be8, #9b6ed4)", color: "white", fontWeight: 700, fontSize: 15, border: "none", cursor: "pointer" }}
                 >
-                  この教材を見る →
+                  {ta("view_material")}
                 </button>
               ) : (
-                <div style={{ fontSize: 13, color: "#bbb" }}>教材情報を読み込み中...</div>
+                <div style={{ fontSize: 13, color: "#bbb" }}>{ta("loading_material")}</div>
               )}
             </div>
           )}
