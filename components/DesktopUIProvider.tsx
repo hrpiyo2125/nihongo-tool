@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { useLocale } from "next-intl";
 
 type DesktopUIContextType = {
   sbOpen: boolean;
@@ -37,18 +36,18 @@ const URL_MAP: Record<string, string> = {
 
 export function DesktopUIProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const locale = useLocale();
+  const isEn = pathname.startsWith('/en');
   const path = pathname.replace(/^\/(en|ja)/, '') || '/';
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState(PAGE_MAP[path] ?? "home");
 
   const navigateTo = useCallback((page: string) => {
     const actualPage = page === 'guide' ? 'faq' : page;
-    const base = locale === 'en' ? '/en' : '';
+    const base = isEn ? '/en' : '';
     const urlPath = URL_MAP[actualPage];
     if (urlPath) window.history.pushState(null, '', `${base}${urlPath === '/' ? '' : urlPath}` || '/');
     setActivePage(actualPage);
-  }, [locale]);
+  }, [isEn]);
 
   return (
     <DesktopUIContext.Provider value={{ sbOpen, setSbOpen, activePage, setActivePage, navigateTo }}>
