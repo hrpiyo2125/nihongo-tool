@@ -77,6 +77,7 @@ export default function BillingSection({
   allMaterials?: { id: string; title: string }[];
 }) {
   const tb = useTranslations("billing");
+  const tmp = useTranslations("mypage");
   const tmm = useTranslations("materials_modal");
   const [planLabel, setPlanLabel] = useState<Record<string, string>>(FALLBACK_PLAN_LABEL);
   const [planPrice, setPlanPrice] = useState<Record<string, string>>(FALLBACK_PLAN_PRICE);
@@ -487,7 +488,7 @@ export default function BillingSection({
               <div style={{ overflowX: "auto" }}>
                 <div style={{ minWidth: 380 }}>
                   <div style={{ padding: "12px 24px", borderBottom: "0.5px solid rgba(200,170,240,0.1)", display: "grid", gridTemplateColumns: "110px 1fr 72px 72px 72px", fontSize: 11, color: "#bbb", fontWeight: 700, gap: 8 }}>
-                    <span>{useTranslations("mypage")("date")}</span><span>{useTranslations("mypage")("item")}</span><span>{useTranslations("mypage")("amount")}</span><span>{useTranslations("mypage")("status")}</span><span></span>
+                    <span>{tmp("date")}</span><span>{tmp("item")}</span><span>{tmp("amount")}</span><span>{tmp("status")}</span><span></span>
                   </div>
                   {groups.map(({ monthLabel, items }) => (
                     <div key={monthLabel}>
