@@ -56,7 +56,7 @@ type Announcement = { id: string; title: string; date: string; type: string; mat
 type LegalType = "privacy" | "terms" | "tokushoho" | "about" | null;
 type MorePageType = "dl" | "guide" | "purchases" | "howto" | "announcements" | null;
 
-function MobileHomeInner({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
+function MobileHomeInner({ materials, initialContent, initialMethod, initialPage }: { materials: Material[]; initialContent?: string; initialMethod?: string; initialPage?: string }) {
   const router = useRouter();
   const locale = useLocale();
   const pathname = usePathname();
@@ -160,7 +160,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
 
   useEffect(() => {
     const onPopState = () => {
-      if (legalType) { setLegalType(null); history.pushState({ modal: true }, ""); return; }
+      if (legalType) { closeLegal(); return; }
       if (mySubPage) { setMySubPage(null); history.pushState({ modal: true }, ""); return; }
 
       if (morePageType) { setMorePageType(null); history.pushState({ modal: true }, ""); return; }
@@ -191,6 +191,27 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
     const method = searchParams.get("method");
     if (content || method) setMaterialsFilter({ content: content ?? "all", method: method ?? "all" });
   }, [searchParams]);
+
+  useEffect(() => {
+    const page = initialPage ?? (() => {
+      const path = pathname.replace(/^\/(en|ja)/, '') || '/';
+      const map: Record<string, string> = { '/about': 'about', '/faq': 'faq', '/plan': 'plan', '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho' };
+      return map[path];
+    })();
+    if (!page) return;
+    if (page === 'plan') { setMyPageOpen(true); setMySubPage('plan'); }
+    else if (page === 'faq' || page === 'guide') setMorePageType('guide');
+    else if (page === 'about' || page === 'privacy' || page === 'terms' || page === 'tokushoho') setLegalType(page as LegalType);
+  }, []);
+
+  const base = locale === 'en' ? '/en' : '';
+  const mobileNavigateTo = (url: string) => window.history.pushState({ modal: true }, '', url);
+  const mobileNavigateBack = () => window.history.pushState({ modal: true }, '', base || '/');
+
+  const openLegal = (type: LegalType) => { setLegalType(type); mobileNavigateTo(`${base}/${type}`); };
+  const closeLegal = () => { setLegalType(null); mobileNavigateBack(); };
+  const openGuide = () => { setMorePageType('guide'); mobileNavigateTo(`${base}/faq`); };
+  const openPlan = () => { setMyPageOpen(true); setMySubPage('plan'); mobileNavigateTo(`${base}/plan`); };
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -534,7 +555,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               { icon: "document"  as const, label: t("purchases"),    type: "purchases"     as MorePageType },
               { icon: "megaphone" as const, label: th("notice"),      type: "announcements" as MorePageType },
             ].map((item) => (
-              <div key={item.label} onClick={() => setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => item.type === 'guide' ? openGuide() : setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
@@ -629,16 +650,16 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
       {legalType && (
         <div style={{ position: "fixed", inset: 0, zIndex: 110, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setLegalType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={closeLegal} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>
               {legalType === "privacy" ? th("privacy_full") : legalType === "terms" ? th("terms_full") : legalType === "tokushoho" ? th("tokushoho_full") : th("about_full")}
             </span>
           </header>
           <div style={{ flex: 1, overflowY: "auto" }}>
-            {legalType === "privacy"    && <PrivacyContent   onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["プライバシーポリシー"]} />}
-            {legalType === "terms"      && <TermsContent     onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["利用規約"]} />}
-            {legalType === "tokushoho"  && <TokushohoContent onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["特定商取引法"]} />}
-            {legalType === "about"      && <AboutContent     onBack={() => setLegalType(null)} compact notionBody={legalContent?.textContents?.["toolioとは"]} />}
+            {legalType === "privacy"    && <PrivacyContent   onBack={closeLegal} compact notionBody={legalContent?.textContents?.["プライバシーポリシー"]} />}
+            {legalType === "terms"      && <TermsContent     onBack={closeLegal} compact notionBody={legalContent?.textContents?.["利用規約"]} />}
+            {legalType === "tokushoho"  && <TokushohoContent onBack={closeLegal} compact notionBody={legalContent?.textContents?.["特定商取引法"]} />}
+            {legalType === "about"      && <AboutContent     onBack={closeLegal} compact notionBody={legalContent?.textContents?.["toolioとは"]} />}
           </div>
         </div>
       )}
@@ -779,7 +800,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
               { icon: "plan"    as const, label: tm("plan"),                                  sub: "plan"     as const },
               { icon: "billing" as const, label: tm("billing"),                               sub: "billing"  as const },
             ].map((item) => (
-              <div key={item.label} onClick={() => setMySubPage(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => item.sub === 'plan' ? openPlan() : setMySubPage(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>
@@ -800,7 +821,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
                 { label: th("tokushoho"),type: "tokushoho"  as LegalType },
               ].map((l, i, arr) => (
                 <span key={l.label}>
-                  <button onClick={() => setLegalType(l.type)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
+                  <button onClick={() => openLegal(l.type)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{l.label}</button>
                   {i < arr.length - 1 && <span style={{ fontSize: 11, color: "#ddd", margin: "0 6px" }}>|</span>}
                 </span>
               ))}
@@ -876,10 +897,10 @@ function MobileHomeInner({ materials, initialContent, initialMethod }: { materia
   );
 }
 
-export default function MobileHome({ materials, initialContent, initialMethod }: { materials: Material[]; initialContent?: string; initialMethod?: string }) {
+export default function MobileHome({ materials, initialContent, initialMethod, initialPage }: { materials: Material[]; initialContent?: string; initialMethod?: string; initialPage?: string }) {
   return (
     <Suspense>
-      <MobileHomeInner materials={materials} initialContent={initialContent} initialMethod={initialMethod} />
+      <MobileHomeInner materials={materials} initialContent={initialContent} initialMethod={initialMethod} initialPage={initialPage} />
     </Suspense>
   );
 }

@@ -7,12 +7,12 @@ function isMobileUA(ua: string) {
   return /iPhone|iPod|Android.*Mobile/i.test(ua)
 }
 
-export default async function AboutPage() {
+export default async function TokushohoPage() {
   const headersList = await headers()
   const ua = headersList.get('user-agent') ?? ''
   const isMobile = isMobileUA(ua)
   const materials = await getMaterials()
 
-  if (isMobile) return <MobileHome materials={materials} initialPage="about" />
-  return <DesktopHome materials={materials} initialPage="about" />
+  if (isMobile) return <MobileHome materials={materials} initialPage="tokushoho" />
+  return <DesktopHome materials={materials} initialPage="tokushoho" />
 }

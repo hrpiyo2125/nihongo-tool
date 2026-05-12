@@ -29,10 +29,18 @@ const securityHeaders = [
   },
 ]
 
+const CATEGORY_IDS = ['hiragana','katakana','kanji','joshi','kaiwa','season','food','animal','body','color','number','adjective','verb','conjunction','grammar','familiar','kotoba','vegefruit','myself','drill','test','card','nurie','roleplay','bingo','interview','presentation','sentence','essay','check','sugoroku','poster'];
+
 const nextConfig: NextConfig = {
   reactStrictMode: false,
   images: {
     unoptimized: true,
+  },
+  async redirects() {
+    return CATEGORY_IDS.flatMap((cat) => [
+      { source: `/${cat}`, destination: `/?content=${cat}`, permanent: true },
+      { source: `/en/${cat}`, destination: `/en?content=${cat}`, permanent: true },
+    ]);
   },
   async headers() {
     return [
