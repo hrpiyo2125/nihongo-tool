@@ -12,6 +12,7 @@ import PlanSelector from "../../components/PlanSelector";
 import BillingSection from "./BillingSection";
 import { ProcessingOverlay } from "../../components/ProcessingOverlay";
 import { useAuth } from "./AuthContext";
+import { useDesktopUI } from "@/components/DesktopUIProvider";
 
 type Material = {
   id: string;
@@ -440,6 +441,7 @@ export default function MyPage({
   mobileMode,
 }: MyPageProps) {
   const router = useRouter();
+  const { navigateTo } = useDesktopUI();
   const tme = useTranslations("mypage_ext");
   const tb = useTranslations("billing");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -1237,7 +1239,7 @@ export default function MyPage({
   if (activePage === "settings-billing") return (
     <BillingSection
       profile={profile as any}
-      onChangePlan={() => setActivePage("plan")}
+      onChangePlan={() => navigateTo("plan")}
       onProfileUpdate={updateProfile}
       mobileMode={mobileMode}
       allMaterials={materials}

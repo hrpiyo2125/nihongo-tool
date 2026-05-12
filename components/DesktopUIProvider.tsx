@@ -1,12 +1,14 @@
 "use client";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { useLocale } from "next-intl";
 
 type DesktopUIContextType = {
   sbOpen: boolean;
   setSbOpen: React.Dispatch<React.SetStateAction<boolean>>;
   activePage: string;
   setActivePage: React.Dispatch<React.SetStateAction<string>>;
+  navigateTo: (page: string) => void;
 };
 
 const DesktopUIContext = createContext<DesktopUIContextType>({
@@ -14,6 +16,7 @@ const DesktopUIContext = createContext<DesktopUIContextType>({
   setSbOpen: () => {},
   activePage: "home",
   setActivePage: () => {},
+  navigateTo: () => {},
 });
 
 const PAGE_MAP: Record<string, string> = {
@@ -21,14 +24,28 @@ const PAGE_MAP: Record<string, string> = {
   '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho',
 };
 
+const URL_MAP: Record<string, string> = {
+  home: '/', about: '/about', faq: '/faq', guide: '/faq',
+  plan: '/plan', privacy: '/privacy', terms: '/terms', tokushoho: '/tokushoho',
+};
+
 export function DesktopUIProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const locale = useLocale();
   const path = pathname.replace(/^\/(en|ja)/, '') || '/';
   const [sbOpen, setSbOpen] = useState(false);
   const [activePage, setActivePage] = useState(PAGE_MAP[path] ?? "home");
 
+  const navigateTo = useCallback((page: string) => {
+    const actualPage = page === 'guide' ? 'faq' : page;
+    const base = locale === 'en' ? '/en' : '';
+    const urlPath = URL_MAP[actualPage];
+    if (urlPath) window.history.pushState(null, '', `${base}${urlPath === '/' ? '' : urlPath}` || '/');
+    setActivePage(actualPage);
+  }, [locale]);
+
   return (
-    <DesktopUIContext.Provider value={{ sbOpen, setSbOpen, activePage, setActivePage }}>
+    <DesktopUIContext.Provider value={{ sbOpen, setSbOpen, activePage, setActivePage, navigateTo }}>
       {children}
     </DesktopUIContext.Provider>
   );

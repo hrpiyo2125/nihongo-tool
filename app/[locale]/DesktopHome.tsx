@@ -145,7 +145,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
     purchasedIds, loadProfile,
     setFavIds: setTopFavIds, setUserName, setUserInitial, setAvatarUrl, updateProfile } = useAuth();
 
-  const { sbOpen, setSbOpen, activePage, setActivePage } = useDesktopUI();
+  const { sbOpen, setSbOpen, activePage, setActivePage, navigateTo } = useDesktopUI();
   const [activeTab, setActiveTab] = useState("pickup");
   const [modal, setModal] = useState<{ content: string; method: string; searchQuery?: string } | null>(null);
   const [heroSearch, setHeroSearch] = useState("");
@@ -183,13 +183,8 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
     if (page) setActivePage(page);
   }, []);
 
-  const navigateTo = (page: string) => {
-    const actualPage = page === 'guide' ? 'faq' : page;
-    const base = locale === 'en' ? '/en' : '';
-    const urlMap: Record<string, string> = { home: base || '/', about: `${base}/about`, faq: `${base}/faq`, plan: `${base}/plan`, privacy: `${base}/privacy`, terms: `${base}/terms`, tokushoho: `${base}/tokushoho` };
-    const url = urlMap[actualPage];
-    if (url) window.history.pushState(null, '', url);
-    setActivePage(actualPage);
+  const navigateToPage = (page: string) => {
+    navigateTo(page);
     setTopTeaserMat(null);
     setModal(null);
     const c = document.getElementById("main-scroll"); if (c) smoothScroll(c, 0);
@@ -312,7 +307,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
             <div key={section}>
               {sbOpen && <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1.2, textTransform: "uppercase", color: "#c0a0a0", padding: "8px 18px 3px", whiteSpace: "nowrap" }}>{section}</div>}
               {items.map((item) => (
-                <div key={item.id} onClick={() => { if (item.id === "materials") { openModal("all", "all"); } else { navigateTo(item.id); } }} style={{ display: "flex", alignItems: "center", gap: 12, padding: sbOpen ? "9px 14px" : "9px 0", justifyContent: sbOpen ? "flex-start" : "center", cursor: "pointer", borderRadius: 10, margin: sbOpen ? "1px 8px" : "1px 4px", whiteSpace: "nowrap", background: "transparent" }}>
+                <div key={item.id} onClick={() => { if (item.id === "materials") { openModal("all", "all"); } else { navigateToPage(item.id); } }} style={{ display: "flex", alignItems: "center", gap: 12, padding: sbOpen ? "9px 14px" : "9px 0", justifyContent: sbOpen ? "flex-start" : "center", cursor: "pointer", borderRadius: 10, margin: sbOpen ? "1px 8px" : "1px 4px", whiteSpace: "nowrap", background: "transparent" }}>
                   <div style={{ width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, borderRadius: 10, background: activePage === item.id ? "rgba(163,192,255,0.15)" : "transparent", transition: "background 0.15s" }}>
                     {item.icon(item.id, activePage === item.id)}
                   </div>
@@ -337,7 +332,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
           {userMenuOpen && isLoggedIn && (
             <>
               <div onClick={() => setUserMenuOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 49 }} />
-              <UserMenuPopup userIconRef={userIconRef} userInitial={userInitial} avatarUrl={avatarUrl} userName={userName} onClose={() => setUserMenuOpen(false)} onNavigate={(page) => { setUserMenuOpen(false); setActivePage(page); }} onRouterPush={(href) => { setUserMenuOpen(false); router.push(href); }} onLogout={async () => { setUserMenuOpen(false); await createClient().auth.signOut(); window.location.reload(); }} sbOpen={sbOpen} userPlan={profile.plan ?? "free"} cancelAtPeriodEnd={profile.cancel_at_period_end ?? false} currentPeriodEnd={profile.current_period_end ?? null} userStatus={profile.status ?? null} tm={tm} />
+              <UserMenuPopup userIconRef={userIconRef} userInitial={userInitial} avatarUrl={avatarUrl} userName={userName} onClose={() => setUserMenuOpen(false)} onNavigate={(page) => { setUserMenuOpen(false); navigateToPage(page); }} onRouterPush={(href) => { setUserMenuOpen(false); router.push(href); }} onLogout={async () => { setUserMenuOpen(false); await createClient().auth.signOut(); window.location.reload(); }} sbOpen={sbOpen} userPlan={profile.plan ?? "free"} cancelAtPeriodEnd={profile.cancel_at_period_end ?? false} currentPeriodEnd={profile.current_period_end ?? null} userStatus={profile.status ?? null} tm={tm} />
             </>
           )}
           <div ref={userIconRef} onClick={() => { if (!isLoggedIn) { setGuestMenuOpen(!guestMenuOpen); } else { setUserMenuOpen(!userMenuOpen); } }} style={{ display: "flex", alignItems: "center", gap: 8, padding: sbOpen ? "6px 10px" : "6px 0", justifyContent: sbOpen ? "flex-start" : "center", borderRadius: 10, cursor: "pointer", background: userMenuOpen ? "rgba(163,192,255,0.1)" : "transparent" }}>
@@ -374,7 +369,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
           {sbOpen && (
             <div style={{ display: "flex", justifyContent: "center", gap: 10, padding: "10px 0 4px", flexWrap: "wrap" }}>
               {[["about", "toolioとは"], ["terms", "利用規約"], ["privacy", "プライバシー"], ["tokushoho", "特商法"]].map(([page, label], i, arr) => (
-                <span key={page}><button onClick={() => navigateTo(page)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{label}</button>{i < arr.length - 1 && <span style={{ fontSize: 11, color: "#ddd", marginLeft: 10 }}>|</span>}</span>
+                <span key={page}><button onClick={() => navigateToPage(page)} style={{ fontSize: 11, color: "#ccc", background: "none", border: "none", cursor: "pointer", padding: 0 }}>{label}</button>{i < arr.length - 1 && <span style={{ fontSize: 11, color: "#ddd", marginLeft: 10 }}>|</span>}</span>
               ))}
             </div>
           )}
@@ -503,11 +498,11 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
         )}
 
         {activePage !== "home" && (
-          (activePage === "guide" || activePage === "faq") ? <FaqContent onBack={() => navigateTo("home")} notionFaqs={legalContent?.faqs} /> :
-          activePage === "privacy" ? <PrivacyContent onBack={() => navigateTo("home")} notionBody={legalContent?.textContents?.['プライバシーポリシー']} /> :
-          activePage === "terms" ? <TermsContent onBack={() => navigateTo("home")} notionBody={legalContent?.textContents?.['利用規約']} /> :
-          activePage === "tokushoho" ? <TokushohoContent onBack={() => navigateTo("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :
-          activePage === "about" ? <AboutContent onBack={() => navigateTo("home")} notionBody={legalContent?.textContents?.['toolioとは']} /> :
+          (activePage === "guide" || activePage === "faq") ? <FaqContent onBack={() => navigateToPage("home")} notionFaqs={legalContent?.faqs} /> :
+          activePage === "privacy" ? <PrivacyContent onBack={() => navigateToPage("home")} notionBody={legalContent?.textContents?.['プライバシーポリシー']} /> :
+          activePage === "terms" ? <TermsContent onBack={() => navigateToPage("home")} notionBody={legalContent?.textContents?.['利用規約']} /> :
+          activePage === "tokushoho" ? <TokushohoContent onBack={() => navigateToPage("home")} notionBody={legalContent?.textContents?.['特定商取引法']} /> :
+          activePage === "about" ? <AboutContent onBack={() => navigateToPage("home")} notionBody={legalContent?.textContents?.['toolioとは']} /> :
           activePage === "announcements" ? (
             <div>
               <div style={{ padding: "60px 48px 40px", background: "linear-gradient(to bottom, rgba(255,255,255,0) 5%, rgba(255,255,255,1) 75%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)", borderRadius: "16px 16px 0 0" }}>
