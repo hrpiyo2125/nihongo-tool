@@ -681,7 +681,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
         {tabs.map((tab) => {
           const active = activeTab === tab.id && !materialsFilter;
           return (
-            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else if (tab.id === "fav") { openFav(); } else { setActiveTab(tab.id); mobileNavigateTo(`${base}/${tab.id}`); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else if (tab.id === "fav") { openFav(); } else if (tab.id === "home") { setActiveTab("home"); mobileNavigateBack(); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
