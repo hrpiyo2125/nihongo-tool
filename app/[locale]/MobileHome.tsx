@@ -195,12 +195,16 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
   useEffect(() => {
     const page = initialPage ?? (() => {
       const path = pathname.replace(/^\/(en|ja)/, '') || '/';
-      const map: Record<string, string> = { '/about': 'about', '/faq': 'faq', '/plan': 'plan', '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho' };
+      const map: Record<string, string> = { '/about': 'about', '/faq': 'faq', '/plan': 'plan', '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho', '/dl': 'dl', '/purchases': 'purchases', '/fav': 'fav', '/announcements': 'announcements', '/settings': 'settings-profile', '/settings/billing': 'settings-billing' };
       return map[path];
     })();
     if (!page) return;
     if (page === 'plan') { setMyPageOpen(true); setMySubPage('plan'); }
     else if (page === 'faq' || page === 'guide') setMorePageType('guide');
+    else if (page === 'dl' || page === 'purchases' || page === 'announcements') setMorePageType(page as MorePageType);
+    else if (page === 'fav') { setActiveTab('fav'); }
+    else if (page === 'settings-profile') { setMyPageOpen(true); setMySubPage('profile'); }
+    else if (page === 'settings-billing') { setMyPageOpen(true); setMySubPage('billing'); }
     else if (page === 'about' || page === 'privacy' || page === 'terms' || page === 'tokushoho') setLegalType(page as LegalType);
   }, []);
 
@@ -212,6 +216,14 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
   const closeLegal = () => { setLegalType(null); mobileNavigateBack(); };
   const openGuide = () => { setMorePageType('guide'); mobileNavigateTo(`${base}/faq`); };
   const openPlan = () => { setMyPageOpen(true); setMySubPage('plan'); mobileNavigateTo(`${base}/plan`); };
+  const openMorePage = (type: MorePageType) => {
+    const urlMap: Record<string, string> = { dl: '/dl', purchases: '/purchases', announcements: '/announcements', guide: '/faq' };
+    setMorePageType(type);
+    if (type && urlMap[type]) mobileNavigateTo(`${base}${urlMap[type]}`);
+  };
+  const closeMorePage = () => { setMorePageType(null); mobileNavigateBack(); };
+  const openFav = () => { setActiveTab('fav'); mobileNavigateTo(`${base}/fav`); };
+  const openSettings = (sub: 'profile' | 'billing') => { setMyPageOpen(true); setMySubPage(sub); mobileNavigateTo(`${base}/settings${sub === 'billing' ? '/billing' : ''}`); };
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -427,7 +439,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
               <div style={{ background: "#fafafa", border: "0.5px solid #eee", borderRadius: 12, padding: "20px 18px" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#333" }}>{th("notice")}</div>
-                  <button onClick={() => setMorePageType("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>{th("see_all")}</button>
+                  <button onClick={() => openMorePage("announcements")} style={{ fontSize: 12, color: "#b48be8", background: "white", border: "0.5px solid #e0d0f8", borderRadius: 999, padding: "3px 12px", cursor: "pointer", fontWeight: 600 }}>{th("see_all")}</button>
                 </div>
                 {announcements.length === 0 ? (
                   <div style={{ fontSize: 12, color: "#bbb" }}>{th("no_notices")}</div>
@@ -555,7 +567,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
               { icon: "document"  as const, label: t("purchases"),    type: "purchases"     as MorePageType },
               { icon: "megaphone" as const, label: th("notice"),      type: "announcements" as MorePageType },
             ].map((item) => (
-              <div key={item.label} onClick={() => item.type === 'guide' ? openGuide() : setMorePageType(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => item.type === 'guide' ? openGuide() : openMorePage(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333", fontWeight: 500 }}>{item.label}</span>
@@ -571,7 +583,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       {morePageType === "dl" && (
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={closeMorePage} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("dl")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -594,7 +606,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       {morePageType === "purchases" && (
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={closeMorePage} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{t("purchases")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
@@ -629,7 +641,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
       {morePageType === "announcements" && (
         <div style={{ position: "fixed", inset: 0, zIndex: 80, background: "white", display: "flex", flexDirection: "column" }}>
           <header style={{ height: 56, display: "flex", alignItems: "center", padding: "0 16px", borderBottom: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, gap: 12 }}>
-            <button onClick={() => setMorePageType(null)} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
+            <button onClick={closeMorePage} style={{ border: "none", background: "transparent", fontSize: 22, color: "#aaa", cursor: "pointer", lineHeight: 1, padding: 0 }}>‹</button>
             <span style={{ fontSize: 16, fontWeight: 700, color: "#333" }}>{th("notice")}</span>
           </header>
           <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
@@ -669,7 +681,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
         {tabs.map((tab) => {
           const active = activeTab === tab.id && !materialsFilter;
           return (
-            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else { setActiveTab(tab.id); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
+            <button key={tab.id} onPointerDown={(e) => e.preventDefault()} onClick={() => { if (isScrollingRef.current) return; if (tab.id === "materials") { openMaterialsModal("all", "all"); } else if (tab.id === "fav") { openFav(); } else { setActiveTab(tab.id); mobileNavigateTo(`${base}/${tab.id}`); } }} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, border: "none", background: "transparent", cursor: "pointer", padding: "8px 16px" }}>
               {tab.icon(active)}
               <span style={{ fontSize: 10, fontWeight: active ? 700 : 500, color: active ? "#7a50b0" : "#bbb" }}>{tab.label}</span>
             </button>
@@ -800,7 +812,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
               { icon: "plan"    as const, label: tm("plan"),                                  sub: "plan"     as const },
               { icon: "billing" as const, label: tm("billing"),                               sub: "billing"  as const },
             ].map((item) => (
-              <div key={item.label} onClick={() => item.sub === 'plan' ? openPlan() : setMySubPage(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
+              <div key={item.label} onClick={() => item.sub === 'plan' ? openPlan() : openSettings(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                   <BrandIcon name={item.icon} size={20} color="#c9a0f0" />
                   <span style={{ fontSize: 15, color: "#333" }}>{item.label}</span>

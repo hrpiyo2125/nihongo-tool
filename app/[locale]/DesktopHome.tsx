@@ -178,7 +178,7 @@ function DesktopHomeInner({ materials, initialContent, initialMethod, initialPag
   useEffect(() => {
     if (initialPage) { setActivePage(initialPage); return; }
     const path = pathname.replace(/^\/(en|ja)/, '') || '/';
-    const pageMap: Record<string, string> = { '/about': 'about', '/faq': 'faq', '/plan': 'plan', '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho' };
+    const pageMap: Record<string, string> = { '/about': 'about', '/faq': 'faq', '/plan': 'plan', '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho', '/dl': 'dl', '/purchases': 'purchases', '/fav': 'fav', '/announcements': 'announcements', '/settings': 'settings-profile', '/settings/billing': 'settings-billing' };
     const page = pageMap[path];
     if (page) setActivePage(page);
   }, []);

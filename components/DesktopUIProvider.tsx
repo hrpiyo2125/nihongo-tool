@@ -22,11 +22,17 @@ const DesktopUIContext = createContext<DesktopUIContextType>({
 const PAGE_MAP: Record<string, string> = {
   '/about': 'about', '/faq': 'faq', '/plan': 'plan',
   '/privacy': 'privacy', '/terms': 'terms', '/tokushoho': 'tokushoho',
+  '/dl': 'dl', '/purchases': 'purchases', '/fav': 'fav',
+  '/announcements': 'announcements',
+  '/settings': 'settings-profile', '/settings/billing': 'settings-billing',
 };
 
 const URL_MAP: Record<string, string> = {
   home: '/', about: '/about', faq: '/faq', guide: '/faq',
   plan: '/plan', privacy: '/privacy', terms: '/terms', tokushoho: '/tokushoho',
+  dl: '/dl', purchases: '/purchases', fav: '/fav',
+  announcements: '/announcements',
+  'settings-profile': '/settings', 'settings-billing': '/settings/billing',
 };
 
 export function DesktopUIProvider({ children }: { children: React.ReactNode }) {
