@@ -383,7 +383,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
             <section style={{ padding: "120px 32px 24px", textAlign: "center", background: "linear-gradient(to bottom, rgba(255,255,255,0) 10%, rgba(255,255,255,1) 28%), linear-gradient(to right, rgba(244,185,185,0.55) 0%, rgba(228,155,253,0.55) 50%, rgba(163,192,255,0.55) 100%)" }}>
               <p style={{ fontSize: 8, letterSpacing: 3, color: "rgba(180,120,210,0.6)", textTransform: "uppercase", marginBottom: 18, fontFamily: "var(--font-libre)" }}>{th("hero_sub")}</p>
               <h1 style={{ fontSize: 26, fontWeight: 800, lineHeight: 1.6, marginBottom: 14, textAlign: "center", whiteSpace: "pre-line", background: "linear-gradient(135deg,#f4b9b9,#e49bfd,#a3c0ff)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontFamily: "var(--font-libre)" }}>{th("hero_title")}</h1>
-              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0 }}>{th("hero_desc1")}</p>
+              <p style={{ fontSize: 13, color: "#999", lineHeight: 1.8, marginBottom: 12, marginTop: 0, whiteSpace: "pre-line" }}>{th("hero_desc1")}</p>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 44, marginTop: 36 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#f8f6ff", border: "1px solid rgba(163,192,255,0.4)", borderRadius: 28, padding: "17px 24px", width: "100%" }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#bbb" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
