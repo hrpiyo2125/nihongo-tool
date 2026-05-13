@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getMaterialById, getMaterials } from '@/lib/notion'
+import { getMaterials } from '@/lib/notion'
+import { getMaterialByIdWithPageCount } from '@/lib/materials'
 
 export async function GET(_req: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params
-    const material = await getMaterialById(id)
+    const material = await getMaterialByIdWithPageCount(id)
 
     let relatedMaterials: any[] = []
     if (material.relatedMaterialIds?.length > 0) {

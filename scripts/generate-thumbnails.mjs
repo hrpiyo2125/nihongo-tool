@@ -4,6 +4,8 @@
  * モーダル用:   {id}-p1.png, {id}-p2.png, {id}-p3.png (最大3ページ)
  * 実行: node scripts/generate-thumbnails.mjs
  * 既存サムネイルはスキップするので、新規教材追加時も安全に再実行できる。
+ *
+ * ページ数の保存は別スクリプト: node scripts/update-page-counts.mjs
  */
 
 import { pdf } from 'pdf-to-img';
@@ -65,21 +67,11 @@ async function generatePages(pdfUrl) {
   const buf = Buffer.from(await res.arrayBuffer());
 
   const pages = [];
-  let totalPageCount = 0;
   const doc = await pdf(buf, { scale: 1.5 });
   for await (const page of doc) {
-    totalPageCount++;
     if (pages.length < MAX_PAGES) pages.push(page);
   }
-  return { pages, totalPageCount };
-}
-
-async function savePageCount(matId, pageCount) {
-  const { error } = await supabase.from('material_page_counts').upsert(
-    { material_id: matId, page_count: pageCount },
-    { onConflict: 'material_id' }
-  );
-  if (error) throw error;
+  return pages;
 }
 
 async function main() {
@@ -99,34 +91,24 @@ async function main() {
     const label = `[${mat.id.slice(0, 8)}] ${mat.title?.slice(0, 25) ?? ''}`;
     process.stdout.write(`${label}... `);
 
-    // カード用サムネイル ({id}.png) と モーダル用 ({id}-p1.png) が両方あればスキップ（--force 時は常に上書き）
     const cardExists = !FORCE && await fileExists(`${mat.id}.png`);
     const p1Exists = !FORCE && await fileExists(`${mat.id}-p1.png`);
 
     if (cardExists && p1Exists) {
-      // サムネイルは既存でもpage_countは保存する
-      try {
-        const { totalPageCount } = await generatePages(mat.pdfFile);
-        await savePageCount(mat.id, totalPageCount);
-        console.log(`スキップ（既存）— ${totalPageCount}ページ保存`);
-      } catch (e) {
-        console.log(`スキップ（既存）— page_count保存失敗: ${e.message}`);
-      }
+      console.log('スキップ（既存）');
       skipped++;
       continue;
     }
 
     try {
-      const { pages, totalPageCount } = await generatePages(mat.pdfFile);
+      const pages = await generatePages(mat.pdfFile);
       let uploadCount = 0;
 
-      // カード用: {id}.png
       if (!cardExists) {
         await uploadPng(`${mat.id}.png`, pages[0]);
         uploadCount++;
       }
 
-      // モーダル用: {id}-p1.png 〜 {id}-p3.png
       for (let i = 0; i < pages.length; i++) {
         const name = `${mat.id}-p${i + 1}.png`;
         if (FORCE || !(await fileExists(name))) {
@@ -135,9 +117,7 @@ async function main() {
         }
       }
 
-      await savePageCount(mat.id, totalPageCount);
-
-      console.log(`✅ ${uploadCount}枚アップロード（全${totalPageCount}ページ）`);
+      console.log(`✅ ${uploadCount}枚アップロード`);
       generated++;
     } catch (e) {
       console.log(`❌ 失敗: ${e.message}`);
@@ -146,6 +126,7 @@ async function main() {
   }
 
   console.log(`\n完了 — 生成: ${generated}件 / スキップ: ${skipped}件 / 失敗: ${failed}件`);
+  console.log('ページ数を保存するには: node scripts/update-page-counts.mjs');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
