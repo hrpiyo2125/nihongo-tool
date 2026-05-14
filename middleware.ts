@@ -33,5 +33,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next|_vercel|.*\\..*|sitemap\\.xml|robots\\.txt).*)']
+  matcher: ['/((?!api|_next|_vercel|liff|.*\\..*|sitemap\\.xml|robots\\.txt).*)']
 }
