@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import AuthModal from "@/components/AuthModal";
 import { useIsMobile } from "@/app/[locale]/useIsMobile";
+import RequestForm from "@/components/RequestForm";
+import { FORM_TOPICS } from "@/lib/formSchemas";
 
 function IconLock({ size = 28, color = "#9b6ed4" }: { size?: number; color?: string }) {
   return (
@@ -81,47 +83,7 @@ const CHAT_TOPICS = [
   "退会について",
 ];
 
-const FORM_TOPICS = [
-  "教材のリクエスト",
-  "フィードバック",
-  "その他・お問い合わせ",
-];
-
 const ALL_TOPICS = [...CHAT_TOPICS, ...FORM_TOPICS];
-
-type FormFieldDef =
-  | { id: string; label: string; type: "multiselect" | "select"; options: { value: string; hasOther?: boolean }[]; required?: boolean }
-  | { id: string; label: string; type: "textarea"; placeholder: string; required?: boolean };
-
-const FORM_SCHEMAS: Record<string, FormFieldDef[]> = {
-  "教材のリクエスト": [
-    {
-      id: "level", label: "日本語レベル（複数選択可）", type: "multiselect", required: true,
-      options: [
-        { value: "入門" }, { value: "初級" }, { value: "初中級" },
-        { value: "中級" }, { value: "上級" }, { value: "その他", hasOther: true },
-      ],
-    },
-    {
-      id: "kind", label: "教材の種類（複数選択可）", type: "multiselect", required: true,
-      options: [
-        { value: "プリント" }, { value: "ドリル" }, { value: "カード" },
-        { value: "その他", hasOther: true },
-      ],
-    },
-    { id: "detail", label: "リクエスト内容", type: "textarea", placeholder: "どのような教材をご希望ですか？", required: true },
-  ],
-  "フィードバック": [
-    {
-      id: "kind", label: "フィードバックの種類", type: "select", required: true,
-      options: [{ value: "改善要望" }, { value: "不具合報告" }, { value: "良かった点" }, { value: "その他" }],
-    },
-    { id: "detail", label: "詳細", type: "textarea", placeholder: "内容を自由にご記入ください", required: true },
-  ],
-  "その他・お問い合わせ": [
-    { id: "detail", label: "お問い合わせ内容", type: "textarea", placeholder: "内容を自由にご記入ください", required: true },
-  ],
-};
 
 type Message = {
   id?: string;
@@ -129,7 +91,7 @@ type Message = {
   content: string;
 };
 
-type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "formInput" | "formConfirm" | "formDone" | "staffConfirm" | "waiting" | "done" | "live";
+type Phase = "loading" | "requireLogin" | "topic" | "ai" | "retry" | "form" | "staffConfirm" | "waiting" | "done" | "live";
 
 export default function ChatWidget({ initialSessionId, mode = "widget", locale }: { initialSessionId?: string; mode?: "widget" | "page"; locale?: string }) {
   const isPage = mode === "page";
@@ -145,9 +107,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   const isMobile = useIsMobile();
   const [aiReplied, setAiReplied] = useState(false);
   const [fromFreeText, setFromFreeText] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, string[]>>({});
-  const [formOtherTexts, setFormOtherTexts] = useState<Record<string, string>>({});
   const [staffTypingAt, setStaffTypingAt] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -206,7 +165,7 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   }, [sessionId]);
 
   useEffect(() => {
-    const saveablePhases: Phase[] = ["ai", "retry", "staffConfirm", "waiting", "live", "done", "formDone"];
+    const saveablePhases: Phase[] = ["ai", "retry", "staffConfirm", "waiting", "live", "done"];
     if (messages.length > 0 && saveablePhases.includes(phase)) {
       localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
       localStorage.setItem(PHASE_KEY, phase);
@@ -422,68 +381,21 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   }
 
   async function handleTopic(topic: string) {
-    if (FORM_TOPICS.includes(topic)) {
-      setSelectedTopic(topic);
-      setPhase("formInput");
+    if ((FORM_TOPICS as readonly string[]).includes(topic)) {
+      setPhase("form");
       return;
     }
     await askAI(topic, topic, false);
   }
 
-  function handleFormSend() {
-    if (!selectedTopic) return;
-    const schema = FORM_SCHEMAS[selectedTopic];
-    if (!schema) { if (input.trim()) setPhase("formConfirm"); return; }
-
-    // バリデーション
-    for (const field of schema) {
-      if (!field.required) continue;
-      if (field.type === "textarea") {
-        if (!input.trim()) return;
-      } else {
-        const vals = formValues[field.id] ?? [];
-        if (vals.length === 0) return;
-        // その他が選ばれていたらテキスト必須
-        if (vals.includes("その他") && !(formOtherTexts[field.id] ?? "").trim()) return;
-      }
-    }
-
-    // 確認画面用サマリーをinputに格納
-    const lines = schema.map((field) => {
-      if (field.type === "textarea") return `【${field.label}】\n${input.trim()}`;
-      const vals = formValues[field.id] ?? [];
-      const display = vals.map((v) =>
-        v === "その他" && formOtherTexts[field.id]
-          ? `その他（${formOtherTexts[field.id]}）`
-          : v
-      ).join("、");
-      return `【${field.label}】${display}`;
-    });
-    setInput(lines.join("\n"));
-    setPhase("formConfirm");
-  }
-
-  async function handleFormConfirm() {
-    const content = input.trim();
-    if (!content || loading || !selectedTopic) return;
-    setLoading(true);
-
+  async function handleFormSubmit(topic: string, summary: string) {
     const res = await fetch("/api/chat/create-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        topic: selectedTopic,
-        userMessage: content,
-        userId: authUser?.id,
-        userEmail: authUser?.email,
-      }),
+      body: JSON.stringify({ topic, userMessage: summary, userId: authUser?.id, userEmail: authUser?.email }),
     });
     const data = await res.json();
     if (data.sessionId) setSessionId(data.sessionId);
-
-    clearInput();
-    setLoading(false);
-    setPhase("formDone");
   }
 
   const STAFF_KEYWORDS = ["担当者", "人と話したい", "スタッフ", "オペレーター", "直接話", "電話", "人に聞きたい", "人に相談", "サポート担当", "担当に"];
@@ -587,9 +499,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
     clearInput();
     setAiReplied(false);
     setFromFreeText(false);
-    setSelectedTopic(null);
-    setFormValues({});
-    setFormOtherTexts({});
     setShowCloseConfirm(false);
   }
 
@@ -748,23 +657,6 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                   </div>
                 )}
 
-                {phase === "formDone" && (
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "16px 8px" }}>
-                    <div style={{ width: 48, height: 48, borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <IconCheck size={22} color="#22c55e" />
-                    </div>
-                    <p style={{ fontSize: 14, fontWeight: 700, color: "#333", margin: 0 }}>送信しました！</p>
-                    <p style={{ fontSize: 12, color: "#888", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
-                      ご連絡ありがとうございます。<br />内容を確認してご対応いたします。
-                    </p>
-                    <button
-                      onClick={() => reset(false)}
-                      style={{ padding: "9px 24px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
-                    >
-                      別の件を送る
-                    </button>
-                  </div>
-                )}
 
                 {phase === "done" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -809,117 +701,15 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
             </div>
           )}
 
-          {/* formConfirmフェーズ: 送信確認 */}
-          {phase === "formConfirm" && (
-            <div style={{ padding: "12px 14px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 10, flexShrink: 0, background: "#fdf8ff" }}>
-              <p style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, margin: 0 }}>送信内容の確認</p>
-              <div style={{ background: "white", borderRadius: 12, border: "1.5px solid rgba(155,110,212,0.3)", padding: "10px 13px", display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700 }}>{selectedTopic}</span>
-                <p style={{ fontSize: 13, color: "#333", margin: 0, lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{input}</p>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={() => { clearInput(); setPhase("formInput"); }}
-                  style={{ ...outlineBtn("#9b6ed4"), flex: 1, textAlign: "center" as const }}
-                >修正する</button>
-                <button
-                  onClick={handleFormConfirm}
-                  disabled={loading}
-                  style={{ flex: 1, padding: "9px 14px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, cursor: "pointer" }}
-                >
-                  {loading ? "送信中..." : "この内容で送信する"}
-                </button>
-              </div>
+          {/* formフェーズ: RequestFormコンポーネント */}
+          {phase === "form" && (
+            <div style={{ borderTop: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, background: "#fdf8ff", overflowY: "auto", maxHeight: "70%" }}>
+              <RequestForm
+                onSubmit={handleFormSubmit}
+                onBack={() => setPhase("topic")}
+              />
             </div>
           )}
-
-          {/* formInputフェーズ: フォーム記入 */}
-          {phase === "formInput" && selectedTopic && (() => {
-            const schema = FORM_SCHEMAS[selectedTopic] ?? [];
-            const isFormReady = schema.every((field) => {
-              if (!field.required) return true;
-              if (field.type === "textarea") return input.trim().length > 0;
-              const vals = formValues[field.id] ?? [];
-              if (vals.length === 0) return false;
-              if (vals.includes("その他")) return (formOtherTexts[field.id] ?? "").trim().length > 0;
-              return true;
-            });
-            return (
-              <div style={{ padding: "12px 14px", borderTop: "0.5px solid rgba(200,170,240,0.2)", display: "flex", flexDirection: "column", gap: 12, flexShrink: 0, background: "#fdf8ff", overflowY: "auto", maxHeight: "60vh" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <button onClick={() => { setPhase("topic"); setSelectedTopic(null); clearInput(); setFormValues({}); setFormOtherTexts({}); }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "#9b6ed4", fontSize: 12 }}>← 戻る</button>
-                  <p style={{ fontSize: 12, color: "#9b6ed4", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 5 }}>
-                    <IconPencil size={13} color="#9b6ed4" /> {selectedTopic}
-                  </p>
-                </div>
-
-                {schema.map((field) => (
-                  <div key={field.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <p style={{ fontSize: 12, color: "#555", fontWeight: 700, margin: 0 }}>
-                      {field.label}
-                      {field.required && <span style={{ color: "#e49bfd", marginLeft: 4 }}>*</span>}
-                    </p>
-
-                    {(field.type === "multiselect" || field.type === "select") && (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {field.options.map((opt) => {
-                          const selected = (formValues[field.id] ?? []).includes(opt.value);
-                          return (
-                            <div key={opt.value} style={{ display: "flex", flexDirection: "column", gap: 4, width: opt.hasOther ? "100%" : "auto" }}>
-                              <button
-                                onClick={() => {
-                                  setFormValues((prev) => {
-                                    const cur = prev[field.id] ?? [];
-                                    if (field.type === "select") {
-                                      return { ...prev, [field.id]: selected ? [] : [opt.value] };
-                                    }
-                                    return { ...prev, [field.id]: selected ? cur.filter((v) => v !== opt.value) : [...cur, opt.value] };
-                                  });
-                                }}
-                                style={{
-                                  padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap",
-                                  border: `1.5px solid ${selected ? "#9b6ed4" : "rgba(155,110,212,0.3)"}`,
-                                  background: selected ? "#f5f0ff" : "white",
-                                  color: selected ? "#9b6ed4" : "#666",
-                                }}
-                              >{opt.value}</button>
-                              {opt.hasOther && selected && (
-                                <input
-                                  type="text"
-                                  placeholder="具体的に記入してください（必須）"
-                                  value={formOtherTexts[field.id] ?? ""}
-                                  onChange={(e) => setFormOtherTexts((prev) => ({ ...prev, [field.id]: e.target.value }))}
-                                  style={{ padding: "7px 12px", borderRadius: 10, border: "1.5px solid rgba(155,110,212,0.4)", fontSize: 12, outline: "none", background: "white" }}
-                                />
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {field.type === "textarea" && (
-                      <textarea
-                        rows={3}
-                        placeholder={field.placeholder}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        style={{ padding: "10px 13px", borderRadius: 12, border: "1.5px solid rgba(155,110,212,0.4)", fontSize: 13, resize: "none", outline: "none", lineHeight: 1.6, background: "white" }}
-                      />
-                    )}
-                  </div>
-                ))}
-
-                <button
-                  onClick={handleFormSend}
-                  disabled={!isFormReady}
-                  style={{ padding: "10px 0", borderRadius: 20, border: "none", background: isFormReady ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : "#e5e5e5", color: isFormReady ? "white" : "#bbb", cursor: isFormReady ? "pointer" : "default", fontSize: 13, fontWeight: 700, transition: "background 0.2s" }}
-                >
-                  確認する
-                </button>
-              </div>
-            );
-          })()}
 
           {/* 入力バー */}
           {(phase === "ai" || phase === "retry" || phase === "waiting" || phase === "live") && (
