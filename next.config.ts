@@ -55,6 +55,25 @@ const nextConfig: NextConfig = {
         source: '/(.*)',
         headers: securityHeaders,
       },
+      {
+        source: '/liff',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.line-scdn.net https://*.line.me",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https://*.line-scdn.net https://*.line.me",
+              "font-src 'self'",
+              "frame-src https://*.line.me https://*.line-scdn.net",
+              "connect-src 'self' https://*.line.me https://*.line-scdn.net https://api.line.me wss://*.line.me",
+            ].join('; '),
+          },
+        ],
+      },
     ]
   },
 };
