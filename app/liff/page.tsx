@@ -18,13 +18,19 @@ export default function LiffPage() {
   }, []);
 
   async function handleSubmit(topic: string, summary: string) {
+    await fetch("/api/line/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ topic, summary }),
+    });
+
     const { default: liff } = await import("@line/liff");
-    const text = `【${topic}】\n${summary}`;
     if (liff.isInClient()) {
-      await liff.sendMessages([{ type: "text", text }]);
-    } else {
-      // ブラウザプレビュー時はコンソールに出力
-      console.log("送信内容:", text);
+      await liff.sendMessages([{
+        type: "text",
+        text: `【${topic}】の送信が完了しました✅\n\n${summary}`,
+      }]);
+      liff.closeWindow();
     }
   }
 
