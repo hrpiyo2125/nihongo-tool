@@ -18,12 +18,6 @@ export default function LiffPage() {
   }, []);
 
   async function handleSubmit(topic: string, summary: string) {
-    await fetch("/api/line/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic, summary }),
-    });
-
     const { default: liff } = await import("@line/liff");
     if (liff.isInClient()) {
       await liff.sendMessages([{
