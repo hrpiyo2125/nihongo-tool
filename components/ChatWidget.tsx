@@ -389,13 +389,24 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   }
 
   async function handleFormSubmit(topic: string, summary: string) {
-    const res = await fetch("/api/chat/create-session", {
+    const replyMap: Record<string, string> = {
+      "教材のリクエスト": "ありがとうございます！教材のリクエストを受け付けました。",
+      "フィードバック": "フィードバックをお送りいただきありがとうございます！",
+      "その他・お問い合わせ": "お問い合わせを受け付けました。内容を確認してご対応いたします。",
+    };
+    setMessages([{ role: "user", content: summary }]);
+    setPhase("done");
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1200));
+    setLoading(false);
+    setMessages((prev) => [...prev, { role: "bot", content: replyMap[topic] ?? "ありがとうございます！受け付けました。" }]);
+    fetch("/api/chat/create-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ topic, userMessage: summary, userId: authUser?.id, userEmail: authUser?.email }),
+    }).then((r) => r.json()).then((data) => {
+      if (data.sessionId) setSessionId(data.sessionId);
     });
-    const data = await res.json();
-    if (data.sessionId) setSessionId(data.sessionId);
   }
 
   const STAFF_KEYWORDS = ["担当者", "人と話したい", "スタッフ", "オペレーター", "直接話", "電話", "人に聞きたい", "人に相談", "サポート担当", "担当に"];
@@ -546,28 +557,31 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
 
             {/* ログイン未済 */}
             {phase === "requireLogin" && (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 40, padding: "0 8px" }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#f5f0ff" }}><IconLock size={28} color="#9b6ed4" /></div>
-                <p style={{ fontSize: 13, color: "#555", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
-                  チャットをご利用いただくには<br />ログイン・新規登録が必要です。
-                </p>
-                <button
-                  onClick={() => setShowAuthModal(true)}
-                  style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer" }}
-                >
-                  ログイン / 新規登録
-                </button>
-              </div>
+              <>
+                <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, marginTop: 40, padding: "0 8px", animation: "tlFadeUp 0.3s ease-out both" }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 56, height: 56, borderRadius: "50%", background: "#f5f0ff" }}><IconLock size={28} color="#9b6ed4" /></div>
+                  <p style={{ fontSize: 13, color: "#555", textAlign: "center", lineHeight: 1.7, margin: 0 }}>
+                    チャットをご利用いただくには<br />ログイン・新規登録が必要です。
+                  </p>
+                  <button
+                    onClick={() => setShowAuthModal(true)}
+                    style={{ padding: "10px 28px", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, border: "none", cursor: "pointer", animation: "tlFadeUp 0.3s 0.1s ease-out both" }}
+                  >
+                    ログイン / 新規登録
+                  </button>
+                </div>
+              </>
             )}
 
             {phase !== "loading" && phase !== "requireLogin" && (
               <>
-                <Bubble role="bot">こんにちは！どのようなことでお困りですか？</Bubble>
+                <Bubble role="bot" animate={false}>こんにちは！どのようなことでお困りですか？</Bubble>
 
                 {messages.map((m, i) => {
                   if (m.role === "separator") {
                     return (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0" }}>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, margin: "4px 0", animation: "tlBubbleIn 0.3s ease-out both" }}>
                         <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,transparent,#c4a0f5)" }} />
                         <span style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>{m.content === "新しい会話" ? <IconSparkle size={11} color="#9b6ed4" /> : <IconUser size={11} color="#9b6ed4" />} {m.content}</span>
                         <div style={{ flex: 1, height: 1, background: "linear-gradient(90deg,#c4a0f5,transparent)" }} />
@@ -590,8 +604,9 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                     <>
                       <style>{`
                         @keyframes toolio-dot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+                        @keyframes tlBubbleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
                       `}</style>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 16, background: "#f5f0ff", alignSelf: "flex-start", maxWidth: "80%" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 14px", borderRadius: 16, background: "#f5f0ff", alignSelf: "flex-start", maxWidth: "80%", animation: "tlBubbleIn 0.2s ease-out both" }}>
                         {(phase === "live" || isStaffTyping) && <span style={{ fontSize: 11, color: "#7a50b0", marginRight: 2 }}>担当者が入力しています</span>}
                         {[0, 1, 2].map(i => (
                           <span key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#9b6ed4", display: "inline-block", animation: `toolio-dot 1.2s ease-in-out ${i * 0.2}s infinite` }} />
@@ -602,42 +617,48 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                 })()}
 
                 {phase === "ai" && aiReplied && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      <button style={{ ...outlineBtn("#22c55e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
-                        saveUserMsg("はい（解決しました）");
-                        botMsg("お役に立てて良かったです！またいつでもご相談ください。", true);
-                        setAiReplied(false);
-                        setPhase("done");
-                      }}><IconCheck size={14} color="#22c55e" /> はい</button>
-                      <button style={{ ...outlineBtn("#f43f5e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
-                        saveUserMsg("いいえ（解決しませんでした）");
-                        botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。", true);
-                        setAiReplied(false);
-                        setPhase("retry");
-                      }}><IconX size={14} color="#f43f5e" /> いいえ</button>
+                  <>
+                    <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, animation: "tlFadeUp 0.28s ease-out both" }}>
+                      <p style={{ fontSize: 11, color: "#aaa", margin: 0 }}>この回答で解決しましたか？</p>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button style={{ ...outlineBtn("#22c55e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, animation: "tlFadeUp 0.28s 0.05s ease-out both" }} onClick={() => {
+                          saveUserMsg("はい（解決しました）");
+                          botMsg("お役に立てて良かったです！またいつでもご相談ください。", true);
+                          setAiReplied(false);
+                          setPhase("done");
+                        }}><IconCheck size={14} color="#22c55e" /> はい</button>
+                        <button style={{ ...outlineBtn("#f43f5e"), flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, animation: "tlFadeUp 0.28s 0.1s ease-out both" }} onClick={() => {
+                          saveUserMsg("いいえ（解決しませんでした）");
+                          botMsg("別のカテゴリで再度お調べするか、担当者にお繋ぎすることもできます。", true);
+                          setAiReplied(false);
+                          setPhase("retry");
+                        }}><IconX size={14} color="#f43f5e" /> いいえ</button>
+                      </div>
                     </div>
-                  </div>
+                  </>
                 )}
 
                 {phase === "staffConfirm" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={handleRequestStaff} disabled={loading}>
-                      {loading ? "送信中..." : <><IconMail size={14} color="#7a50b0" /> 担当者とのチャットを希望する</>}
-                    </button>
-                    <button style={{ ...outlineBtn("#9b6ed4"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
-                      saveUserMsg("AIチャットに戻る");
-                      botMsg("AIチャットに戻ります。他にご質問があればどうぞ。", true);
-                      setPhase("retry");
-                    }}><IconChat size={14} color="#9b6ed4" /> AIチャットに戻る</button>
-                  </div>
+                  <>
+                    <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6, animation: "tlFadeUp 0.28s 0.05s ease-out both" }} onClick={handleRequestStaff} disabled={loading}>
+                        {loading ? "送信中..." : <><IconMail size={14} color="#7a50b0" /> 担当者とのチャットを希望する</>}
+                      </button>
+                      <button style={{ ...outlineBtn("#9b6ed4"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6, animation: "tlFadeUp 0.28s 0.12s ease-out both" }} onClick={() => {
+                        saveUserMsg("AIチャットに戻る");
+                        botMsg("AIチャットに戻ります。他にご質問があればどうぞ。", true);
+                        setPhase("retry");
+                      }}><IconChat size={14} color="#9b6ed4" /> AIチャットに戻る</button>
+                    </div>
+                  </>
                 )}
 
                 {phase === "waiting" && (
                   <>
-                    <style>{`@keyframes toolio-pulse{0%,100%{opacity:1}50%{opacity:0.45}}`}</style>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 12, background: "#f5f0ff", border: "1.5px solid #c4a0f5", animation: "toolio-pulse 2s ease-in-out infinite" }}>
+                    <style>{`@keyframes toolio-pulse{0%,100%{opacity:1}50%{opacity:0.45}} @keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 12, background: "#f5f0ff", border: "1.5px solid #c4a0f5", animation: "toolio-pulse 2s ease-in-out infinite, tlFadeUp 0.3s ease-out both" }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#9b6ed4", flexShrink: 0 }} />
                       <span style={{ fontSize: 12, color: "#7a50b0", fontWeight: 600 }}>担当者への接続を予約済み — 引き続き質問できます</span>
                     </div>
@@ -645,46 +666,22 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                 )}
 
                 {phase === "retry" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                    {ALL_TOPICS.map((t) => (
-                      <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
-                    ))}
-                    <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }} onClick={() => {
-                      saveUserMsg("担当者に繋ぐ");
-                      botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
-                      setPhase("staffConfirm");
-                    }}><IconUser size={14} color="#7a50b0" /> 担当者に繋ぐ</button>
-                  </div>
+                  <>
+                    <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {ALL_TOPICS.map((t, i) => (
+                        <button key={t} style={{ ...outlineBtn(), animation: `tlFadeUp 0.24s ${0.04 * i}s ease-out both` }} onClick={() => handleTopic(t)}>{t}</button>
+                      ))}
+                      <button style={{ ...outlineBtn("#7a50b0"), display: "flex", alignItems: "center", justifyContent: "center", gap: 6, animation: `tlFadeUp 0.24s ${0.04 * ALL_TOPICS.length}s ease-out both` }} onClick={() => {
+                        saveUserMsg("担当者に繋ぐ");
+                        botMsg("現在大変混み合っております。担当者に繋がりしだいメールにてご連絡いたします。", true);
+                        setPhase("staffConfirm");
+                      }}><IconUser size={14} color="#7a50b0" /> 担当者に繋ぐ</button>
+                    </div>
+                  </>
                 )}
 
 
-                {phase === "done" && (
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                    <p style={{ textAlign: "center", fontSize: 11, color: "#aaa", margin: "4px 0 0" }}>このチャットは終了しました。<br />※ チャット履歴は30日間保持されます。</p>
-                    {isPage ? (
-                      <a href={`/${locale ?? "ja"}`} style={{ display: "block", padding: "10px 0", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textAlign: "center", textDecoration: "none" }}>トップへ戻る</a>
-                    ) : (
-                      <>
-                        {showCloseConfirm ? (
-                          <div style={{ background: "#fff8f0", border: "1.5px solid #f4b9b9", borderRadius: 14, padding: "14px 14px 10px", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <p style={{ fontSize: 13, color: "#c0392b", fontWeight: 700, margin: 0, display: "flex", alignItems: "center", gap: 6 }}><IconAlert size={15} color="#c0392b" /> チャット履歴を削除しますか？</p>
-                            <p style={{ fontSize: 12, color: "#555", margin: 0, lineHeight: 1.7 }}>
-                              この操作を行うと、チャット履歴が即座に削除されます。<br />
-                              <span style={{ color: "#aaa" }}>（削除しない場合は30日後に自動削除されます）</span>
-                            </p>
-                            <button style={{ padding: "9px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => { setShowCloseConfirm(false); reset(true); setOpen(false); }}>削除して閉じる</button>
-                            <button style={{ ...outlineBtn("#9b6ed4"), textAlign: "center" as const }} onClick={() => setShowCloseConfirm(false)}>閉じずに戻る</button>
-                          </div>
-                        ) : (
-                          <>
-                            <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "#fee2e2", color: "#c0392b", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setShowCloseConfirm(true)}>チャット履歴を削除する</button>
-                            <button style={{ padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setOpen(false)}>チャットを閉じる</button>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
               </>
             )}
 
@@ -693,12 +690,15 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
 
           {/* topicフェーズ: カテゴリ選択フォーム */}
           {phase === "topic" && (
-            <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4, borderTop: "0.5px solid rgba(200,170,240,0.15)", flexShrink: 0 }}>
-              <p style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, margin: "0 0 6px", letterSpacing: 0.3 }}>カテゴリを選んでください</p>
-              {ALL_TOPICS.map((t) => (
-                <button key={t} style={outlineBtn()} onClick={() => handleTopic(t)}>{t}</button>
-              ))}
-            </div>
+            <>
+              <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 4, borderTop: "0.5px solid rgba(200,170,240,0.15)", flexShrink: 0 }}>
+                <p style={{ fontSize: 11, color: "#9b6ed4", fontWeight: 700, margin: "0 0 6px", letterSpacing: 0.3, animation: "tlFadeUp 0.22s ease-out both" }}>カテゴリを選んでください</p>
+                {ALL_TOPICS.map((t, i) => (
+                  <button key={t} style={{ ...outlineBtn(), animation: `tlFadeUp 0.24s ${0.05 * (i + 1)}s ease-out both` }} onClick={() => handleTopic(t)}>{t}</button>
+                ))}
+              </div>
+            </>
           )}
 
           {/* formフェーズ: RequestFormコンポーネント */}
@@ -709,6 +709,21 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
                 onBack={() => setPhase("topic")}
               />
             </div>
+          )}
+
+          {/* doneフェーズ: 下部ボタン */}
+          {phase === "done" && (
+            <>
+              <style>{`@keyframes tlFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}`}</style>
+              <div style={{ padding: "10px 14px 14px", borderTop: "0.5px solid rgba(200,170,240,0.2)", flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, animation: "tlFadeUp 0.3s 2s ease-out both", opacity: 0 }}>
+                <p style={{ textAlign: "center", fontSize: 11, color: "#aaa", margin: 0 }}>このチャットは終了しました。<br />※ チャット履歴は30日間保持されます。</p>
+                {isPage ? (
+                  <a href={`/${locale ?? "ja"}`} style={{ display: "block", padding: "10px 0", borderRadius: 20, background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, fontSize: 13, textAlign: "center", textDecoration: "none" }}>トップへ戻る</a>
+                ) : (
+                  <button style={{ width: "100%", padding: "10px 0", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", fontWeight: 700, cursor: "pointer", fontSize: 13 }} onClick={() => setOpen(false)}>チャットを閉じる</button>
+                )}
+              </div>
+            </>
           )}
 
           {/* 入力バー */}
@@ -796,31 +811,39 @@ export default function ChatWidget({ initialSessionId, mode = "widget", locale }
   );
 }
 
-function Bubble({ role, children }: { role: Message["role"]; children: React.ReactNode }) {
+function Bubble({ role, children, animate = true }: { role: Message["role"]; children: React.ReactNode; animate?: boolean }) {
   const isUser = role === "user";
   const isStaff = role === "staff";
   return (
-    <div style={{ display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 6 }}>
-      {!isUser && (isStaff ? (
-        <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg,#a3c0ff,#7aadff)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 2 }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </div>
-      ) : (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src="/toolio_icon_circle.png" alt="toolio" style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0, marginBottom: 2 }} />
-      ))}
+    <>
+      <style>{`
+        @keyframes tlBubbleIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+      `}</style>
       <div style={{
-        maxWidth: "78%", padding: "9px 13px",
-        borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-        background: isUser ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : isStaff ? "#f0f7ff" : "#f5f0ff",
-        color: isUser ? "white" : "#333", fontSize: 13, lineHeight: 1.6,
-        whiteSpace: "pre-wrap", wordBreak: "break-word",
+        display: "flex", justifyContent: isUser ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 6,
+        animation: animate ? "tlBubbleIn 0.22s ease-out both" : "none",
       }}>
-        {isStaff && <span style={{ fontSize: 11, color: "#7a9fd4", fontWeight: 700, display: "block", marginBottom: 2 }}>担当者</span>}
-        {children}
+        {!isUser && (isStaff ? (
+          <div style={{ width: 26, height: 26, borderRadius: "50%", background: "linear-gradient(135deg,#a3c0ff,#7aadff)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginBottom: 2 }}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </div>
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src="/toolio_icon_circle.png" alt="toolio" style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0, marginBottom: 2 }} />
+        ))}
+        <div style={{
+          maxWidth: "78%", padding: "9px 13px",
+          borderRadius: isUser ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
+          background: isUser ? "linear-gradient(135deg,#f4b9b9,#e49bfd)" : isStaff ? "#f0f7ff" : "#f5f0ff",
+          color: isUser ? "white" : "#333", fontSize: 13, lineHeight: 1.6,
+          whiteSpace: "pre-wrap", wordBreak: "break-word",
+        }}>
+          {isStaff && <span style={{ fontSize: 11, color: "#7a9fd4", fontWeight: 700, display: "block", marginBottom: 2 }}>担当者</span>}
+          {children}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

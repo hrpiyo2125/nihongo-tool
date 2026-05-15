@@ -59,7 +59,8 @@ export function validateForm(topic: string, formValues: Record<string, string[]>
     if (field.type === "textarea") return textareaValue.trim().length > 0;
     const vals = formValues[field.id] ?? [];
     if (vals.length === 0) return false;
-    if (vals.includes("その他")) return (formOtherTexts[field.id] ?? "").trim().length > 0;
+    const hasOtherOption = field.options.some((opt) => opt.value === "その他" && opt.hasOther);
+    if (hasOtherOption && vals.includes("その他")) return (formOtherTexts[field.id] ?? "").trim().length > 0;
     return true;
   });
 }
