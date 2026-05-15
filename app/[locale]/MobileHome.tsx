@@ -568,7 +568,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
             {[
               { icon: "download"  as const, label: t("dl"),          type: "dl"            as MorePageType },
               { icon: "guide"     as const, label: t("guide"),        type: "guide"         as MorePageType },
-              { icon: "document"  as const, label: t("purchases"),    type: "purchases"     as MorePageType },
+              { icon: "folder"  as const, label: t("purchases"),    type: "purchases"     as MorePageType },
               { icon: "megaphone" as const, label: th("notice"),      type: "announcements" as MorePageType },
             ].map((item) => (
               <div key={item.label} onClick={() => item.type === 'guide' ? openGuide() : openMorePage(item.type)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0", borderBottom: "0.5px solid rgba(200,170,240,0.2)", cursor: "pointer" }}>
@@ -616,13 +616,13 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
           <div style={{ flex: 1, overflowY: "auto", padding: "24px 20px" }}>
             {!isLoggedIn ? (
               <div style={{ textAlign: "center", padding: "60px 0" }}>
-                <BrandIcon name="document" size={32} color="#e0d0f0" />
+                <BrandIcon name="folder" size={32} color="#e0d0f0" />
                 <div style={{ fontSize: 14, color: "#bbb", marginTop: 12, marginBottom: 20 }}>{th("login_to_purchases")}</div>
                 <button onClick={() => openAuth("signup")} style={{ fontSize: 13, padding: "10px 28px", borderRadius: 20, border: "none", background: "linear-gradient(135deg,#f4b9b9,#e49bfd)", color: "white", cursor: "pointer", fontWeight: 700 }}>{th("login_signup")}</button>
               </div>
             ) : (() => {
               const purchasedMaterials = materials.filter(mat => purchasedIds.includes(mat.id));
-              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="document" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>{th("no_purchases")}</div></div>;
+              if (purchasedMaterials.length === 0) return <div style={{ textAlign: "center", padding: "60px 0", color: "#bbb" }}><BrandIcon name="folder" size={32} color="#e0d0f0" /><div style={{ fontSize: 14, marginTop: 12 }}>{th("no_purchases")}</div></div>;
               return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>{purchasedMaterials.map((mat) => { const { bg, char, charColor, tag, tagBg, tagColor } = getCardStyle(mat, locale); return <MaterialCard key={mat.id} mat={mat} onClick={() => openTeaser(mat)} locale={locale} isLoggedIn={isLoggedIn} favIds={effectiveFavIds} purchasedIds={purchasedIds} bg={bg} char={char} charColor={charColor} tag={tag} tagBg={tagBg} tagColor={tagColor} onFavToggle={(mat) => toggleFav(mat, favIds, setFavIds)} onOpenFavHistory={() => { setMorePageType(null); setActiveTab("fav"); window.scrollTo({ top: 0, behavior: "smooth" }); }} />; })}</div>;
             })()}
           </div>
@@ -814,7 +814,7 @@ function MobileHomeInner({ materials, initialContent, initialMethod, initialPage
             {[
               { icon: "user"    as const, label: th("profile_short"),  sub: "profile"  as const },
               { icon: "plan"    as const, label: tm("plan"),                                  sub: "plan"     as const },
-              { icon: "billing" as const, label: tm("billing"),                               sub: "billing"  as const },
+              { icon: "credit-card" as const, label: tm("billing"),                               sub: "billing"  as const },
             ].map((item) => (
               <div key={item.label} onClick={() => item.sub === 'plan' ? openPlan() : openSettings(item.sub)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 0", borderBottom: "0.5px solid rgba(200,170,240,0.15)", cursor: "pointer" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

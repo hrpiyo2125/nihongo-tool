@@ -470,7 +470,7 @@ export default function BillingSection({
             </div>
           ) : invoices.length === 0 ? (
             <div style={{ padding: "56px 0", textAlign: "center", color: "#bbb", fontSize: 14 }}>
-              <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><BrandIcon name="billing" size={38} color="#dbb0f5" /></div>
+              <div style={{ marginBottom: 14, display: "flex", justifyContent: "center" }}><BrandIcon name="credit-card" size={38} color="#dbb0f5" /></div>
               {tb("no_billing")}
             </div>
           ) : (() => {

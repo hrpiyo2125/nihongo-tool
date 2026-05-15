@@ -63,7 +63,7 @@ export default function UserMenuPopup({
       {[
         { icon: "user" as const, label: tm("profile"), page: "settings-profile" },
         { icon: "plan" as const, label: tm("plan"), page: "plan" },
-        { icon: "billing" as const, label: tm("billing"), page: "settings-billing" },
+        { icon: "credit-card" as const, label: tm("billing"), page: "settings-billing" },
       ].map((item) => (
         <button key={item.label} onClick={() => onNavigate(item.page)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "11px 18px", border: "none", background: "transparent", cursor: "pointer", textAlign: "left" as const, fontSize: 13, color: "#444", borderBottom: "0.5px solid rgba(200,170,240,0.1)" }}>
           <BrandIcon name={item.icon} size={17} color="#c9a0f0" />{item.label}
