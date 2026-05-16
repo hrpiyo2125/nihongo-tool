@@ -17,7 +17,8 @@ export async function POST(req: NextRequest) {
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  await supabase.from("chat_messages").insert({
+  // fire-and-forget: メッセージ保存を待たずにセッションIDを即返す
+  supabase.from("chat_messages").insert({
     session_id: data.id,
     role: "user",
     content: userMessage,
