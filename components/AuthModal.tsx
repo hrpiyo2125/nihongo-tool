@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useLocale } from "next-intl";
 import { createClient } from "../lib/supabase";
 import { Turnstile } from "@marsidev/react-turnstile";
@@ -30,6 +30,10 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
   const handleCaptchaSuccess = useCallback((token: string) => { captchaTokenRef.current = token; }, []);
   const [agreedGoogle, setAgreedGoogle] = useState(false);
   const [agreedEmail, setAgreedEmail] = useState(false);
+  const [isLineWebView, setIsLineWebView] = useState(false);
+  useEffect(() => {
+    setIsLineWebView(/Line\//i.test(navigator.userAgent));
+  }, []);
   const [legalModal, setLegalModal] = useState<"terms" | "privacy" | null>(null);
 
   const supabase = createClient();
@@ -298,8 +302,14 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
         {view !== "reset-request" && (
           <>
             {/* Googleボタン */}
-            {view === "signup" && makeAgreeCheckbox(agreedGoogle, () => setAgreedGoogle(v => !v))}
-            <button onClick={handleGoogle} disabled={loading} style={{
+            {isLineWebView ? (
+              <div style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 10, background: "#f5f0ff", border: "1px solid #d4baff", fontSize: 12, color: "#5a3d8a", lineHeight: 1.6 }}>
+                LINEブラウザではGoogleログインをご利用いただけません。下のメールアドレスでログインしてください。
+              </div>
+            ) : (
+              <>
+                {view === "signup" && makeAgreeCheckbox(agreedGoogle, () => setAgreedGoogle(v => !v))}
+                <button onClick={handleGoogle} disabled={loading} style={{
               width: "100%", height: 44, borderRadius: 10,
               border: "0.5px solid rgba(0,0,0,0.12)",
               background: (view === "signup" && !agreedGoogle) ? "#f5f5f5" : "white",
@@ -316,7 +326,9 @@ export default function AuthModal({ initialMode = "signup", reason, onClose, onL
                 <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/>
               </svg>
               Googleで続ける
-            </button>
+                </button>
+              </>
+            )}
 
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <div style={{ flex: 1, height: "0.5px", background: "rgba(0,0,0,0.1)" }} />
